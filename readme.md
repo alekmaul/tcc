@@ -1,1 +1,1 @@
-Tiny C Compiler - C Scripting Everywhere - The Smallest ANSI C compiler
+Tiny C Compiler - The Smallest ANSI C compiler
