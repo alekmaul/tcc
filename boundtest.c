@@ -12,8 +12,7 @@ char tab3[256];
 int test1(void)
 {
     int i, sum = 0;
-    for (i = 0; i < TAB_SIZE; i++)
-    {
+    for(i=0;i<TAB_SIZE;i++) {
         sum += tab[i];
     }
     return sum;
@@ -23,8 +22,7 @@ int test1(void)
 int test2(void)
 {
     int i, sum = 0;
-    for (i = 0; i < TAB_SIZE + 1; i++)
-    {
+    for(i=0;i<TAB_SIZE + 1;i++) {
         sum += tab[i];
     }
     return sum;
@@ -37,10 +35,8 @@ int test3(void)
     int i, it;
 
     sum = 0;
-    for (it = 0; it < NB_ITS; it++)
-    {
-        for (i = 0; i < TAB_SIZE; i++)
-        {
+    for(it=0;it<NB_ITS;it++) {
+        for(i=0;i<TAB_SIZE;i++) {
             sum += tab[i];
         }
     }
@@ -54,8 +50,7 @@ int test4(void)
     int *tab4;
 
     tab4 = malloc(20 * sizeof(int));
-    for (i = 0; i < 20; i++)
-    {
+    for(i=0;i<20;i++) {
         sum += tab4[i];
     }
     free(tab4);
@@ -70,8 +65,7 @@ int test5(void)
     int *tab4;
 
     tab4 = malloc(20 * sizeof(int));
-    for (i = 0; i < 21; i++)
-    {
+    for(i=0;i<21;i++) {
         sum += tab4[i];
     }
     free(tab4);
@@ -85,11 +79,10 @@ int test6(void)
 {
     int i, sum = 0;
     int *tab4;
-
+    
     tab4 = malloc(20 * sizeof(int));
     free(tab4);
-    for (i = 0; i < 21; i++)
-    {
+    for(i=0;i<21;i++) {
         sum += tab4[i];
     }
 
@@ -102,8 +95,7 @@ int test7(void)
     int i, sum = 0;
     int *p;
 
-    for (i = 0; i < TAB_SIZE + 1; i++)
-    {
+    for(i=0;i<TAB_SIZE + 1;i++) {
         p = &tab[i];
         if (i == TAB_SIZE)
             printf("i=%d %x\n", i, p);
@@ -118,8 +110,7 @@ int test8(void)
     int i, sum = 0;
     int tab[10];
 
-    for (i = 0; i < 10; i++)
-    {
+    for(i=0;i<10;i++) {
         sum += tab[i];
     }
     return sum;
@@ -131,8 +122,7 @@ int test9(void)
     int i, sum = 0;
     char tab[10];
 
-    for (i = 0; i < 11; i++)
-    {
+    for(i=0;i<11;i++) {
         sum += tab[i];
     }
     return sum;
@@ -201,10 +191,10 @@ int main(int argc, char **argv)
     int index;
     int (*ftest)(void);
 
-    if (argc < 2)
-    {
+    if (argc < 2) {
         printf("usage: boundtest n\n"
-               "test TCC bound checking system\n");
+               "test TCC bound checking system\n"
+               );
         exit(1);
     }
 
@@ -221,4 +211,4 @@ int main(int argc, char **argv)
 /*
  * without bound   0.77 s
  * with bounds    4.73
- */
+ */  

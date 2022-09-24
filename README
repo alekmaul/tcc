@@ -19,7 +19,7 @@ Features:
   checked code can be mixed freely with standard code.
 
 - Compile and execute C source directly. No linking or assembly
-  necessary. Full C preprocessor included.
+  necessary. Full C preprocessor included. 
 
 - C script supported : just add '#!/usr/local/bin/tcc -run' at the first
   line of your C source, and execute it directly from the command
@@ -28,7 +28,7 @@ Features:
 Documentation:
 -------------
 
-1) Installation on a i386 Linux host (for Windows read tcc-win32.txt)
+1) Installation on a i386 Linux host (for Windows read win32/readme.txt)
 
    ./configure
    make
@@ -79,7 +79,8 @@ when doing 'make test'.
 
 Please read tcc-doc.html to have all the features of TCC.
 
-Additional information is available for the Windows port in tcc-win32.txt.
+Additional information is available for the Windows port in
+win32/readme.txt.
 
 License:
 -------
