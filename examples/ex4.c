@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <X11/Xlib.h>
 
+/* Yes, TCC can use X11 too ! */
+
 int main(int argc, char **argv)
 {
     Display *display;
