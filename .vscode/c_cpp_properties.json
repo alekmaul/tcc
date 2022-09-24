@@ -1,0 +1,37 @@
+{
+    "version": 4,
+    "env": {
+        "TCC-65816": [
+            "${workspaceFolder}/pvsneslib/compiler/tcc-65816/**"
+        ]
+    },
+    "configurations": [
+        {
+            "name": "TCC-65816",
+            "compilerArgs": [
+                "-Wall",
+                "-O2",
+                "-g",
+                "-Wno-pointer-sign",
+                "-Wno-unused-but-set-variable",
+                "-Wno-format-overflow",
+                "-Wno-array-bounds",
+                "-Wno-format-truncation",
+                "-fno-strict-aliasing",
+                "-lm",
+                "-ld",
+                "-DTCC_TARGET_816"
+            ],
+            "includePath": [
+                "${TCC-65816}"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": "",
+                "path": [
+                    "${TCC-65816}"
+                ]
+            }
+        }
+    ]
+}
