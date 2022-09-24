@@ -226,7 +226,7 @@ void macro_test(void)
 #line 203 "test"
     printf("__LINE__=%d __FILE__=%s\n",
            __LINE__, __FILE__);
-#line 220 "tcctest.c"
+#line 227 "tcctest.c"
 
     /* not strictly preprocessor, but we test it there */
 #ifdef C99_MACROS
@@ -455,14 +455,21 @@ void enum_test()
 
 typedef int *my_ptr;
 
+typedef int mytype1;
+typedef int mytype2;
+
 void typedef_test()
 {
     my_ptr a;
+    mytype1 mytype2;
     int b;
+
     a = &b;
     *a = 1234;
     printf("typedef:\n");
     printf("a=%d\n", *a);
+    mytype2 = 2;
+    printf("mytype2=%d\n", mytype2);
 }
 
 void forward_test()
@@ -1095,6 +1102,8 @@ void cast_test()
     int a;
     char c;
     char tab[10];
+    unsigned b, d;
+    short s;
 
     printf("cast_test:\n");
     a = 0xfffff;
@@ -1117,6 +1126,14 @@ void cast_test()
     printf("%d\n", a);
 
     printf("sizeof(c) = %d, sizeof((int)c) = %d\n", sizeof(c), sizeof((int)c));
+
+    /* test cast from unsigned to signed short to int */
+    b = 0xf000;
+    d = (short)b;
+    printf("((unsigned)(short)0x%08x) = 0x%08x\n", b, d);
+    b = 0xf0f0;
+    d = (char)b;
+    printf("((unsigned)(char)0x%08x) = 0x%08x\n", b, d);
 
     /* test implicit int casting for array accesses */
     c = 0;
@@ -1868,14 +1885,14 @@ void local_label_test(void)
     goto l1;
 l2:
     a = 1 + ({
-            __label__ l1, l2, l3;
-            goto l4;
-        l5:
-            printf("aa1\n");
+            __label__ l1, l2, l3, l4;
             goto l1;
+        l4:
+            printf("aa1\n");
+            goto l3;
         l2:
             printf("aa3\n");
-            goto l3;
+            goto l4;
         l1:
             printf("aa2\n");
             goto l2;
@@ -1884,12 +1901,12 @@ l2:
         });
     printf("a=%d\n", a);
     return;
-l1:
+l4:
     printf("bb1\n");
     goto l2;
-l4:
+l1:
     printf("bb2\n");
-    goto l5;
+    goto l4;
 }
 
 /* inline assembler test */
