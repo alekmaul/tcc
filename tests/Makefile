@@ -6,24 +6,24 @@
 TESTS = libtest test3
 
 # these should work too
-# TESTS += test1 test2 speed
+# TESTS += test1 test2 speedtest btest
 
 # these don't work as they should
-# TESTS += test4 btest asmtest
-
+# TESTS += test4 asmtest
 
 TOP = ..
 include $(TOP)/Makefile
 
 # run local version of tcc with local libraries and includes
 TCC = ../tcc -B..
-RUN_TCC = -run ../tcc.c -B..
+RUN_TCC = $(NATIVE_TARGET) -run ../tcc.c -B..
 DISAS=objdump -d
 
 all test : $(TESTS)
 
 # make sure that tcc exists
 $(TESTS) : ../tcc
+
 ../tcc ../libtcc.a :
 	$(MAKE) -C ..
 
@@ -37,7 +37,8 @@ libtcc_test$(EXESUF): libtcc_test.c ../libtcc.a
 
 # test.ref - generate using gcc
 test.ref: tcctest.c
-	$(CC) -o tcctest.gcc $< -w -I.. -I../include $(CFLAGS)
+	cp -u ../include/tcclib.h .
+	$(CC) -o tcctest.gcc $< -I. -w $(CFLAGS)
 	./tcctest.gcc > $@
 
 # auto test
@@ -49,13 +50,13 @@ test1: test.ref
 # iterated test2 (compile tcc then compile tcctest.c !)
 test2: test.ref
 	@echo ------------ $@ ------------
-	$(TCC) $(RUN_TCC) $(RuN_TCC) -run tcctest.c > test.out2
+	$(TCC) $(RUN_TCC) $(RUN_TCC) -run tcctest.c > test.out2
 	@if diff -u test.ref test.out2 ; then echo "Auto Test2 OK"; fi
 
 # iterated test3 (compile tcc then compile tcc then compile tcctest.c !)
 test3: test.ref
 	@echo ------------ $@ ------------
-	$(TCC) $(RUN_TCC) $(RuN_TCC) $(RUN_TCC) -run tcctest.c > test.out3
+	$(TCC) $(RUN_TCC) $(RUN_TCC) $(RUN_TCC) -run tcctest.c > test.out3
 	@if diff -u test.ref test.out3 ; then echo "Auto Test3 OK"; fi
 
 # binary output test
@@ -80,29 +81,31 @@ test4: test.ref
 	@if diff -u test.ref test4.out ; then echo "BCheck Auto Test OK"; fi
 
 # memory and bound check auto test
-BOUNDS_OK  = 1 4 8 10
-BOUNDS_FAIL= 2 5 7 9 11 12 13
+BOUNDS_OK  = 1 4 8 10 14
+BOUNDS_FAIL= 2 5 7 9 11 12 13 15
 
 btest: boundtest.c
 	@echo ------------ $@ ------------
 	@for i in $(BOUNDS_OK); do \
+	   echo ; echo --- boundtest $$i ---; \
 	   if $(TCC) -b -run boundtest.c $$i ; then \
-	       /bin/true ; \
+	       echo succeded as expected; \
 	   else\
 	       echo Failed positive test $$i ; exit 1 ; \
 	   fi ;\
 	done ;\
 	for i in $(BOUNDS_FAIL); do \
+	   echo ; echo --- boundtest $$i ---; \
 	   if $(TCC) -b -run boundtest.c $$i ; then \
 	       echo Failed negative test $$i ; exit 1 ;\
 	   else\
-	       /bin/true ; \
+	       echo failed as expected; \
 	   fi ;\
 	done ;\
-	echo Bound test OK
+	echo; echo Bound test OK
 
 # speed test
-speed: ex2 ex3
+speedtest: ex2 ex3
 	@echo ------------ $@ ------------
 	time ./ex2 1238 2 3 4 10 13 4
 	time $(TCC) -run ../examples/ex2.c 1238 2 3 4 10 13 4
@@ -114,13 +117,13 @@ ex%: ../examples/ex%.c
 
 # tiny assembler testing
 asmtest.ref: asmtest.S
-	$(CC) -o asmtest.ref.o -c asmtest.S
-	objdump -D asmtest.ref.o > $@
+	$(CC) -Wa,-W -o asmtest.ref.o -c asmtest.S
+	objdump -D asmtest.ref.o > asmtest.ref
 
 asmtest: asmtest.ref
 	@echo ------------ $@ ------------
 	$(TCC) -c asmtest.S
-	objdump -D asmtest.o > $@
+	objdump -D asmtest.o > asmtest.out
 	@if diff -u --ignore-matching-lines="file format" asmtest.ref asmtest.out ; then echo "ASM Auto Test OK"; fi
 
 # targets for development
@@ -141,4 +144,4 @@ cache: tcc_g
 # clean
 clean:
 	rm -vf *~ *.o *.a *.bin *.i *.ref *.out *.out? *.gcc \
-	   tcctest[1234] ex? libtcc_test tcc_g
+	   tcctest[1234] ex? libtcc_test$(EXESUF) tcc_g tcclib.h

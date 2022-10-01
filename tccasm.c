@@ -122,7 +122,7 @@ static void asm_expr_unary(TCCState *s1, ExprValue *pe)
             if (sym->r == SHN_ABS)
             {
                 /* if absolute symbol, no need to put a symbol value */
-                pe->v = (long)sym->next;
+                pe->v = sym->jnext;
                 pe->sym = NULL;
             }
             else
@@ -259,7 +259,7 @@ static inline void asm_expr_sum(TCCState *s1, ExprValue *pe)
                 else if (pe->sym->r == e2.sym->r && pe->sym->r != 0)
                 {
                     /* we also accept defined symbols in the same section */
-                    pe->v += (long)pe->sym->next - (long)e2.sym->next;
+                    pe->v += pe->sym->jnext - e2.sym->jnext;
                 }
                 else
                 {
@@ -322,7 +322,7 @@ static void asm_new_label1(TCCState *s1, int label, int is_local,
         sym->type.t = VT_STATIC | VT_VOID;
     }
     sym->r = sh_num;
-    sym->next = (void *)value;
+    sym->jnext = value;
 }
 
 static void asm_new_label(TCCState *s1, int label, int is_local)
@@ -345,7 +345,7 @@ static void asm_free_labels(TCCState *st)
                 sec = SECTION_ABS;
             else
                 sec = st->sections[s->r];
-            put_extern_sym2(s, sec, (long)s->next, 0, 0);
+            put_extern_sym2(s, sec, s->jnext, 0, 0);
         }
         /* remove label */
         table_ident[s->v - TOK_IDENT]->sym_label = NULL;
@@ -650,6 +650,26 @@ static void asm_parse_directive(TCCState *s1)
         last_text_section = sec;
     }
     break;
+#ifdef TCC_TARGET_I386
+    case TOK_ASM_code16:
+    {
+        next();
+        s1->seg_size = 16;
+    }
+    break;
+    case TOK_ASM_code32:
+    {
+        next();
+        s1->seg_size = 32;
+    }
+    break;
+#endif
+#ifdef TCC_TARGET_X86_64
+    /* added for compatibility with GAS */
+    case TOK_ASM_code64:
+        next();
+        break;
+#endif
     default:
         error("unknown assembler directive '.%s'", get_tok_str(tok, NULL));
         break;
@@ -783,6 +803,12 @@ static int tcc_assemble(TCCState *s1, int do_preprocess)
     ind = cur_text_section->data_offset;
 
     define_start = define_stack;
+
+    /* an elf symbol of type STT_FILE must be put so that STB_LOCAL
+       symbols can be safely used */
+    put_elf_sym(symtab_section, 0, 0,
+                ELFW(ST_INFO)(STB_LOCAL, STT_FILE), 0,
+                SHN_ABS, file->filename);
 
     ret = tcc_assemble_internal(s1, do_preprocess);
 

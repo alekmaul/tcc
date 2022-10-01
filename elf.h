@@ -256,9 +256,7 @@ typedef struct
 
 #define EM_ALPHA 0x9026
 #define EM_C60 0x9c60
-#ifdef TCC_TARGET_816
 #define EM_W65 0x9816
-#endif
 
 /* Legal values for e_version (version).  */
 
@@ -936,6 +934,10 @@ typedef struct
 #define R_386_GOTPC 10   /* 32 bit PC relative offset to GOT */
 /* Keep this the last entry.  */
 #define R_386_NUM 11
+
+/* TCC-specific 16-bit relocs. */
+#define R_386_16 12   /* Direct 16 bit  */
+#define R_386_PC16 13 /* PC relative 16 bit */
 
 /* SUN SPARC specific definitions.  */
 

@@ -46,6 +46,9 @@
 #include <direct.h> /* getcwd */
 #define inline __inline
 #define inp next_inp
+#ifdef _WIN64
+#define uplong unsigned long long
+#endif
 #endif
 
 #ifndef _WIN32
@@ -56,6 +59,10 @@
 #endif
 
 #endif /* !CONFIG_TCCBOOT */
+
+#ifndef uplong
+#define uplong unsigned long
+#endif
 
 #ifndef PAGESIZE
 #define PAGESIZE 4096
@@ -95,7 +102,7 @@
 #define TCC_TARGET_I386
 #endif
 
-#if !defined(WIN32) && !defined(TCC_UCLIBC) && !defined(TCC_TARGET_ARM) && \
+#if !defined(TCC_UCLIBC) && !defined(TCC_TARGET_ARM) && \
     !defined(TCC_TARGET_C67) && !defined(TCC_TARGET_X86_64) && \
     !defined(TCC_TARGET_816)
 #define CONFIG_TCC_BCHECK /* enable bound checking code */
@@ -107,7 +114,7 @@
 
 /* define it to include assembler support */
 #if !defined(TCC_TARGET_ARM) && !defined(TCC_TARGET_C67) && \
-    !defined(TCC_TARGET_X86_64) && !defined(TCC_TARGET_816)
+    !defined(TCC_TARGET_816)
 #define CONFIG_TCC_ASM
 #endif
 
@@ -116,8 +123,7 @@
 #define TCC_TARGET_COFF
 #endif
 
-#if !defined(_WIN32) && !defined(CONFIG_TCCBOOT)  && \
-    !defined(TCC_TARGET_816)
+#if !defined(CONFIG_TCCBOOT) && !defined(TCC_TARGET_816)
 #define CONFIG_TCC_BACKTRACE
 #endif
 
@@ -208,11 +214,19 @@ typedef struct SValue
 /* symbol management */
 typedef struct Sym
 {
-    int v;                /* symbol token */
-    long r;               /* associated register */
-    long c;               /* associated number */
-    CType type;           /* associated type */
-    struct Sym *next;     /* next related symbol */
+    int v;  /* symbol token */
+    long r; /* associated register */
+    union
+    {
+        long c; /* associated number */
+        int *d; /* define token stream */
+    };
+    CType type; /* associated type */
+    union
+    {
+        struct Sym *next; /* next related symbol */
+        long jnext;       /* next jump label */
+    };
     struct Sym *prev;     /* prev symbol in stack */
     struct Sym *prev_tok; /* previous symbol for this token */
 } Sym;
@@ -259,26 +273,25 @@ typedef struct DLLReference
 /* GNUC attribute definition */
 typedef struct AttributeDef
 {
-    int aligned;
-    int packed;
-    Section *section;
-    int func_attr; /* calling convention, exports, ... */
+    unsigned
+        packed : 1,
+        aligned : 5,   /* alignement (0..16) */
+        func_call : 3, /* calling convention (0..5), see below */
+        func_export : 1,
+        func_import : 1,
+        func_args : 8;
+    struct Section *section;
 } AttributeDef;
 
-/* -------------------------------------------------- */
 /* gr: wrappers for casting sym->r for other purposes */
-typedef struct
-{
-    unsigned
-        func_call : 8,
-        func_args : 8,
-        func_export : 1;
-} func_attr_t;
+#define FUNC_CALL(r) (((AttributeDef *)&(r))->func_call)
+#define FUNC_EXPORT(r) (((AttributeDef *)&(r))->func_export)
+#define FUNC_IMPORT(r) (((AttributeDef *)&(r))->func_import)
+#define FUNC_ARGS(r) (((AttributeDef *)&(r))->func_args)
+#define FUNC_ALIGN(r) (((AttributeDef *)&(r))->aligned)
+#define FUNC_PACKED(r) (((AttributeDef *)&(r))->packed)
+#define INT_ATTR(ad) (*(int *)(ad))
 
-#define FUNC_CALL(r) (((func_attr_t *)&(r))->func_call)
-#define FUNC_EXPORT(r) (((func_attr_t *)&(r))->func_export)
-#define FUNC_ARGS(r) (((func_attr_t *)&(r))->func_args)
-#define INLINE_DEF(r) (*(int **)&(r))
 /* -------------------------------------------------- */
 
 #define SYM_STRUCT 0x40000000     /* struct/union/enum symbol space */
@@ -350,6 +363,14 @@ typedef struct TokenString
     int last_line_num;
 } TokenString;
 
+/* inline functions */
+typedef struct InlineFunc
+{
+    int *token_str;
+    Sym *sym;
+    char filename[1];
+} InlineFunc;
+
 /* include file cache, used to find files faster and also to eliminate
    inclusion if the include file is protected by #ifndef ... #endif */
 typedef struct CachedInclude
@@ -384,7 +405,6 @@ typedef struct ASMOperand
     int is_memory;    /* true if memory operand */
     int is_rw;        /* for '+' modifier */
 } ASMOperand;
-
 #endif
 
 struct TCCState
@@ -439,6 +459,8 @@ struct TCCState
 
     /* soname as specified on the command line (-soname) */
     const char *soname;
+    /* rpath as specified on the command line (-Wl,-rpath=) */
+    const char *rpath;
 
     /* if true, all symbols are exported */
     int rdynamic;
@@ -468,10 +490,12 @@ struct TCCState
     int verbose;
     /* compile with debug symbol (and use them if error during execution) */
     int do_debug;
+#ifdef CONFIG_TCC_BCHECK
     /* compile with built-in memory and bounds checker */
     int do_bounds_check;
+#endif
     /* give the path of the tcc libraries */
-    const char *tcc_lib_path;
+    char *tcc_lib_path;
 
     /* error handling */
     void *error_opaque;
@@ -501,17 +525,30 @@ struct TCCState
 
     /* for tcc_relocate */
     int runtime_added;
+    void *runtime_mem;
 
+    struct InlineFunc **inline_fns;
+    int nb_inline_fns;
+
+#ifdef TCC_TARGET_I386
+    int seg_size;
+#endif
+
+    /* section alignment */
+    unsigned long section_align;
+
+#ifdef TCC_TARGET_PE
+    /* PE info */
+    int pe_subsystem;
+    unsigned long pe_file_align;
+#endif
+
+#ifndef TCC_TARGET_PE
 #ifdef TCC_TARGET_X86_64
     /* write PLT and GOT here */
     char *runtime_plt_and_got;
     unsigned int runtime_plt_and_got_offset;
 #endif
-
-#ifdef TCC_TARGET_X86_64
-    /* buffer to store jump tables */
-    char *jmp_table;
-    int jmp_table_num;
 #endif
 };
 
@@ -566,19 +603,14 @@ struct TCCState
 #define VT_STATIC 0x00000100  /* static variable */
 #define VT_TYPEDEF 0x00000200 /* typedef definition */
 #define VT_INLINE 0x00000400  /* inline definition */
-#ifdef TCC_TARGET_816
-#define VT_STATICLOCAL 0x00004000
-#endif
+#define VT_IMPORT 0x00004000  /* win32: extern data imported from dll */
+#define VT_EXPORT 0x00008000  /* win32: data exported from dll */
 
 #define VT_STRUCT_SHIFT 16 /* shift for bitfield shift values */
 
 /* type mask (except storage) */
-#define VT_STORAGE (VT_EXTERN | VT_STATIC | VT_TYPEDEF | VT_INLINE)
-#ifdef TCC_TARGET_816
-#define VT_TYPE (~(VT_STORAGE) & ~(VT_STATICLOCAL))
-#else
+#define VT_STORAGE (VT_EXTERN | VT_STATIC | VT_TYPEDEF | VT_INLINE | VT_IMPORT | VT_EXPORT)
 #define VT_TYPE (~(VT_STORAGE))
-#endif
 
 /* token values */
 
@@ -657,19 +689,42 @@ struct TCCState
 /* all identificators and strings have token above that */
 #define TOK_IDENT 256
 
-/* only used for i386 asm opcodes definitions */
 #define DEF_ASM(x) DEF(TOK_ASM_##x, #x)
+#define TOK_ASM_int TOK_INT
 
+#if defined TCC_TARGET_I386 || defined TCC_TARGET_X86_64
+/* only used for i386 asm opcodes definitions */
 #define DEF_BWL(x)              \
     DEF(TOK_ASM_##x##b, #x "b") \
     DEF(TOK_ASM_##x##w, #x "w") \
     DEF(TOK_ASM_##x##l, #x "l") \
     DEF(TOK_ASM_##x, #x)
-
 #define DEF_WL(x)               \
     DEF(TOK_ASM_##x##w, #x "w") \
     DEF(TOK_ASM_##x##l, #x "l") \
     DEF(TOK_ASM_##x, #x)
+#ifdef TCC_TARGET_X86_64
+#define DEF_BWLQ(x)             \
+    DEF(TOK_ASM_##x##b, #x "b") \
+    DEF(TOK_ASM_##x##w, #x "w") \
+    DEF(TOK_ASM_##x##l, #x "l") \
+    DEF(TOK_ASM_##x##q, #x "q") \
+    DEF(TOK_ASM_##x, #x)
+#define DEF_WLQ(x)              \
+    DEF(TOK_ASM_##x##w, #x "w") \
+    DEF(TOK_ASM_##x##l, #x "l") \
+    DEF(TOK_ASM_##x##q, #x "q") \
+    DEF(TOK_ASM_##x, #x)
+#define DEF_BWLX DEF_BWLQ
+#define DEF_WLX DEF_WLQ
+/* number of sizes + 1 */
+#define NBWLX 5
+#else
+#define DEF_BWLX DEF_BWL
+#define DEF_WLX DEF_WL
+/* number of sizes + 1 */
+#define NBWLX 4
+#endif
 
 #define DEF_FP1(x)                       \
     DEF(TOK_ASM_##f##x##s, "f" #x "s")   \
@@ -714,7 +769,7 @@ struct TCCState
     DEF_ASM(x##nle)    \
     DEF_ASM(x##g)
 
-#define TOK_ASM_int TOK_INT
+#endif // defined TCC_TARGET_I386 || defined TCC_TARGET_X86_64
 
 enum tcc_token
 {
@@ -780,13 +835,6 @@ char *pstrcpy(char *buf, int buf_size, const char *s);
 char *pstrcat(char *buf, int buf_size, const char *s);
 void dynarray_add(void ***ptab, int *nb_ptr, void *data);
 void dynarray_reset(void *pp, int *n);
-
-#ifdef CONFIG_TCC_BACKTRACE
-extern int num_callers;
-#ifndef TCC_TARGET_816
-extern const char **rt_bound_error_msg;
-#endif
-#endif
 
 /* true if float/double/long double type */
 static inline int is_float(int t)
