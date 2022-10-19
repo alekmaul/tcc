@@ -20,7 +20,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#define LDOUBLE_SIZE 12 // not actually supported
+// not actually supported
+#define LDOUBLE_SIZE 12
+
 #define LDOUBLE_ALIGN 4
 #define MAX_ALIGN 8
 
@@ -87,6 +89,7 @@ int reg_classes[NB_REGS] = {
 #define R_DATA_32 1  // whatever
 #define R_JMP_SLOT 2 // whatever
 #define R_COPY 3     // whatever
+#define R_DATA_PTR 4
 
 #define ELF_PAGE_SIZE 0x1000 // whatever
 #define ELF_START_ADDR 0x400 // made up
@@ -97,10 +100,21 @@ int reg_classes[NB_REGS] = {
 
 #define LOCAL_LABEL "__local_%d"
 
-char current_fn[256] = "";
+#define MAXLEN 255
 
-// Alekmaul 201125, variable for temp file name (token usage)
-char sztmpnam[STRING_MAX_SIZE];
+#ifndef __GNUC__
+#define snprintf_nowarn snprintf
+#else
+#define snprintf_nowarn(...) __extension__({                   \
+    _Pragma("GCC diagnostic push");                            \
+    _Pragma("GCC diagnostic ignored \"-Wformat-truncation\""); \
+    const int _snprintf_nowarn = snprintf(__VA_ARGS__);        \
+    _Pragma("GCC diagnostic pop");                             \
+    _snprintf_nowarn;                                          \
+})
+#endif
+
+char current_fn[256] = "";
 
 /* yet another terrible workaround
    WLA does not have file-local symbols, only section-local and global.
@@ -120,13 +134,12 @@ struct labels_816
 {
     char *name;
     int pos;
-};
-struct labels_816 label[1000];
+} label[1000];
 int labels = 0;
 
 char *get_sym_str(Sym *sym)
 {
-    static char name[256];
+    static char name[MAXLEN + 1];
     char *symname;
 
     symname = get_tok_str(sym->v, NULL);
@@ -135,9 +148,8 @@ char *get_sym_str(Sym *sym)
     /* if static, add prefix */
     if (sym->type.t & VT_STATIC)
     {
-        // fprintf(stderr,"sym %s type 0x%x current_fn %s token %d\n",symname,sym->type.t,current_fn,sym->v);
-        if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0 && !((sym->type.t & VT_BTYPE) == VT_FUNC))
-            sprintf(name, "%s_FUNC_%s_", static_prefix, current_fn);
+        if ((sym->type.t & VT_IMPORT) && current_fn[0] != 0 && !((sym->type.t & VT_BTYPE) == VT_FUNC))
+            snprintf_nowarn(name, MAXLEN, "%s_FUNC_%s_", static_prefix, current_fn);
         else
             strcpy(name, static_prefix);
     }
@@ -145,7 +157,6 @@ char *get_sym_str(Sym *sym)
     /* add symbol name */
     strcat(name, symname);
 
-    // fprintf(stderr,"symbol %s type 0x%x\n", name, sym->type.t);
     return name;
 }
 
@@ -166,28 +177,28 @@ void s(char *str)
         g(*str);
 }
 
-char line[256];
-#define pr(x...)          \
-    do                    \
-    {                     \
-        sprintf(line, x); \
-        s(line);          \
+char line[MAXLEN + 1];
+#define pr(x...)                          \
+    do                                    \
+    {                                     \
+        snprintf_nowarn(line, MAXLEN, x); \
+        s(line);                          \
     } while (0)
 
-int jump[20000][2]; // update from mic_ to have more space
+// update from mic_to have more space
+int jump[20000][2];
 int jumps = 0;
 
+/* output a symbol and patch all calls to it */
 void gsym_addr(int t, int a)
 {
     /* code at t wants to jump to a */
-    // fprintf(stderr, "gsymming t 0x%x a 0x%x\n", t, a);
     pr("; gsym_addr t %d a %d ind %d\n", t, a, ind);
     /* the label generation code sets this for us so we know when a symbol
        is a label and what its name is, so that we can remember its name
        and position so the output code can insert it correctly */
     if (label_workaround)
     {
-        // fprintf("setting label %s to a %d (t %d)\n", label_workaround, a, t);
         label[labels].name = label_workaround;
         label[labels].pos = a;
         labels++;
@@ -213,7 +224,7 @@ void gsym(int t)
     gsym_addr(t, ind);
 }
 
-int stack_back = 0;
+static int stack_back = 0;
 int adjust_stack(int fc, int disp)
 {
     pr("; stack adjust: fc + disp - loc %d\n", fc + disp - loc);
@@ -238,10 +249,9 @@ int restore_stack(int fc)
 // this used to be local to gfunc_call, but we need it to get the correct
 // stack pointer displacement while building the argument stack for
 // a function call
-int args_size = 0;
+static int args_size = 0;
 
-int ll_workaround = 0;
-
+/* load 'r' from value 'sv' */
 void load(int r, SValue *sv)
 {
     int fr, ft, fc;
@@ -258,10 +268,6 @@ void load(int r, SValue *sv)
     length = type_size(&sv->type, &align);
     if ((ft & VT_BTYPE) == VT_LLONG)
         length = 2; // long longs are handled word-wise
-    if (ll_workaround)
-        length = 4;
-
-    // pr("; load r 0x%x fr 0x%x ft 0x%x fc 0x%x\n",r,fr,ft,fc);
 
     int base = -1;
     v = fr & VT_VALMASK;
@@ -530,6 +536,7 @@ void load(int r, SValue *sv)
     error("load unimplemented");
 }
 
+/* store register 'r' in lvalue 'v' */
 void store(int r, SValue *sv)
 {
     int v, ft, fc, fr, sign;
@@ -690,6 +697,7 @@ void store(int r, SValue *sv)
     error("store unimplemented");
 }
 
+/* generate function call */
 void gfunc_call(int nb_args)
 {
     int align, r, i, func_call;
@@ -858,6 +866,7 @@ void gfunc_call(int nb_args)
     vtop--;
 }
 
+/* generate a jump to a label */
 int gjmp(int t)
 {
     int r;
@@ -879,11 +888,13 @@ int gjmp(int t)
     return r;
 }
 
+/* generate a jump to a fixed address */
 void gjmp_addr(int a)
 {
     gjmp(a);
 }
 
+/* generate a test. set 'inv' to invert test. Stack entry is popped */
 int gtst(int inv, int t)
 {
     int v, r;
@@ -969,9 +980,7 @@ int gtst(int inv, int t)
     return t;
 }
 
-void warning(const char *fmt, ...);
-
-// generate an integer operation
+/* generate an integer binary operation */
 void gen_opi(int op)
 {
     int r, fr, fc, c, r5; // only set, remove it ,ft;
@@ -1417,25 +1426,46 @@ void gen_opi(int op)
     }
 }
 
-void float_to_woz(float, unsigned char *);
+/* convert floats to Woz format */
+void float_to_woz(float f, unsigned char *w)
+{
+    unsigned int i = 0, b;
 
+    w[0] = 0x8e + 16; // 0x8e is the exp for 16-bit integers; we have 32-bit ints here
+
+    for (; w[0]; w[0]--)
+    {
+        i = (unsigned int)(int)f;
+        // top bits different => normalized
+        b = i & 0xc0000000UL;
+        if (b == 0x80000000UL || b == 0x40000000UL)
+            break;
+
+        f *= 2;
+    }
+    w[1] = i >> 24;
+    w[2] = (i >> 16) & 0xff;
+    w[3] = (i >> 8) & 0xff;
+}
+
+/* generate a floating point operation */
 void gen_opf(int op)
 {
-    // Alek 20/11/25 not used int r, fr, ft;
-    // Alek 20/11/25 not used float fcf;
+    // Not used int r, fr, ft;
+    // Not used float fcf;
     int length, align;
     int ir;
 
     length = type_size(&vtop[0].type, &align);
-    // Alek 20/11/25 not used r = vtop[-1].r;
-    // Alek 20/11/25 not used fr = vtop[0].r;
-    // Alek 20/11/25 not used fcf = vtop[0].c.f;
+    // Not used r = vtop[-1].r;
+    // Not used fr = vtop[0].r;
+    // Not used fcf = vtop[0].c.f;
 
     // get the actual values
     gv2(RC_F1, RC_F0);
-    // Alek 20/11/25 not used r = vtop[-1].r;
-    // Alek 20/11/25 not used fr = vtop[0].r;
-    // Alek 20/11/25 not used ft = vtop[0].type.t;
+    // Not used r = vtop[-1].r;
+    // Not used fr = vtop[0].r;
+    // Not used ft = vtop[0].type.t;
     vtop--;
 
     pr("; gen_opf len %d op 0x%x ('%c')\n", length, op, op);
@@ -1514,6 +1544,8 @@ void gen_opf(int op)
     vtop->r = TREG_F0;
 }
 
+/* convert integers to fp 't' type. Must handle 'int', 'unsigned int'
+   and 'long long' cases. */
 void gen_cvt_itof(int t)
 {
     int r, r2, it;
@@ -1526,10 +1558,7 @@ void gen_cvt_itof(int t)
     if ((vtop->type.t & VT_BTYPE) == VT_LLONG)
     {
         pr("pei (tcc__r%d)\npei (tcc__r%d)\n", r2, r);
-        if (it & VT_UNSIGNED)
-            error("jsr.l tcc__ulltof\n"); // this is probably dead code
-        else
-            pr("jsr.l tcc__lltof\n");
+        pr("jsr.l tcc__lltof\n");
         pr("pla\npla\n");
     }
     else
@@ -1545,6 +1574,7 @@ void gen_cvt_itof(int t)
     vtop->r = TREG_F0; // tell TCC that the result is in f0
 }
 
+/* convert fp to int 't' type */
 void gen_cvt_ftoi(int t)
 {
     int r = 0;
@@ -1579,11 +1609,13 @@ void gen_cvt_ftoi(int t)
     vtop->r = r;
 }
 
+/* convert from one floating point type to another */
 void gen_cvt_ftof(int t)
 {
     error("gen_cvt_ftof 0x%x\n", t);
 }
 
+/* computed goto support */
 void ggoto(void)
 {
     int r = gv(RC_INT);
@@ -1593,16 +1625,15 @@ void ggoto(void)
     pr("jml.l tcc__r9\n");
 }
 
-int section_count = 0;
-int ind_before_section = 0;
 int section_closed = 1;
+static int section_count = 0;
 
+/* generate function prolog of type 't' */
 void gfunc_prolog(CType *func_type)
 {
     Sym *sym; //, *sym2;
     Sym *symf;
     int n, addr, size, align;
-    // fprintf(stderr,"gfunc_prolog t %d sym %p\n",func_type->t,func_type->ref);
 
     sym = func_type->ref;
     func_vt = sym->type;
@@ -1628,7 +1659,6 @@ void gfunc_prolog(CType *func_type)
        than 50K of assembler code have been written */
     if (section_closed)
     {
-        ind_before_section = ind;
         pr("\n.SECTION \".text_0x%x\" SUPERFREE\n", section_count++);
         section_closed = 0;
     }
@@ -1650,10 +1680,12 @@ void gfunc_prolog(CType *func_type)
     loc = 0; // huh squared?
 }
 
-char locals[1000][256]; // update from mic_ 80->256
+// update from mic_ 80->256
+char locals[1000][256];
 int localnos[1000];
 int localno = 0;
 
+/* generate function epilog */
 void gfunc_epilog(void)
 {
     pr("; add sp, #__%s_locals\n", current_fn);
