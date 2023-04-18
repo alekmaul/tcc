@@ -1,7 +1,10 @@
 # tcc files generated with ./configure command or binary
-compiler/tcc-65816/config.h
-compiler/tcc-65816/config.mak
-compiler/tcc-65816/config.texi
-compiler/tcc-65816/tcc-doc.html
-compiler/tcc-65816/816-tcc
-compiler/tcc-65816/816-tcc.exe
+config.h
+config.mak
+config.texi
+tcc-doc.html
+816-tcc
+816-tcc.exe
+config.texi
+tcc.1
+tcc.pod

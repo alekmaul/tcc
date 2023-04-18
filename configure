@@ -149,9 +149,6 @@ for opt; do
     --with-libgcc)
         use_libgcc="yes"
         ;;
-    --help | -h)
-        show_help="yes"
-        ;;
     esac
 done
 
@@ -225,7 +222,7 @@ if $cc -o $TMPO $TMPC 2>/dev/null; then
     gcc_major="4"
 fi
 
-if test x"$show_help" = "xyes"; then
+if test x"$1" = x"-h" -o x"$1" = x"--help"; then
     cat <<EOF
 
 Usage: configure [options]
