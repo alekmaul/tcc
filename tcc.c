@@ -18,11 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef TCC_USE_LIBTCC
-#include "tcc.h"
-#else
 #include "libtcc.c"
-#endif
 
 void help(void)
 {
@@ -416,63 +412,10 @@ int parse_args(TCCState *s, int argc, char **argv)
                     s->text_addr = strtoul(p, NULL, 16);
                     s->has_text_addr = 1;
                 }
-                else if (strstart(optarg, "--section-alignment,", &p))
-                {
-                    s->section_align = strtoul(p, NULL, 16);
-                }
-                else if (strstart(optarg, "--image-base,", &p))
-                {
-                    s->text_addr = strtoul(p, NULL, 16);
-                    s->has_text_addr = 1;
-#ifdef TCC_TARGET_PE
-                }
-                else if (strstart(optarg, "--file-alignment,", &p))
-                {
-                    s->pe_file_align = strtoul(p, NULL, 16);
-                }
-                else if (strstart(optarg, "--subsystem,", &p))
-                {
-#if defined(TCC_TARGET_I386) || defined(TCC_TARGET_X86_64)
-                    if (!strcmp(p, "native"))
-                        s->pe_subsystem = 1;
-                    else if (!strcmp(p, "console"))
-                        s->pe_subsystem = 3;
-                    else if (!strcmp(p, "gui"))
-                        s->pe_subsystem = 2;
-                    else if (!strcmp(p, "posix"))
-                        s->pe_subsystem = 7;
-                    else if (!strcmp(p, "efiapp"))
-                        s->pe_subsystem = 10;
-                    else if (!strcmp(p, "efiboot"))
-                        s->pe_subsystem = 11;
-                    else if (!strcmp(p, "efiruntime"))
-                        s->pe_subsystem = 12;
-                    else if (!strcmp(p, "efirom"))
-                        s->pe_subsystem = 13;
-#elif defined(TCC_TARGET_ARM)
-                    if (!strcmp(p, "wince"))
-                        s->pe_subsystem = 9;
-#endif
-                    else
-                    {
-                        error("invalid subsystem '%s'", p);
-                    }
-#endif
-                }
                 else if (strstart(optarg, "--oformat,", &p))
                 {
-#if defined(TCC_TARGET_PE)
-                    if (strstart(p, "pe-", NULL))
-                    {
-#else
-#if defined(TCC_TARGET_X86_64)
-                    if (strstart(p, "elf64-", NULL))
-                    {
-#else
                     if (strstart(p, "elf32-", NULL))
                     {
-#endif
-#endif
                         s->output_format = TCC_OUTPUT_FORMAT_ELF;
                     }
                     else if (!strcmp(p, "binary"))
@@ -490,10 +433,6 @@ int parse_args(TCCState *s, int argc, char **argv)
                     {
                         error("target %s not found", p);
                     }
-                }
-                else if (strstart(optarg, "-rpath=", &p))
-                {
-                    s->rpath = p;
                 }
                 else
                 {
@@ -529,6 +468,23 @@ int main(int argc, char **argv)
 
     s = tcc_new();
 
+#ifdef TCC_TARGET_816
+    strcpy(sztmpnam, &tmpnam(NULL)[1]);   // Alekmaul 201125, create temp file name for token name
+    for (i = 0; sztmpnam[i] != '\0'; i++) // Alekmaul 201212, ughly change for linux system
+    {
+        if (sztmpnam[i] == '/')
+        {
+            sztmpnam[i] = 'x';
+        }
+        if (sztmpnam[i] == '.')
+        {
+            sztmpnam[i] = 'x';
+        }
+    }
+#endif
+#ifdef _WIN32
+    tcc_set_lib_path_w32(s);
+#endif
     output_type = TCC_OUTPUT_EXE;
     outfile = NULL;
     multiple_files = 1;

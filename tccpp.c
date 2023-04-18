@@ -211,7 +211,11 @@ char *get_tok_str(int v, CValue *cv)
         else if (v >= SYM_FIRST_ANOM)
         {
             /* special name for anonymous symbol */
+#ifdef TCC_TARGET_816
+            sprintf(p, "L.%s%d", sztmpnam, v - SYM_FIRST_ANOM); // Alekmaul 201125, add temp file name to token name
+#else
             sprintf(p, "L.%u", v - SYM_FIRST_ANOM);
+#endif
         }
         else
         {
@@ -943,6 +947,44 @@ static void tok_str_add_tok(TokenString *s)
 
 /* get a token from an integer array and increment pointer
    accordingly. we code it as a macro to avoid pointer aliasing. */
+#ifdef TCC_TARGET_816
+#define TOK_GET(t, p, cv)                                             \
+    {                                                                 \
+        t = *p++;                                                     \
+        switch (t)                                                    \
+        {                                                             \
+        case TOK_CINT:                                                \
+        case TOK_CUINT:                                               \
+        case TOK_CCHAR:                                               \
+        case TOK_LCHAR:                                               \
+        case TOK_CFLOAT:                                              \
+        case TOK_CDOUBLE:                                             \
+        case TOK_LINENUM:                                             \
+            cv.tab[0] = *p++;                                         \
+            break;                                                    \
+        case TOK_STR:                                                 \
+        case TOK_LSTR:                                                \
+        case TOK_PPNUM:                                               \
+            cv.cstr = (CString *)p;                                   \
+            cv.cstr->data = (char *)p + sizeof(CString);              \
+            p += (sizeof(CString) + cv.cstr->size + 3) >> 2;          \
+            break;                                                    \
+        /* case TOK_CDOUBLE: */                                       \
+        case TOK_CLLONG:                                              \
+        case TOK_CULLONG:                                             \
+            cv.tab[0] = p[0];                                         \
+            cv.tab[1] = p[1];                                         \
+            p += 2;                                                   \
+            break;                                                    \
+        case TOK_CLDOUBLE:                                            \
+            LDOUBLE_GET(p, cv);                                       \
+            p += LDOUBLE_SIZE / 4;                                    \
+            break;                                                    \
+        default:                                                      \
+            break;                                                    \
+        }                                                             \
+    }
+#else
 #define TOK_GET(t, p, cv)                                    \
     {                                                        \
         t = *p++;                                            \
@@ -978,6 +1020,7 @@ static void tok_str_add_tok(TokenString *s)
             break;                                           \
         }                                                    \
     }
+#endif
 
 /* defines handling */
 static inline void define_push(int v, int macro_type, int *str, Sym *first_arg)
@@ -1572,7 +1615,7 @@ redo:
         if (s1->ifdef_stack_ptr[-1] & 2)
             error("#else after #else");
         c = (s1->ifdef_stack_ptr[-1] ^= 3);
-        goto test_else;
+        goto test_skip;
     case TOK_ELIF:
         if (s1->ifdef_stack_ptr == s1->ifdef_stack)
             error("#elif without matching #if");
@@ -1584,9 +1627,6 @@ redo:
             goto skip;
         c = expr_preprocess();
         s1->ifdef_stack_ptr[-1] = c;
-    test_else:
-        if (s1->ifdef_stack_ptr == file->ifdef_stack_ptr + 1)
-            file->ifndef_macro = 0;
     test_skip:
         if (!(c & 1))
         {
@@ -1984,12 +2024,12 @@ void parse_number(const char *p)
             else if (t == 'L')
             {
                 ch = *p++;
-#ifdef TCC_TARGET_PE
-                tok = TOK_CDOUBLE;
-                tokc.d = d;
-#elif defined(TCC_TARGET_816)
+#if defined(TCC_TARGET_816)
                 tok = TOK_CFLOAT;
                 tokc.f = d;
+#elif defined(TCC_TARGET_PE)
+                tok = TOK_CDOUBLE;
+                tokc.d = d;
 #else
                 tok = TOK_CLDOUBLE;
                 /* XXX: not large enough */
@@ -2060,12 +2100,12 @@ void parse_number(const char *p)
             else if (t == 'L')
             {
                 ch = *p++;
-#ifdef TCC_TARGET_PE
-                tok = TOK_CDOUBLE;
-                tokc.d = strtod(token_buf, NULL);
-#elif defined(TCC_TARGET_816)
+#if defined(TCC_TARGET_816)
                 tok = TOK_CFLOAT;
                 tokc.f = strtof(token_buf, NULL);
+#elif defined(TCC_TARGET_PE)
+                tok = TOK_CDOUBLE;
+                tokc.d = strtod(token_buf, NULL);
 #else
                 tok = TOK_CLDOUBLE;
                 tokc.ld = strtold(token_buf, NULL);
@@ -3265,7 +3305,6 @@ redo:
             {
                 /* end of macro string: free it */
                 tok_str_free(macro_ptr_allocated);
-                macro_ptr_allocated = NULL;
                 macro_ptr = NULL;
             }
             goto redo;
@@ -3318,10 +3357,7 @@ void preprocess_new()
 {
     int i, c;
     const char *p, *r;
-// remove this because not used, should disappear later ...
-#ifndef TCC_TARGET_816
     TokenSym *ts;
-#endif
 
     /* init isid table */
     for (i = CH_EOF; i < 256; i++)
@@ -3342,11 +3378,7 @@ void preprocess_new()
             if (c == '\0')
                 break;
         }
-#ifndef TCC_TARGET_816
         ts = tok_alloc(p, r - p - 1);
-#else
-        tok_alloc(p, r - p - 1);
-#endif
         p = r;
     }
 }
