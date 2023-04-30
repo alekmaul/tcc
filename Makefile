@@ -41,10 +41,7 @@ CFLAGS+=-Wno-pointer-sign
 endif
 
 ifndef CONFIG_WIN32
-LIBS=-lm
-ifndef CONFIG_NOLDL
-LIBS+=-ldl
-endif
+LIBS=-lm -pthread
 endif
 
 ifdef CONFIG_WIN32
