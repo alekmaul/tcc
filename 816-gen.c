@@ -99,6 +99,9 @@ int reg_classes[NB_REGS] = {
 
 char current_fn[256] = "";
 
+// Variable for temp file name (token usage)
+char sztmpnam[STRING_MAX_SIZE];
+
 // Variable relocate a given section
 char **relocptrs = NULL;
 
