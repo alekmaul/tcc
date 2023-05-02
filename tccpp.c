@@ -211,7 +211,11 @@ char *get_tok_str(int v, CValue *cv)
         else if (v >= SYM_FIRST_ANOM)
         {
             /* special name for anonymous symbol */
+#ifdef TCC_TARGET_816
+            sprintf(p, "L.%s%d", sztmpnam, v - SYM_FIRST_ANOM); // Alekmaul 201125, add temp file name to token name
+#else
             sprintf(p, "L.%u", v - SYM_FIRST_ANOM);
+#endif
         }
         else
         {
@@ -944,41 +948,41 @@ static void tok_str_add_tok(TokenString *s)
 /* get a token from an integer array and increment pointer
    accordingly. we code it as a macro to avoid pointer aliasing. */
 #ifdef TCC_TARGET_816
-#define TOK_GET(t, p, cv)                                    \
-    {                                                        \
-        t = *p++;                                            \
-        switch (t)                                           \
-        {                                                    \
-        case TOK_CINT:                                       \
-        case TOK_CUINT:                                      \
-        case TOK_CCHAR:                                      \
-        case TOK_LCHAR:                                      \
-        case TOK_CFLOAT:                                     \
-        case TOK_CDOUBLE:                                    \
-        case TOK_LINENUM:                                    \
-            cv.tab[0] = *p++;                                \
-            break;                                           \
-        case TOK_STR:                                        \
-        case TOK_LSTR:                                       \
-        case TOK_PPNUM:                                      \
-            cv.cstr = (CString *)p;                          \
-            cv.cstr->data = (char *)p + sizeof(CString);     \
-            p += (sizeof(CString) + cv.cstr->size + 3) >> 2; \
-            break;                                           \
-        /* case TOK_CDOUBLE: */                              \
-        case TOK_CLLONG:                                     \
-        case TOK_CULLONG:                                    \
-            cv.tab[0] = p[0];                                \
-            cv.tab[1] = p[1];                                \
-            p += 2;                                          \
-            break;                                           \
-        case TOK_CLDOUBLE:                                   \
-            LDOUBLE_GET(p, cv);                              \
-            p += LDOUBLE_SIZE / 4;                           \
-            break;                                           \
-        default:                                             \
-            break;                                           \
-        }                                                    \
+#define TOK_GET(t, p, cv)                                             \
+    {                                                                 \
+        t = *p++;                                                     \
+        switch (t)                                                    \
+        {                                                             \
+        case TOK_CINT:                                                \
+        case TOK_CUINT:                                               \
+        case TOK_CCHAR:                                               \
+        case TOK_LCHAR:                                               \
+        case TOK_CFLOAT:                                              \
+        case TOK_CDOUBLE:                                             \
+        case TOK_LINENUM:                                             \
+            cv.tab[0] = *p++;                                         \
+            break;                                                    \
+        case TOK_STR:                                                 \
+        case TOK_LSTR:                                                \
+        case TOK_PPNUM:                                               \
+            cv.cstr = (CString *)p;                                   \
+            cv.cstr->data = (char *)p + sizeof(CString);              \
+            p += (sizeof(CString) + cv.cstr->size + 3) >> 2;          \
+            break;                                                    \
+        /* case TOK_CDOUBLE: */                                       \
+        case TOK_CLLONG:                                              \
+        case TOK_CULLONG:                                             \
+            cv.tab[0] = p[0];                                         \
+            cv.tab[1] = p[1];                                         \
+            p += 2;                                                   \
+            break;                                                    \
+        case TOK_CLDOUBLE:                                            \
+            LDOUBLE_GET(p, cv);                                       \
+            p += LDOUBLE_SIZE / 4;                                    \
+            break;                                                    \
+        default:                                                      \
+            break;                                                    \
+        }                                                             \
     }
 #else
 #define TOK_GET(t, p, cv)                                    \
