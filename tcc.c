@@ -468,6 +468,20 @@ int main(int argc, char **argv)
 
     s = tcc_new();
 
+#ifdef TCC_TARGET_816
+    strcpy(sztmpnam, &tmpnam(NULL)[1]);   // Alekmaul 201125, create temp file name for token name
+    for (i = 0; sztmpnam[i] != '\0'; i++) // Alekmaul 201212, ughly change for linux system
+    {
+        if (sztmpnam[i] == '/')
+        {
+            sztmpnam[i] = 'x';
+        }
+        if (sztmpnam[i] == '.')
+        {
+            sztmpnam[i] = 'x';
+        }
+    }
+#endif
 #ifdef _WIN32
     tcc_set_lib_path_w32(s);
 #endif

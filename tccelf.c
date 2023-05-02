@@ -31,7 +31,7 @@
 #endif
 
 /* XXX: DLL with PLT would only work with x86-64 for now */
-// #define TCC_OUTPUT_DLL_WITH_PLT
+//#define TCC_OUTPUT_DLL_WITH_PLT
 
 static int put_elf_str(Section *s, const char *sym)
 {
@@ -181,10 +181,10 @@ static int find_elf_sym(Section *s, const char *name)
 
 #ifdef TCC_TARGET_816
 /* return elf symbol value or error */
-ElfW(Sym) * tcc_really_get_symbol(TCCState *s, unsigned long *pval, const char *name)
+ElfW(Sym) *tcc_really_get_symbol(TCCState *s, unsigned long *pval, const char *name)
 {
     int sym_index;
-    ElfW(Sym) * sym;
+    ElfW(Sym) *sym;
 
     sym_index = find_elf_sym(symtab_section, name);
     if (!sym_index)
@@ -1546,10 +1546,11 @@ static void tcc_output_binary(TCCState *s1, FILE *f,
             if (!section_closed)
                 fprintf(f, ".ENDS\n");
         }
-        else if (s == bss_section)
+        else
+            if (s == bss_section)
         {
             /* uninitialized data, we only need a .ramsection */
-            ElfW(Sym) * esym;
+            ElfW(Sym) *esym;
             int empty = 1;
             fprintf(f, ".RAMSECTION \".bss\" BANK $7e SLOT 2\n");
             // fprintf(f, "ramsection.bss dsb 0\n");
@@ -1613,20 +1614,20 @@ static void tcc_output_binary(TCCState *s1, FILE *f,
                     // fprintf(f, ".RAMSECTION \"ram%s\" KEEP\n",s->name);
                     //  appel ram data to global one
                     // 16042021 fprintf(f, ".RAMSECTION \"ram%s\" APPENDTO \"globram.data\"\n",s->name);
-                    fprintf(f, ".RAMSECTION \"ram%s\" APPENDTO \"globram.data\"\n", s->name);
+                    fprintf(f, ".RAMSECTION \"ram%s%s\" APPENDTO \"globram.data\"\n", sztmpnam, s->name);
 #endif
                     // fprintf(f, "ramsection%s dsb 0\n", s->name);
                 }
                 else
-                { /* (ROM) .section */
+                {   /* (ROM) .section */
                     // check for .data section to append to global one
                     if (!strcmp(s->name, ".data"))
                         // 16042021 fprintf(f, ".SECTION \"%s\" APPENDTO \"glob.data\"\n", s->name);
-                        fprintf(f, ".SECTION \"%s\" APPENDTO \"glob.data\"\n", s->name);
+                        fprintf(f, ".SECTION \"%s%s\" APPENDTO \"glob.data\"\n", sztmpnam, s->name);
                     else
                         fprintf(f, ".SECTION \"%s\" SUPERFREE\n", s->name); // 09042021
-                                                                            // fprintf(f, ".SECTION \"%s%s\" SUPERFREE\n", sztmpnam,s->name);
-                                                                            // fprintf(f, "startsection%s:", s->name);
+                        // fprintf(f, ".SECTION \"%s%s\" SUPERFREE\n", sztmpnam,s->name);
+                        // fprintf(f, "startsection%s:", s->name);
                 }
 
                 // int next_symbol_pos = 0;	/* position inside the section at which to look for the next symbol */
@@ -1636,7 +1637,7 @@ static void tcc_output_binary(TCCState *s1, FILE *f,
                     int ps;
 
                     /* check if there is a symbol at this position */
-                    ElfW(Sym) * esym;       /* ELF symbol */
+                    ElfW(Sym) *esym;        /* ELF symbol */
                     char *lastsym = NULL;   /* name of previous symbol (some symbols appear more than once; bug?) */
                     int symbol_printed = 0; /* have we already printed a symbol in this run? */
                     for (ps = 0, esym = (ElfW(Sym) *)symtab_section->data; ps < symtab_section->sh_size / sizeof(ElfW(Sym)); esym++, ps++)
@@ -1760,7 +1761,7 @@ static void tcc_output_binary(TCCState *s1, FILE *f,
                 {
                     if (!bytecount)
                     {
-                        fprintf(f, "__local_dummy%s ", s->name);
+                        fprintf(f, "__local_dummy%s%s ", sztmpnam, s->name);
                         bytecount++;
                     }
                     fprintf(f, "dsb %d\n", bytecount);
@@ -1771,7 +1772,7 @@ static void tcc_output_binary(TCCState *s1, FILE *f,
                 {
                     // fprintf(f,"\nendsection%s:", s->name);
                     if (!size)
-                        fprintf(f, "\n__local_dummy%s: .db 0", s->name);
+                        fprintf(f, "\n__local_dummy%s%s: .db 0", sztmpnam, s->name);
                 }
                 fprintf(f, "\n.ENDS\n\n");
             }
@@ -2052,7 +2053,7 @@ int elf_output_file(TCCState *s1, const char *filename)
     int *section_order;
     int shnum, i, phnum, file_offset, sh_order_index;
     Section *strsec, *s;
-    ElfW(Phdr) * phdr;
+    ElfW(Phdr) *phdr;
     Section *interp, *dynamic, *dynstr;
     unsigned long saved_dynamic_data_offset;
     int file_type;
