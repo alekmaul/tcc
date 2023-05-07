@@ -517,11 +517,11 @@ int gv(int rc)
                     ptr[i] = vtop->c.tab[size - 1 - i];
             else
 #endif
-#ifdef TCC_TARGET_816
-            float_to_woz(vtop->c.f, (unsigned char *)ptr);
-#else
+#ifndef TCC_TARGET_816
                 for (i = 0; i < size; i++)
                     ptr[i] = vtop->c.tab[i];
+#else
+            float_to_woz(vtop->c.f, (unsigned char *)ptr);
 #endif
             sym = get_sym_ref(&vtop->type, data_section, offset, size << 2);
             vtop->r |= VT_LVAL | VT_SYM;
@@ -545,7 +545,11 @@ int gv(int rc)
             (vtop->r & VT_LVAL) ||
             !(reg_classes[r] & rc) ||
             ((vtop->type.t & VT_BTYPE) == VT_LLONG &&
+#ifdef TCC_TARGET_816
+             !(reg_classes[vtop->r2] & rc)))
+#else
              !(reg_classes[vtop->r2] & rc2)))
+#endif
         {
             r = get_reg(rc);
 #ifndef TCC_TARGET_X86_64
@@ -561,7 +565,7 @@ int gv(int rc)
                     ll = vtop->c.ull;
                     vtop->c.ui = ll; /* first word */
                     load(r, vtop);
-                    vtop->r = r;      /* save register value */
+                    vtop->r = r; /* save register value */
 #ifdef TCC_TARGET_816
                     vpushi(ll >> 16);
 #else
@@ -1152,7 +1156,7 @@ void gen_opl(int op)
                 b = ind;
                 o(0x1A000000 | encbranch(ind, 0, 1));
 #elif defined(TCC_TARGET_C67)
-                error("not implemented");
+        error("not implemented");
 #elif defined(TCC_TARGET_816)
 #if 0
                 b = ind;
@@ -1370,9 +1374,14 @@ void gen_opic(int op)
             goto general_case;
         }
         else if (c2 && (op == '+' || op == '-') &&
+#ifdef TCC_TARGET_816
+                 (vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) ==
+                     (VT_CONST | VT_SYM))
+#else
                  ((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) ==
                       (VT_CONST | VT_SYM) ||
                   (vtop[-1].r & (VT_VALMASK | VT_LVAL)) == VT_LOCAL))
+#endif
         {
             /* symbol + constant case */
             if (op == '-')
