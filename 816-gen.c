@@ -116,6 +116,32 @@ int reg_classes[NB_REGS] = {
 
 char current_fn[256] = "";
 
+// Define random string maximum size (token usage)
+#define RS_MAX_SIZE 10
+
+void generate_token(char *str, size_t max_size)
+{
+    size_t i;
+    int seed;
+
+    // Generate a unique seed based on the current time
+    seed = (unsigned int)time(NULL);
+    srand(seed);
+
+    // Generate random mixed case letters
+    for (i = 0; i < max_size; i++) {
+        if (rand() % 2 == 0) {
+            str[i] = 'a' + (rand() % 26);
+        } else {
+            str[i] = 'A' + (rand() % 26);
+        }
+    }
+
+    // Null-terminate the string
+    str[max_size] = '\0';
+}
+
+char random_token[RS_MAX_SIZE + 1];
 /* yet another terrible workaround
    WLA does not have file-local symbols, only section-local and global.
    thus, everything that is file-local must be made global and given a
@@ -1558,7 +1584,10 @@ void gen_cvt_itof(int t)
     if ((vtop->type.t & VT_BTYPE) == VT_LLONG)
     {
         pr("pei (tcc__r%d)\npei (tcc__r%d)\n", r2, r);
-        pr("jsr.l tcc__lltof\n");
+        if (it & VT_UNSIGNED)
+            error("jsr.l tcc__ulltof\n"); // this is probably dead code
+        else
+            pr("jsr.l tcc__lltof\n");
         pr("pla\npla\n");
     }
     else

@@ -529,6 +529,9 @@ int main(int argc, char **argv)
 
     s = tcc_new();
 
+#ifdef TCC_TARGET_816
+    generate_token(random_token, RS_MAX_SIZE);
+#endif
     output_type = TCC_OUTPUT_EXE;
     outfile = NULL;
     multiple_files = 1;

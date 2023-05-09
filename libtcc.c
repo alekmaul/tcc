@@ -1480,8 +1480,11 @@ TCCState *tcc_new(void)
     tcc_define_symbol(s, "__i386", "1");
     tcc_define_symbol(s, "i386", "1");
 #endif
-#if defined(TCC_TARGET_X86_64)
-    tcc_define_symbol(s, "__x86_64__", NULL);
+#if defined(TCC_TARGET_816)
+    tcc_define_symbol(s, "__65816__", NULL);
+#endif
+#ifdef TCC_TARGET_X86_64
+    tcc_define_symbol(s, "_WIN64", NULL);
 #endif
 #if defined(TCC_TARGET_ARM)
     tcc_define_symbol(s, "__ARM_ARCH_4__", NULL);

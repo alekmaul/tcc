@@ -211,7 +211,11 @@ char *get_tok_str(int v, CValue *cv)
         else if (v >= SYM_FIRST_ANOM)
         {
             /* special name for anonymous symbol */
+#ifdef TCC_TARGET_816
+            sprintf(p, "L.%s%d", random_token, v - SYM_FIRST_ANOM); // Alekmaul 201125, add temp file name to token name
+#else
             sprintf(p, "L.%u", v - SYM_FIRST_ANOM);
+#endif
         }
         else
         {

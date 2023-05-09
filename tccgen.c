@@ -409,7 +409,11 @@ void gbound(void)
    register value (such as structures). */
 int gv(int rc)
 {
+#ifndef TCC_TARGET_816
     int r, rc2, bit_pos, bit_size, size, align, i;
+#else
+    int r, rc2, bit_pos, bit_size, size, align;
+#endif
 
     /* NOTE: get_reg can modify vstack[] */
     if (vtop->type.t & VT_BITFIELD)
@@ -477,8 +481,12 @@ int gv(int rc)
                     ptr[i] = vtop->c.tab[size - 1 - i];
             else
 #endif
+#ifndef TCC_TARGET_816
                 for (i = 0; i < size; i++)
                     ptr[i] = vtop->c.tab[i];
+#else
+            float_to_woz(vtop->c.f, (unsigned char *)ptr);
+#endif
             sym = get_sym_ref(&vtop->type, data_section, offset, size << 2);
             vtop->r |= VT_LVAL | VT_SYM;
             vtop->sym = sym;
@@ -497,98 +505,102 @@ int gv(int rc)
            - constant
            - lvalue (need to dereference pointer)
            - already a register, but not in the right class */
-        if (r >= VT_CONST || (vtop->r & VT_LVAL) || !(reg_classes[r] & rc)
-#ifndef TCC_TARGET_X86_64
-            || ((vtop->type.t & VT_BTYPE) == VT_LLONG && !(reg_classes[vtop->r2] & rc2))
+        if (r >= VT_CONST ||
+            (vtop->r & VT_LVAL) ||
+            !(reg_classes[r] & rc) ||
+            ((vtop->type.t & VT_BTYPE) == VT_LLONG &&
+#ifdef TCC_TARGET_816
+             !(reg_classes[vtop->r2] & rc)))
+#else
+             !(reg_classes[vtop->r2] & rc2)))
 #endif
-        )
         {
             r = get_reg(rc);
 #ifndef TCC_TARGET_X86_64
-            if ((vtop->type.t & VT_BTYPE) == VT_LLONG)
-            {
-                int r2;
-                unsigned long long ll;
-                /* two register type load : expand to two words
-                   temporarily */
-                if ((vtop->r & (VT_VALMASK | VT_LVAL)) == VT_CONST)
+                if ((vtop->type.t & VT_BTYPE) == VT_LLONG)
                 {
-                    /* load constant */
-                    ll = vtop->c.ull;
-                    vtop->c.ui = ll; /* first word */
-                    load(r, vtop);
-                    vtop->r = r;      /* save register value */
+                    int r2;
+                    unsigned long long ll;
+                    /* two register type load : expand to two words
+                       temporarily */
+                    if ((vtop->r & (VT_VALMASK | VT_LVAL)) == VT_CONST)
+                    {
+                        /* load constant */
+                        ll = vtop->c.ull;
+                        vtop->c.ui = ll; /* first word */
+                        load(r, vtop);
+                        vtop->r = r; /* save register value */
 #ifdef TCC_TARGET_816
-                    vpushi(ll >> 16);
+                        vpushi(ll >> 16);
 #else
-                    vpushi(ll >> 32); /* second word */
+                        vpushi(ll >> 32); /* second word */
 #endif
+                    }
+                    else if (r >= VT_CONST || /* XXX: test to VT_CONST incorrect ? */
+                             (vtop->r & VT_LVAL))
+                    {
+                        /* We do not want to modifier the long long
+                           pointer here, so the safest (and less
+                           efficient) is to save all the other registers
+                           in the stack. XXX: totally inefficient. */
+                        save_regs(1);
+                        /* load from memory */
+                        load(r, vtop);
+                        vdup();
+                        vtop[-1].r = r; /* save register value */
+                        /* increment pointer to get second word */
+                        vtop->type.t = VT_INT;
+                        gaddrof();
+#ifdef TCC_TARGET_816
+                        vpushi(2);
+#else
+                        vpushi(4);
+#endif
+                        gen_op('+');
+                        vtop->r |= VT_LVAL;
+                    }
+                    else
+                    {
+                        /* move registers */
+                        load(r, vtop);
+                        vdup();
+                        vtop[-1].r = r; /* save register value */
+                        vtop->r = vtop[-1].r2;
+                    }
+                    /* allocate second register */
+                    r2 = get_reg(rc2);
+                    load(r2, vtop);
+                    vpop();
+                    /* write second register */
+                    vtop->r2 = r2;
                 }
-                else if (r >= VT_CONST || /* XXX: test to VT_CONST incorrect ? */
-                         (vtop->r & VT_LVAL))
-                {
-                    /* We do not want to modifier the long long
-                       pointer here, so the safest (and less
-                       efficient) is to save all the other registers
-                       in the stack. XXX: totally inefficient. */
-                    save_regs(1);
-                    /* load from memory */
-                    load(r, vtop);
-                    vdup();
-                    vtop[-1].r = r; /* save register value */
-                    /* increment pointer to get second word */
-                    vtop->type.t = VT_INT;
-                    gaddrof();
-#ifdef TCC_TARGET_816
-                    vpushi(2);
-#else
-                    vpushi(4);
+                else
 #endif
-                    gen_op('+');
-                    vtop->r |= VT_LVAL;
+                    if ((vtop->r & VT_LVAL) && !is_float(vtop->type.t))
+                {
+                    int t1, t;
+                    /* lvalue of scalar type : need to use lvalue type
+                       because of possible cast */
+                    t = vtop->type.t;
+                    t1 = t;
+                    /* compute memory access type */
+                    if (vtop->r & VT_LVAL_BYTE)
+                        t = VT_BYTE;
+                    else if (vtop->r & VT_LVAL_SHORT)
+                        t = VT_SHORT;
+                    if (vtop->r & VT_LVAL_UNSIGNED)
+                        t |= VT_UNSIGNED;
+                    vtop->type.t = t;
+                    load(r, vtop);
+                    /* restore wanted type */
+                    vtop->type.t = t1;
                 }
                 else
                 {
-                    /* move registers */
+                    /* one register type load */
                     load(r, vtop);
-                    vdup();
-                    vtop[-1].r = r; /* save register value */
-                    vtop->r = vtop[-1].r2;
                 }
-                /* allocate second register */
-                r2 = get_reg(rc2);
-                load(r2, vtop);
-                vpop();
-                /* write second register */
-                vtop->r2 = r2;
             }
-            else
-#endif
-                if ((vtop->r & VT_LVAL) && !is_float(vtop->type.t))
-            {
-                int t1, t;
-                /* lvalue of scalar type : need to use lvalue type
-                   because of possible cast */
-                t = vtop->type.t;
-                t1 = t;
-                /* compute memory access type */
-                if (vtop->r & VT_LVAL_BYTE)
-                    t = VT_BYTE;
-                else if (vtop->r & VT_LVAL_SHORT)
-                    t = VT_SHORT;
-                if (vtop->r & VT_LVAL_UNSIGNED)
-                    t |= VT_UNSIGNED;
-                vtop->type.t = t;
-                load(r, vtop);
-                /* restore wanted type */
-                vtop->type.t = t1;
-            }
-            else
-            {
-                /* one register type load */
-                load(r, vtop);
-            }
-        }
         vtop->r = r;
 #ifdef TCC_TARGET_C67
         /* uses register pairs for doubles */
@@ -1087,7 +1099,7 @@ void gen_opl(int op)
                 b = ind;
                 o(0x1A000000 | encbranch(ind, 0, 1));
 #elif defined(TCC_TARGET_C67)
-                error("not implemented");
+            error("not implemented");
 #elif defined(TCC_TARGET_816)
 #if 0
                 b = ind;
@@ -1096,11 +1108,11 @@ void gen_opl(int op)
                 // branches (too short) p("b%s " LOCAL_LABEL "\n", inv?"eq":"ne", jumps++);
                 pr("beq +\nbrl " LOCAL_LABEL "\n+\n", jumps++);
 #endif
-        pr("; cmpll high order word equal?\n");
-        b = ind;
-        jump[jumps][0] = ind;
-        // flags from the compare are long gone, but the compare opi has saved the value for us in y
-        pr("tya\nbne " LOCAL_LABEL "\n", jumps++);
+            pr("; cmpll high order word equal?\n");
+            b = ind;
+            jump[jumps][0] = ind;
+            // flags from the compare are long gone, but the compare opi has saved the value for us in y
+            pr("tya\nbne " LOCAL_LABEL "\n", jumps++);
 #else
 #error not supported
 #endif
@@ -1305,8 +1317,14 @@ void gen_opic(int op)
             goto general_case;
         }
         else if (c2 && (op == '+' || op == '-') &&
-                 (((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM) && !(vtop[-1].sym->type.t & VT_IMPORT)) ||
+#ifdef TCC_TARGET_816
+                 (vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) ==
+                     (VT_CONST | VT_SYM))
+#else
+                 ((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) ==
+                      (VT_CONST | VT_SYM) ||
                   (vtop[-1].r & (VT_VALMASK | VT_LVAL)) == VT_LOCAL))
+#endif
         {
             /* symbol + constant case */
             if (op == '-')

@@ -1619,17 +1619,17 @@ static void tcc_output_binary(TCCState *s1, FILE *f,
                 {
                     /* .ramsection */
 #if 0
-                    fprintf(f, ".RAMSECTION \"ram%s\" BANK $7f SLOT 3\n",s->name);
+                    fprintf(f, ".RAMSECTION \"ram%s%s\" BANK $7f SLOT 3\n",random_token,s->name);
 #else
                     //  appel ram data to global one
-                    fprintf(f, ".RAMSECTION \"ram%s\" APPENDTO \"globram.data\"\n", s->name);
+                    fprintf(f, ".RAMSECTION \"ram%s%s\" APPENDTO \"globram.data\"\n", random_token, s->name);
 #endif
                 }
                 else
                 {   /* (ROM) .section */
                     // check for .data section to append to global one
                     if (!strcmp(s->name, ".data"))
-                        fprintf(f, ".SECTION \"%s\" APPENDTO \"glob.data\"\n", s->name);
+                        fprintf(f, ".SECTION \"%s%s\" APPENDTO \"glob.data\"\n", random_token, s->name);
                     else
                         fprintf(f, ".SECTION \"%s\" SUPERFREE\n", s->name);
                 }
@@ -1751,7 +1751,7 @@ static void tcc_output_binary(TCCState *s1, FILE *f,
                 {
                     if (!bytecount)
                     {
-                        fprintf(f, "__local_dummy%s ", s->name);
+                        fprintf(f, "__local_dummy%s%s ", random_token, s->name);
                         bytecount++;
                     }
                     fprintf(f, "dsb %d\n", bytecount);
@@ -1760,7 +1760,7 @@ static void tcc_output_binary(TCCState *s1, FILE *f,
                 if (k == 1)
                 {
                     if (!size)
-                        fprintf(f, "\n__local_dummy%s: .db 0", s->name);
+                        fprintf(f, "\n__local_dummy%s%s: .db 0", random_token, s->name);
                 }
                 fprintf(f, "\n.ENDS\n\n");
             }
