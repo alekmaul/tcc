@@ -1984,6 +1984,9 @@ TCCState *tcc_new(void)
 #if defined(TCC_TARGET_I386)
     tcc_define_symbol(s, "__i386__", NULL);
 #endif
+#ifdef TCC_TARGET_816
+    tcc_define_symbol(s, "__65816__", NULL);
+#endif
 #if defined(TCC_TARGET_X86_64)
     tcc_define_symbol(s, "__x86_64__", NULL);
 #endif
