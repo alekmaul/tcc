@@ -1841,154 +1841,178 @@ void force_charshort_cast(int t)
 }
 
 /* cast 'vtop' to 'type'. Casting to bitfields is forbidden. */
+/* cast 'vtop' to 'type'. Casting to bitfields is forbidden. */
 static void gen_cast(CType *type)
 {
-    int sbt, dbt, sf, df, c, p;
-
-    /* special delayed cast for char/short */
-    /* XXX: in some cases (multiple cascaded casts), it may still
-       be incorrect */
+    int sbt, dbt, sf, df, c;
     if (vtop->r & VT_MUSTCAST)
     {
         vtop->r &= ~VT_MUSTCAST;
         force_charshort_cast(vtop->type.t);
     }
-
-    /* bitfields first get cast to ints */
     if (vtop->type.t & VT_BITFIELD)
     {
         gv(RC_INT);
     }
-
     dbt = type->t & (VT_BTYPE | VT_UNSIGNED);
     sbt = vtop->type.t & (VT_BTYPE | VT_UNSIGNED);
-
-    if (sbt != dbt)
+    if (sbt != dbt && !nocode_wanted)
     {
         sf = is_float(sbt);
         df = is_float(dbt);
         c = (vtop->r & (VT_VALMASK | VT_LVAL | VT_SYM)) == VT_CONST;
-        p = (vtop->r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM);
-        if (c)
+        if (sf && df)
         {
-            /* constant case: we can do it now */
-            /* XXX: in ISOC, cannot do it if error in convert */
-            if (sbt == VT_FLOAT)
-                vtop->c.ld = vtop->c.f;
-            else if (sbt == VT_DOUBLE)
-                vtop->c.ld = vtop->c.d;
-
-            if (df)
+            if (c)
             {
-                if ((sbt & VT_BTYPE) == VT_LLONG)
-                {
-                    if (sbt & VT_UNSIGNED)
-                        vtop->c.ld = vtop->c.ull;
-                    else
-                        vtop->c.ld = vtop->c.ll;
-                }
-                else if (!sf)
-                {
-                    if (sbt & VT_UNSIGNED)
-                        vtop->c.ld = vtop->c.ui;
-                    else
-                        vtop->c.ld = vtop->c.i;
-                }
-
-                if (dbt == VT_FLOAT)
+                if (dbt == VT_FLOAT && sbt == VT_DOUBLE)
+                    vtop->c.f = (float)vtop->c.d;
+                else if (dbt == VT_FLOAT && sbt == VT_LDOUBLE)
                     vtop->c.f = (float)vtop->c.ld;
-                else if (dbt == VT_DOUBLE)
+                else if (dbt == VT_DOUBLE && sbt == VT_FLOAT)
+                    vtop->c.d = (double)vtop->c.f;
+                else if (dbt == VT_DOUBLE && sbt == VT_LDOUBLE)
                     vtop->c.d = (double)vtop->c.ld;
-            }
-            else if (sf && dbt == (VT_LLONG | VT_UNSIGNED))
-            {
-                vtop->c.ull = (unsigned long long)vtop->c.ld;
-            }
-            else if (sf && dbt == VT_BOOL)
-            {
-                vtop->c.i = (vtop->c.ld != 0);
+                else if (dbt == VT_LDOUBLE && sbt == VT_FLOAT)
+                    vtop->c.ld = (long double)vtop->c.f;
+                else if (dbt == VT_LDOUBLE && sbt == VT_DOUBLE)
+                    vtop->c.ld = (long double)vtop->c.d;
             }
             else
             {
-                if (sf)
-                    vtop->c.ll = (long long)vtop->c.ld;
-                else if (sbt == (VT_LLONG | VT_UNSIGNED))
-                    vtop->c.ll = vtop->c.ull;
-                else if (sbt & VT_UNSIGNED)
-                    vtop->c.ll = vtop->c.ui;
-                else if (sbt != VT_LLONG)
-                    vtop->c.ll = vtop->c.i;
-
-                if (dbt == (VT_LLONG | VT_UNSIGNED))
-                    vtop->c.ull = vtop->c.ll;
-                else if (dbt == VT_BOOL)
-                    vtop->c.i = (vtop->c.ll != 0);
-                else if (dbt != VT_LLONG)
-                {
-                    int s = 0;
-                    if ((dbt & VT_BTYPE) == VT_BYTE)
-                        s = 24;
-                    else if ((dbt & VT_BTYPE) == VT_SHORT)
-                        s = 16;
-
-                    if (dbt & VT_UNSIGNED)
-                        vtop->c.ui = ((unsigned int)vtop->c.ll << s) >> s;
-                    else
-                        vtop->c.i = ((int)vtop->c.ll << s) >> s;
-                }
-            }
-        }
-        else if (p && dbt == VT_BOOL)
-        {
-            vtop->r = VT_CONST;
-            vtop->c.i = 1;
-        }
-        else if (!nocode_wanted)
-        {
-            /* non constant case: generate code */
-            if (sf && df)
-            {
-                /* convert from fp to fp */
                 gen_cvt_ftof(dbt);
             }
-            else if (df)
+        }
+        else if (df)
+        {
+            if (c)
             {
-                /* convert int to fp */
-                gen_cvt_itof1(dbt);
-            }
-            else if (sf)
-            {
-                /* convert fp to int */
-                if (dbt == VT_BOOL)
+                switch (sbt)
                 {
-                    vpushi(0);
-                    gen_op(TOK_NE);
+                case VT_LLONG | VT_UNSIGNED:
+                case VT_LLONG:
+                    goto do_itof;
+                case VT_INT | VT_UNSIGNED:
+                    switch (dbt)
+                    {
+                    case VT_FLOAT:
+                        vtop->c.f = (float)vtop->c.ui;
+                        break;
+                    case VT_DOUBLE:
+                        vtop->c.d = (double)vtop->c.ui;
+                        break;
+                    case VT_LDOUBLE:
+                        vtop->c.ld = (long double)vtop->c.ui;
+                        break;
+                    }
+                    break;
+                default:
+                    switch (dbt)
+                    {
+                    case VT_FLOAT:
+                        vtop->c.f = (float)vtop->c.i;
+                        break;
+                    case VT_DOUBLE:
+                        vtop->c.d = (double)vtop->c.i;
+                        break;
+                    case VT_LDOUBLE:
+                        vtop->c.ld = (long double)vtop->c.i;
+                        break;
+                    }
+                    break;
+                }
+            }
+            else
+            {
+            do_itof:
+#if !defined(TCC_TARGET_ARM)
+                gen_cvt_itof1(dbt);
+#else
+                gen_cvt_itof(dbt);
+#endif
+            }
+        }
+        else if (sf)
+        {
+            if (dbt == VT_BOOL)
+            {
+                vpushi(0);
+                gen_op(TOK_NE);
+            }
+            else
+            {
+                if (dbt != (VT_INT | VT_UNSIGNED) &&
+                    dbt != (VT_LLONG | VT_UNSIGNED) &&
+                    dbt != VT_LLONG)
+                    dbt = VT_INT;
+                if (c)
+                {
+                    switch (dbt)
+                    {
+                    case VT_LLONG | VT_UNSIGNED:
+                    case VT_LLONG:
+                        goto do_ftoi;
+                    case VT_INT | VT_UNSIGNED:
+                        switch (sbt)
+                        {
+                        case VT_FLOAT:
+                            vtop->c.ui = (unsigned int)vtop->c.d;
+                            break;
+                        case VT_DOUBLE:
+                            vtop->c.ui = (unsigned int)vtop->c.d;
+                            break;
+                        case VT_LDOUBLE:
+                            vtop->c.ui = (unsigned int)vtop->c.d;
+                            break;
+                        }
+                        break;
+#ifdef TCC_TARGET_816
+                    case VT_BOOL | VT_UNSIGNED:
+                        vtop->c.ui = vtop->c.d != 0 ? 1 : 0;
+                        break;
+#endif
+                    default:
+                        switch (sbt)
+                        {
+                        case VT_FLOAT:
+                            vtop->c.i = (int)vtop->c.d;
+                            break;
+                        case VT_DOUBLE:
+                            vtop->c.i = (int)vtop->c.d;
+                            break;
+                        case VT_LDOUBLE:
+                            vtop->c.i = (int)vtop->c.d;
+                            break;
+                        }
+                        break;
+                    }
                 }
                 else
                 {
-                    /* we handle char/short/etc... with generic code */
-                    if (dbt != (VT_INT | VT_UNSIGNED) &&
-                        dbt != (VT_LLONG | VT_UNSIGNED) &&
-                        dbt != VT_LLONG)
-                        dbt = VT_INT;
+                do_ftoi:
                     gen_cvt_ftoi1(dbt);
-                    if (dbt == VT_INT && (type->t & (VT_BTYPE | VT_UNSIGNED)) != dbt)
-                    {
-                        /* additional cast for char/short... */
-                        vtop->type.t = dbt;
-                        gen_cast(type);
-                    }
                 }
-#ifndef TCC_TARGET_X86_64
-            }
-            else if ((dbt & VT_BTYPE) == VT_LLONG)
-            {
-                if ((sbt & VT_BTYPE) != VT_LLONG)
+                if (dbt == VT_INT && (type->t & (VT_BTYPE | VT_UNSIGNED)) != dbt)
                 {
-                    /* scalar to long long */
-                    /* machine independent conversion */
+                    vtop->type.t = dbt;
+                    gen_cast(type);
+                }
+            }
+        }
+        else if ((dbt & VT_BTYPE) == VT_LLONG)
+        {
+            if ((sbt & VT_BTYPE) != VT_LLONG)
+            {
+                if (c)
+                {
+                    if (sbt == (VT_INT | VT_UNSIGNED))
+                        vtop->c.ll = vtop->c.ui;
+                    else
+                        vtop->c.ll = vtop->c.i;
+                }
+                else
+                {
                     gv(RC_INT);
-                    /* generate high word */
                     if (sbt == (VT_INT | VT_UNSIGNED))
                     {
                         vpushi(0);
@@ -1996,12 +2020,6 @@ static void gen_cast(CType *type)
                     }
                     else
                     {
-                        if (sbt == VT_PTR)
-                        {
-                            /* cast from pointer to int before we apply
-                               shift operation, which pointers don't support*/
-                            gen_cast(&int_type);
-                        }
                         gv_dup();
 #ifdef TCC_TARGET_816
                         vpushi(15);
@@ -2010,199 +2028,65 @@ static void gen_cast(CType *type)
 #endif
                         gen_op(TOK_SAR);
                     }
-                    /* patch second register */
                     vtop[-1].r2 = vtop->r;
                     vpop();
                 }
-#else
             }
-            else if ((dbt & VT_BTYPE) == VT_LLONG ||
-                     (dbt & VT_BTYPE) == VT_PTR)
-            {
-                /* XXX: not sure if this is perfect... need more tests */
-                if ((sbt & VT_BTYPE) != VT_LLONG)
-                {
-                    int r = gv(RC_INT);
-                    if (sbt != (VT_INT | VT_UNSIGNED) &&
-                        sbt != VT_PTR && sbt != VT_FUNC)
-                    {
-                        /* x86_64 specific: movslq */
-                        o(0x6348);
-                        o(0xc0 + (REG_VALUE(r) << 3) + REG_VALUE(r));
-                    }
-                }
-#endif
-            }
+        }
 #ifdef TCC_TARGET_816
-            else if ((dbt & VT_BTYPE) == VT_BOOL)
+        else if ((dbt & VT_BTYPE) == VT_BOOL)
+        {
+            if (c)
             {
-                if (c)
-                {
-                    vtop->c.ui = vtop->c.ui ? 1 : 0;
-                }
-                else
-                {
-                    /* scalar to bool */
-                    vpushi(0);
-                    gen_op(TOK_NE);
-                }
+                vtop->c.ui = vtop->c.ui ? 1 : 0;
             }
-#else
-            else if (dbt == VT_BOOL)
+            else
             {
-                /* scalar to bool */
                 vpushi(0);
                 gen_op(TOK_NE);
             }
+        }
+#else
+        else if (dbt == VT_BOOL)
+        {
+            vpushi(0);
+            gen_op(TOK_NE);
+        }
 #endif
-            else if ((dbt & VT_BTYPE) == VT_BYTE ||
-                     (dbt & VT_BTYPE) == VT_SHORT)
+        else if ((dbt & VT_BTYPE) == VT_BYTE ||
+                 (dbt & VT_BTYPE) == VT_SHORT)
+        {
+            if (sbt == VT_PTR)
             {
-                if (sbt == VT_PTR)
-                {
-                    vtop->type.t = VT_INT;
-                    warning("nonportable conversion from pointer to char/short");
-                }
-                force_charshort_cast(dbt);
+                vtop->type.t = VT_INT;
+                warning("nonportable conversion from pointer to char/short");
             }
-            else if ((dbt & VT_BTYPE) == VT_INT)
+            force_charshort_cast(dbt);
+        }
+        else if ((dbt & VT_BTYPE) == VT_INT)
+        {
+#ifdef TCC_TARGET_816
+            if ((dbt & VT_UNSIGNED) && c)
+                vtop->c.ui &= 0xffff;
+#endif
+            if (sbt == VT_LLONG)
             {
-                /* scalar to int */
-#ifdef TCC_TARGET_816
-                /* fixes 960801-1.c */
-                /* this is important if the value is cast back to a larger type
-                   without going through a register first */
-                if ((dbt & VT_UNSIGNED) && c)
-                    vtop->c.ui &= 0xffff;
-#endif
-                if (sbt == VT_LLONG)
-                {
-                    /* from long long: just take low order word */
-                    lexpand();
-                    vpop();
-                }
-                /* if lvalue and single word type, nothing to do because
-                   the lvalue already contains the real type size (see
-                   VT_LVAL_xxx constants) */
-#ifdef TCC_TARGET_816
-                /* Casting a byte to a word may not be necessary on other platforms
-                   (I know it is not on ARM), but it is on the 65816, which does
-                   not do any alignment and passes a single byte as a single byte.
-                   If we do not do that here, the type is overwritten (see below),
-                   and the code generator happily loads extra garbage bytes from
-                   the stack or wherever. */
-                if ((sbt & VT_BTYPE) == VT_BYTE || (sbt & VT_BTYPE) == VT_BOOL)
-                    gv(RC_INT);
-#endif
+                lexpand();
+                vpop();
             }
+#ifdef TCC_TARGET_816
+            if ((sbt & VT_BTYPE) == VT_BYTE || (sbt & VT_BTYPE) == VT_BOOL)
+            {
+                gv(RC_INT);
+            }
+#endif
         }
     }
     else if ((dbt & VT_BTYPE) == VT_PTR && !(vtop->r & VT_LVAL))
     {
-        /* if we are casting between pointer types,
-           we must update the VT_LVAL_xxx size */
         vtop->r = (vtop->r & ~VT_LVAL_TYPE) | (lvalue_type(type->ref->type.t) & VT_LVAL_TYPE);
     }
     vtop->type = *type;
-}
-
-/* return type size. Put alignment at 'a' */
-static int type_size(CType *type, int *a)
-{
-    Sym *s;
-    int bt;
-
-    bt = type->t & VT_BTYPE;
-    if (bt == VT_STRUCT)
-    {
-        /* struct/union */
-        s = type->ref;
-        *a = s->r;
-        return s->c;
-    }
-    else if (bt == VT_PTR)
-    {
-        if (type->t & VT_ARRAY)
-        {
-            int ts;
-
-            s = type->ref;
-            ts = type_size(&s->type, a);
-
-            if (ts < 0 && s->c < 0)
-                ts = -ts;
-
-            return ts * s->c;
-        }
-        else
-        {
-            *a = PTR_SIZE;
-            return PTR_SIZE;
-        }
-    }
-    else if (bt == VT_LDOUBLE)
-    {
-        *a = LDOUBLE_ALIGN;
-        return LDOUBLE_SIZE;
-    }
-    else if (bt == VT_DOUBLE || bt == VT_LLONG)
-    {
-#ifdef TCC_TARGET_I386
-#ifdef TCC_TARGET_PE
-        *a = 8;
-#else
-        *a = 4;
-#endif
-#elif defined(TCC_TARGET_816)
-        *a = 4;
-        return 4;
-#elif defined(TCC_TARGET_ARM)
-#ifdef TCC_ARM_EABI
-        *a = 8;
-#else
-        *a = 4;
-#endif
-#else
-        *a = 8;
-#endif
-        return 8;
-    }
-    else if (bt == VT_INT || bt == VT_ENUM || bt == VT_FLOAT)
-    {
-#ifndef TCC_TARGET_816
-        *a = 4;
-        return 4;
-#else
-        if (bt == VT_FLOAT)
-        {
-            *a = 4;
-            return 4;
-        }
-        else
-        {
-            *a = 2;
-            return 2;
-        }
-#endif
-    }
-    else if (bt == VT_SHORT)
-    {
-        *a = 2;
-        return 2;
-#ifdef TCC_TARGET_816
-    }
-    else if (bt == VT_FUNC)
-    {
-        *a = 4;
-        return 4;
-#endif
-    }
-    else
-    {
-        /* char, void, function, _Bool */
-        *a = 1;
-        return 1;
-    }
 }
 
 /* return the pointed type of t */
