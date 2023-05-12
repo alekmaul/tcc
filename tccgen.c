@@ -2089,6 +2089,105 @@ static void gen_cast(CType *type)
     vtop->type = *type;
 }
 
+/* return type size. Put alignment at 'a' */
+static int type_size(CType *type, int *a)
+{
+    Sym *s;
+    int bt;
+
+    bt = type->t & VT_BTYPE;
+    if (bt == VT_STRUCT)
+    {
+        /* struct/union */
+        s = type->ref;
+        *a = s->r;
+        return s->c;
+    }
+    else if (bt == VT_PTR)
+    {
+        if (type->t & VT_ARRAY)
+        {
+            int ts;
+
+            s = type->ref;
+            ts = type_size(&s->type, a);
+
+            if (ts < 0 && s->c < 0)
+                ts = -ts;
+
+            return ts * s->c;
+        }
+        else
+        {
+            *a = PTR_SIZE;
+            return PTR_SIZE;
+        }
+    }
+    else if (bt == VT_LDOUBLE)
+    {
+        *a = LDOUBLE_ALIGN;
+        return LDOUBLE_SIZE;
+    }
+    else if (bt == VT_DOUBLE || bt == VT_LLONG)
+    {
+#ifdef TCC_TARGET_I386
+#ifdef TCC_TARGET_PE
+        *a = 8;
+#else
+        *a = 4;
+#endif
+#elif defined(TCC_TARGET_816)
+        *a = 4;
+        return 4;
+#elif defined(TCC_TARGET_ARM)
+#ifdef TCC_ARM_EABI
+        *a = 8;
+#else
+        *a = 4;
+#endif
+#else
+        *a = 8;
+#endif
+        return 8;
+    }
+    else if (bt == VT_INT || bt == VT_ENUM || bt == VT_FLOAT)
+    {
+#ifndef TCC_TARGET_816
+        *a = 4;
+        return 4;
+#else
+        if (bt == VT_FLOAT)
+        {
+            *a = 4;
+            return 4;
+        }
+        else
+        {
+            *a = 2;
+            return 2;
+        }
+#endif
+    }
+    else if (bt == VT_SHORT)
+    {
+        *a = 2;
+        return 2;
+#ifdef TCC_TARGET_816
+    }
+    else if (bt == VT_FUNC)
+    {
+        *a = 4;
+        return 4;
+#endif
+    }
+    else
+    {
+        /* char, void, function, _Bool */
+        *a = 1;
+        return 1;
+    }
+}
+
 /* return the pointed type of t */
 static inline CType *pointed_type(CType *type)
 {
