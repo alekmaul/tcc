@@ -90,14 +90,14 @@ union double_long {
 #if 1
     struct
     {
-        unsigned long lower;
-        long upper;
+        unsigned int lower;
+        int upper;
     } l;
 #else
     struct
     {
-        long upper;
-        unsigned long lower;
+        int upper;
+        unsigned int lower;
     } l;
 #endif
     long long ll;
@@ -107,6 +107,9 @@ union float_long {
     float f;
     long l;
 };
+
+/* XXX: we don't support several builtin supports for now */
+#ifndef __x86_64__
 
 /* XXX: use gcc/tcc intrinsic ? */
 #if defined(__i386__)
@@ -188,7 +191,7 @@ static UDWtype __udivmoddi4(UDWtype n, UDWtype d, UDWtype *rp)
 
             if (bm != 0) {
                 /* Normalize, i.e. make the most significant bit of the
-         denominator set.  */
+               denominator set.  */
 
                 d0 = d0 << bm;
                 n1 = (n1 << bm) | (n0 >> (W_TYPE_SIZE - bm));
@@ -209,11 +212,11 @@ static UDWtype __udivmoddi4(UDWtype n, UDWtype d, UDWtype *rp)
 
             if (bm == 0) {
                 /* From (n1 >= d0) /\ (the most significant bit of d0 is set),
-         conclude (the most significant bit of n1 is set) /\ (the
-         leading quotient digit q1 = 1).
+               conclude (the most significant bit of n1 is set) /\ (the
+               leading quotient digit q1 = 1).
 
-         This special case is necessary, not an optimization.
-         (Shifts counts of W_TYPE_SIZE are undefined.)  */
+               This special case is necessary, not an optimization.
+               (Shifts counts of W_TYPE_SIZE are undefined.)  */
 
                 n1 -= d0;
                 q1 = 1;
@@ -264,13 +267,13 @@ static UDWtype __udivmoddi4(UDWtype n, UDWtype d, UDWtype *rp)
             count_leading_zeros(bm, d1);
             if (bm == 0) {
                 /* From (n1 >= d1) /\ (the most significant bit of d1 is set),
-         conclude (the most significant bit of n1 is set) /\ (the
-         quotient digit q0 = 0 or 1).
+               conclude (the most significant bit of n1 is set) /\ (the
+               quotient digit q0 = 0 or 1).
 
-         This special case is necessary, not an optimization.  */
+               This special case is necessary, not an optimization.  */
 
                 /* The condition on the next line takes advantage of that
-         n1 >= d1 (true due to program flow).  */
+               n1 >= d1 (true due to program flow).  */
                 if (n1 > d1 || n0 >= d0) {
                     q0 = 1;
                     sub_ddmmss(n1, n0, n1, n0, d1, d0);
@@ -383,7 +386,7 @@ unsigned long long __umoddi3(unsigned long long u, unsigned long long v)
 }
 
 /* XXX: fix tcc's code generator to do this instead */
-long long __sardi3(long long a, int b)
+long long __ashrdi3(long long a, int b)
 {
 #ifdef __TINYC__
     DWunion u;
@@ -402,7 +405,7 @@ long long __sardi3(long long a, int b)
 }
 
 /* XXX: fix tcc's code generator to do this instead */
-unsigned long long __shrdi3(unsigned long long a, int b)
+unsigned long long __lshrdi3(unsigned long long a, int b)
 {
 #ifdef __TINYC__
     DWunion u;
@@ -421,7 +424,7 @@ unsigned long long __shrdi3(unsigned long long a, int b)
 }
 
 /* XXX: fix tcc's code generator to do this instead */
-long long __shldi3(long long a, int b)
+long long __ashldi3(long long a, int b)
 {
 #ifdef __TINYC__
     DWunion u;
@@ -446,8 +449,10 @@ unsigned short __tcc_fpu_control = 0x137f;
 unsigned short __tcc_int_fpu_control = 0x137f | 0x0c00;
 #endif
 
+#endif /* !__x86_64__ */
+
 /* XXX: fix tcc's code generator to do this instead */
-float __ulltof(unsigned long long a)
+float __floatundisf(unsigned long long a)
 {
     DWunion uu;
     XFtype r;
@@ -462,7 +467,7 @@ float __ulltof(unsigned long long a)
     }
 }
 
-double __ulltod(unsigned long long a)
+double __floatundidf(unsigned long long a)
 {
     DWunion uu;
     XFtype r;
@@ -477,7 +482,7 @@ double __ulltod(unsigned long long a)
     }
 }
 
-long double __ulltold(unsigned long long a)
+long double __floatundixf(unsigned long long a)
 {
     DWunion uu;
     XFtype r;

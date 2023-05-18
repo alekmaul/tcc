@@ -165,10 +165,10 @@ struct scnhdr
 #define STYP_GROUP 0x04  /* "grouped" : formed of input sections */
 #define STYP_PAD 0x08    /* "padding" : not allocated, not relocated, loaded */
 #define STYP_COPY \
-    0x10               /* "copy"    : used for C init tables -
-                                                not allocated, relocated,
-                                                loaded;  reloc & lineno
-                                                entries processed normally */
+    0x10               /* "copy"    : used for C init tables -         \
+                                               not allocated, relocated, \
+                                               loaded;  reloc & lineno   \
+                                               entries processed normally */
 #define STYP_TEXT 0x20 /* section contains text only */
 #define STYP_DATA 0x40 /* section contains data only */
 #define STYP_BSS 0x80  /* section contains bss only */
@@ -223,7 +223,7 @@ struct lineno
 {
     union {
         long l_symndx; /* sym. table index of function name
-                                                iff l_lnno == 0      */
+                               iff l_lnno == 0      */
         long l_paddr;  /* (physical) address of line number */
     } l_addr;
     unsigned short l_lnno; /* line number */
