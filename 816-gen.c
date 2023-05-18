@@ -20,7 +20,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#define LDOUBLE_SIZE 12 // not actually supported
+// not actually supported
+#define LDOUBLE_SIZE 12
+
 #define LDOUBLE_ALIGN 4
 #define MAX_ALIGN 8
 
@@ -252,7 +254,6 @@ void load(int r, SValue *sv)
     int v, sign, t;
     SValue v1;
     pr("; load %d\n", r);
-    printf("CECI EST UN MESSAGE: extra 0x%x\n", sv->type.extra);
     pr("; type %d reg 0x%x extra 0x%x\n", sv->type.t, sv->r, sv->type.extra);
     fr = sv->r;
     ft = sv->type.t;
@@ -1503,8 +1504,8 @@ void gen_cvt_itof(int t)
     if ((vtop->type.t & VT_BTYPE) == VT_LLONG) {
         pr("pei (tcc__r%d)\npei (tcc__r%d)\n", r2, r);
         /*         if (it & VT_UNSIGNED)
-            error("jsr.l tcc__ulltof\n"); // this is probably dead code
-        else */
+                    error("jsr.l tcc__ulltof\n"); // this is probably dead code
+                else */
         pr("jsr.l tcc__lltof\n");
         pr("pla\npla\n");
     } else {
