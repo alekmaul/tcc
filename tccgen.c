@@ -114,9 +114,12 @@ static Sym *external_sym(int v, CType *type, int r)
         /* push forward reference */
         s = sym_push(v, type, r | VT_CONST | VT_SYM, 0);
         s->type.t |= VT_EXTERN;
-    } else {
-        if (!is_compatible_types(&s->type, type))
-            error("incompatible types for redefinition of '%s'", get_tok_str(v, NULL));
+    } else if (s->type.ref == func_old_type.ref) {
+        s->type.ref = type->ref;
+        s->r = r | VT_CONST | VT_SYM;
+        s->type.t |= VT_EXTERN;
+    } else if (!is_compatible_types(&s->type, type)) {
+        error("incompatible types for redefinition of '%s'", get_tok_str(v, NULL));
     }
     return s;
 }
@@ -209,7 +212,7 @@ void save_reg(int r)
 #if defined(TCC_TARGET_I386) || defined(TCC_TARGET_X86_64)
                 /* x86 specific: need to pop fp register ST0 if saved */
                 if (r == TREG_ST0) {
-                    o(0xd9dd); /* fstp %st(1) */
+                    o(0xd8dd); /* fstp %st(0) */
                 }
 #endif
 #ifndef TCC_TARGET_X86_64
@@ -766,7 +769,7 @@ void vpop(void)
 #if defined(TCC_TARGET_I386) || defined(TCC_TARGET_X86_64)
     /* for x86, we need to pop the FP stack */
     if (v == TREG_ST0 && !nocode_wanted) {
-        o(0xd9dd); /* fstp %st(1) */
+        o(0xd8dd); /* fstp %st(0) */
     } else
 #endif
         if (v == VT_JMP || v == VT_JMPI) {
@@ -818,7 +821,8 @@ void gv_dup(void)
         load(r1, &sv); /* move r to r1 */
         vdup();
         /* duplicates value */
-        vtop->r = r1;
+        if (r != r1)
+            vtop->r = r1;
     }
 }
 
@@ -2150,9 +2154,8 @@ static void gen_assign_cast(CType *dt)
         /* a function is implicitely a function pointer */
         if (sbt == VT_FUNC) {
             if ((type1->t & VT_BTYPE) != VT_VOID && !is_compatible_types(pointed_type(dt), st))
-                goto error;
-            else
-                goto type_ok;
+                warning("assignment from incompatible pointer type");
+            goto type_ok;
         }
         if (sbt != VT_PTR)
             goto error;
@@ -3521,9 +3524,11 @@ tok_next:
             inc(1, tok);
             next();
         } else if (tok == '.' || tok == TOK_ARROW) {
+            int qualifiers;
             /* field */
             if (tok == TOK_ARROW)
                 indir();
+            qualifiers = vtop->type.t & (VT_CONSTANT | VT_VOLATILE);
             test_lvalue();
             gaddrof();
             next();
@@ -3545,6 +3550,7 @@ tok_next:
             gen_op('+');
             /* change type to field type, and set to lvalue */
             vtop->type = s->type;
+            vtop->type.t |= qualifiers;
             /* an array is never an lvalue */
             if (!(vtop->type.t & VT_ARRAY)) {
                 vtop->r |= lvalue_type(vtop->type.t);
@@ -4805,6 +4811,24 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
             index = index + type_size(&f->type, &align1);
             if (index > array_length)
                 array_length = index;
+
+            /* gr: skip fields from same union - ugly. */
+            while (f->next) {
+                /// printf("index: %2d %08x -- %2d %08x\n", f->c, f->type.t, f->next->c, f->next->type.t);
+                /* test for same offset */
+                if (f->next->c != f->c)
+                    break;
+                /* if yes, test for bitfield shift */
+                if ((f->type.t & VT_BITFIELD) && (f->next->type.t & VT_BITFIELD)) {
+                    int bit_pos_1 = (f->type.t >> VT_STRUCT_SHIFT) & 0x3f;
+                    int bit_pos_2 = (f->next->type.t >> VT_STRUCT_SHIFT) & 0x3f;
+                    // printf("bitfield %d %d\n", bit_pos_1, bit_pos_2);
+                    if (bit_pos_1 != bit_pos_2)
+                        break;
+                }
+                f = f->next;
+            }
+
             f = f->next;
             if (no_oblock && f == NULL)
                 break;
@@ -5277,14 +5301,19 @@ static void decl(int l)
                 if (sym) {
                     if ((sym->type.t & VT_BTYPE) != VT_FUNC)
                         goto func_error1;
-                    /* specific case: if not func_call defined, we put
-                       the one of the prototype */
-                    /* XXX: should have default value */
+
                     r = sym->type.ref->r;
+                    /* use func_call from prototype if not defined */
                     if (FUNC_CALL(r) != FUNC_CDECL && FUNC_CALL(type.ref->r) == FUNC_CDECL)
                         FUNC_CALL(type.ref->r) = FUNC_CALL(r);
+
+                    /* use export from prototype */
                     if (FUNC_EXPORT(r))
                         FUNC_EXPORT(type.ref->r) = 1;
+
+                    /* use static from prototype */
+                    if (sym->type.t & VT_STATIC)
+                        type.t = (type.t & ~VT_EXTERN) | VT_STATIC;
 
                     if (!is_compatible_types(&sym->type, &type)) {
                     func_error1:

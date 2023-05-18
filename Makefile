@@ -5,15 +5,18 @@
 TOP ?= .
 include $(TOP)/config.mak
 
-TARGET=
-CFLAGS=-Wall -g \
-		-Wno-unused-but-set-variable  \
-		-Wno-format-overflow
-ifeq ($(ARCH),x86-64)
-TARGET=-DTCC_TARGET_X86_64
-CFLAGS+=-Wno-pointer-sign
+CONFIG_816=yes
+ifdef CONFIG_816
+CONFIG_CROSS=yes
 endif
 
+CFLAGS+=-g -Wall
+ifdef CONFIG_816
+CFLAGS+=-Wno-unused-but-set-variable  \
+		-Wno-format-overflow \
+		-Wno-array-bounds \
+		-Wno-format-truncation
+endif
 CFLAGS_P=$(CFLAGS) -pg -static -DCONFIG_TCC_STATIC
 LIBS_P=
 
@@ -44,6 +47,7 @@ LIBS+=-ldl
 endif
 endif
 
+ifndef CONFIG_816
 ifdef CONFIG_WIN32
 NATIVE_TARGET=-DTCC_TARGET_PE
 LIBTCC1=libtcc1.a
@@ -65,13 +69,15 @@ endif
 endif
 endif
 endif
+else
+NATIVE_TARGET=-DTCC_TARGET_816
+LIBTCC1=libtcc1.a
+endif
 
 ifneq ($(wildcard /lib/ld-uClibc.so.0),)
 NATIVE_TARGET+=-DTCC_UCLIBC
 BCHECK_O=
 endif
-
-NATIVE_TARGET=-DTCC_TARGET_816
 
 ifdef CONFIG_USE_LIBGCC
 LIBTCC1=
@@ -79,19 +85,94 @@ endif
 
 ifeq ($(TOP),.)
 
-PROGS=816-tcc$(EXESUF)
+ifndef CONFIG_816
+PROGS=tcc$(EXESUF)
+endif
 
-all: $(PROGS) $(LIBTCC1) $(BCHECK_O) libtcc.a tcc-doc.html tcc.1
+I386_CROSS = i386-tcc$(EXESUF)
+WIN32_CROSS = i386-win32-tcc$(EXESUF)
+X64_CROSS = x86_64-tcc$(EXESUF)
+ARM_CROSS = arm-tcc-fpa$(EXESUF) arm-tcc-fpa-ld$(EXESUF) \
+    arm-tcc-vfp$(EXESUF) arm-tcc-vfp-eabi$(EXESUF)
+C67_CROSS = c67-tcc$(EXESUF)
+816_CROSS = 816-tcc$(EXESUF)
 
 CORE_FILES = tcc.c libtcc.c tccpp.c tccgen.c tccelf.c tccasm.c \
     tcc.h config.h libtcc.h tcctok.h
-816_FILES =  $(CORE_FILES) 816-gen.c
-NATIVE_FILES=$(816_FILES)
+I386_FILES = $(CORE_FILES) i386-gen.c i386-asm.c i386-asm.h
+WIN32_FILES = $(CORE_FILES) i386-gen.c i386-asm.c i386-asm.h tccpe.c
+X86_64_FILES = $(CORE_FILES) x86_64-gen.c
+ARM_FILES = $(CORE_FILES) arm-gen.c
+C67_FILES = $(CORE_FILES) c67-gen.c tcccoff.c
+816_FILES = $(CORE_FILES) 816-gen.c
 
+ifndef CONFIG_816
+ifdef CONFIG_WIN32
+PROGS+=tiny_impdef$(EXESUF) tiny_libmaker$(EXESUF)
+NATIVE_FILES=$(WIN32_FILES)
+PROGS_CROSS=$(I386_CROSS) $(X64_CROSS) $(ARM_CROSS) $(C67_CROSS)
+else
+ifeq ($(ARCH),i386)
+NATIVE_FILES=$(I386_FILES)
+PROGS_CROSS=$(X64_CROSS) $(WIN32_CROSS) $(ARM_CROSS) $(C67_CROSS)
+else
+ifeq ($(ARCH),x86-64)
+NATIVE_FILES=$(X86_64_FILES)
+PROGS_CROSS=$(I386_CROSS) $(WIN32_CROSS) $(ARM_CROSS) $(C67_CROSS)
+else
+ifeq ($(ARCH),arm)
+NATIVE_FILES=$(ARM_FILES)
+PROGS_CROSS=$(I386_CROSS) $(X64_CROSS) $(WIN32_CROSS) $(C67_CROSS)
+endif
+endif
+endif
+endif
+else
+NATIVE_FILES=$(816_FILES)
+PROGS_CROSS=$(816_CROSS)
+endif
+
+ifdef CONFIG_CROSS
+PROGS+=$(PROGS_CROSS)
+endif
+
+ifdef CONFIG_816
+all: $(PROGS) $(LIBTCC1) $(BCHECK_O) libtcc.a tcc-doc.html tcc.1
+else
+all: $(PROGS) $(LIBTCC1) $(BCHECK_O) libtcc.a tcc-doc.html tcc.1 libtcc_test$(EXESUF)
+endif
+
+# Host Tiny C Compiler
+tcc$(EXESUF): $(NATIVE_FILES)
+	$(CC) -o $@ $< $(NATIVE_TARGET) $(CFLAGS) $(LIBS)
 
 # Cross Tiny C Compilers
+i386-tcc$(EXESUF): $(I386_FILES)
+	$(CC) -o $@ $< -DTCC_TARGET_I386 $(CFLAGS) $(LIBS)
+
+i386-win32-tcc$(EXESUF): $(WIN32_FILES)
+	$(CC) -o $@ $< -DTCC_TARGET_PE $(CFLAGS) $(LIBS)
+
+x86_64-tcc$(EXESUF): $(X86_64_FILES)
+	$(CC) -o $@ $< -DTCC_TARGET_X86_64 $(CFLAGS) $(LIBS)
+
+c67-tcc$(EXESUF): $(C67_FILES)
+	$(CC) -o $@ $< -DTCC_TARGET_C67 $(CFLAGS) $(LIBS)
+
+arm-tcc-fpa$(EXESUF): $(ARM_FILES)
+	$(CC) -o $@ $< -DTCC_TARGET_ARM $(CFLAGS) $(LIBS)
+
+arm-tcc-fpa-ld$(EXESUF): $(ARM_FILES)
+	$(CC) -o $@ $< -DTCC_TARGET_ARM -DLDOUBLE_SIZE=12 $(CFLAGS) $(LIBS)
+
+arm-tcc-vfp$(EXESUF): $(ARM_FILES)
+	$(CC) -o $@ $< -DTCC_TARGET_ARM -DTCC_ARM_VFP $(CFLAGS) $(LIBS)
+
+arm-tcc-vfp-eabi$(EXESUF): $(ARM_FILES)
+	$(CC) -o $@ $< -DTCC_TARGET_ARM -DTCC_ARM_EABI $(CFLAGS) $(LIBS)
+
 816-tcc$(EXESUF): $(816_FILES)
-	$(CC) -o $@ $< $(NATIVE_TARGET) $(CFLAGS) $(LIBS)
+	$(CC) -o $@ $< -DTCC_TARGET_816 $(CFLAGS) $(LIBS)
 
 # libtcc generation and test
 libtcc.o: $(NATIVE_FILES)
@@ -120,6 +201,7 @@ tiny_libmaker$(EXESUF): win32/tools/tiny_libmaker.c
 LIBTCC1_OBJS=libtcc1.o
 LIBTCC1_CC=$(CC)
 VPATH+=lib
+ifndef CONFIG_816
 ifdef CONFIG_WIN32
 # for windows, we must use TCC because we generate ELF objects
 LIBTCC1_OBJS+=crt1.o wincrt1.o dllcrt1.o dllmain.o chkstk.o
@@ -128,6 +210,11 @@ VPATH+=win32/lib
 endif
 ifeq ($(ARCH),i386)
 LIBTCC1_OBJS+=alloca86.o alloca86-bt.o
+else
+ifeq ($(ARCH),x86-64)
+LIBTCC1_OBJS+=alloca86_64.o
+endif
+endif
 endif
 
 %.o: %.c
@@ -220,7 +307,7 @@ test clean :
 # clean
 clean: local_clean
 local_clean:
-	rm -vf 816-tcc$(EXESUF) tcc_p$(EXESUF) tcc.pod *~ *.o *.a *.out libtcc_test$(EXESUF)
+	rm -vf $(PROGS) tcc_p$(EXESUF) tcc.pod *~ *.o *.a *.out libtcc_test$(EXESUF)
 
 distclean: clean
 	rm -vf config.h config.mak config.texi tcc.1 tcc-doc.html

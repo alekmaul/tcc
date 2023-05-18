@@ -245,7 +245,7 @@ DEF(TOK___bound_local_delete, "__bound_local_delete")
 DEF(TOK_memmove, "memmove")
 DEF(TOK_strlen, "strlen")
 DEF(TOK_strcpy, "strcpy")
-DEF(TOK__alloca, "_alloca")
+DEF(TOK_alloca, "alloca")
 #endif
 
 /* Tiny Assembler */

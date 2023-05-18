@@ -715,7 +715,7 @@ static void put_extern_sym2(
             case TOK_memset:
             case TOK_strlen:
             case TOK_strcpy:
-            case TOK__alloca:
+            case TOK_alloca:
                 strcpy(buf, "__bound_");
                 strcat(buf, name);
                 name = buf;
@@ -843,7 +843,6 @@ void error1(TCCState *s1, int is_warning, const char *fmt, va_list ap)
         s1->nb_errors++;
 }
 
-#ifdef LIBTCC
 void tcc_set_error_func(TCCState *s,
                         void *error_opaque,
                         void (*error_func)(void *opaque, const char *msg))
@@ -851,7 +850,6 @@ void tcc_set_error_func(TCCState *s,
     s->error_opaque = error_opaque;
     s->error_func = error_func;
 }
-#endif
 
 /* error without aborting current compilation */
 void error_noabort(const char *fmt, ...)
@@ -1138,7 +1136,7 @@ BufferedFile *tcc_open(TCCState *s1, const char *filename)
     if ((s1->verbose == 2 && fd >= 0) || s1->verbose == 3)
         printf("%s %*s%s\n",
                fd < 0 ? "nf" : "->",
-               (s1->include_stack_ptr - s1->include_stack),
+               (int) (s1->include_stack_ptr - s1->include_stack),
                "",
                filename);
     if (fd < 0)
