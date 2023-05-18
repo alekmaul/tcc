@@ -6161,62 +6161,38 @@ static void gen_cast(CType *type)
             if (c) {
                 switch (sbt) {
                 case VT_LLONG | VT_UNSIGNED:
-                    switch (dbt) {
-                    case VT_FLOAT:
-                        vtop->c.f = (float) (UNSIGNEDLL) vtop->c.ull;
-                        break;
-                    case VT_DOUBLE:
-                        vtop->c.d = (double) (UNSIGNEDLL) vtop->c.ull;
-                        break;
-                    case VT_LDOUBLE:
-                        vtop->c.ld = (long double) (UNSIGNEDLL) vtop->c.ull;
-                        break;
-                    }
-                    break;
-                    /* XXX: add const cases for long long */
-                    // goto do_itof;
                 case VT_LLONG:
-                    switch (dbt) {
-                    case VT_FLOAT:
-                        vtop->c.f = (float) (SIGNEDLL) vtop->c.ull;
-                        break;
-                    case VT_DOUBLE:
-                        vtop->c.d = (double) (SIGNEDLL) vtop->c.ull;
-                        break;
-                    case VT_LDOUBLE:
-                        vtop->c.ld = (long double) (SIGNEDLL) vtop->c.ull;
-                        break;
-                    }
-                    break;
+                    /* XXX: add const cases for long long */
+                    goto do_itof;
                 case VT_INT | VT_UNSIGNED:
                     switch (dbt) {
                     case VT_FLOAT:
-                        vtop->c.f = (float) (UNSIGNED) vtop->c.ui;
+                        vtop->c.f = (float) vtop->c.ui;
                         break;
                     case VT_DOUBLE:
-                        vtop->c.d = (double) (UNSIGNED) vtop->c.ui;
+                        vtop->c.d = (double) vtop->c.ui;
                         break;
                     case VT_LDOUBLE:
-                        vtop->c.ld = (long double) (UNSIGNED) vtop->c.ui;
+                        vtop->c.ld = (long double) vtop->c.ui;
                         break;
                     }
                     break;
                 default:
                     switch (dbt) {
                     case VT_FLOAT:
-                        vtop->c.f = (float) (SIGNED) vtop->c.i;
+                        vtop->c.f = (float) vtop->c.i;
                         break;
                     case VT_DOUBLE:
-                        vtop->c.d = (double) (SIGNED) vtop->c.i;
+                        vtop->c.d = (double) vtop->c.i;
                         break;
                     case VT_LDOUBLE:
-                        vtop->c.ld = (long double) (SIGNED) vtop->c.i;
+                        vtop->c.ld = (long double) vtop->c.i;
                         break;
                     }
                     break;
                 }
             } else {
-                // do_itof:
+            do_itof:
 #if !defined(TCC_TARGET_ARM)
                 gen_cvt_itof1(dbt);
 #else
@@ -6368,7 +6344,6 @@ static int type_size(CType *type, int *a)
     } else if (bt == VT_PTR) {
         if (type->t & VT_ARRAY) {
             s = type->ref;
-            // if(s->c == -1) asm("int $3");
             return type_size(&s->type, a) * s->c;
         } else {
             *a = PTR_SIZE;
