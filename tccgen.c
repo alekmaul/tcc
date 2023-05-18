@@ -479,11 +479,11 @@ int gv(int rc)
                     ptr[i] = vtop->c.tab[size - 1 - i];
             else
 #endif
-#ifdef TCC_TARGET_816
-                float_to_woz(vtop->c.f, (unsigned char *) ptr);
+#ifndef TCC_TARGET_816
+                for (i = 0; i < size; i++)
+                    ptr[i] = vtop->c.tab[i];
 #else
-            for (i = 0; i < size; i++)
-                ptr[i] = vtop->c.tab[i];
+            float_to_woz(vtop->c.f, (unsigned char *) ptr);
 #endif
             sym = get_sym_ref(&vtop->type, data_section, offset, size << 2);
             vtop->r |= VT_LVAL | VT_SYM;
@@ -504,7 +504,13 @@ int gv(int rc)
            - lvalue (need to dereference pointer)
            - already a register, but not in the right class */
         if (r >= VT_CONST || (vtop->r & VT_LVAL) || !(reg_classes[r] & rc)
-            || ((vtop->type.t & VT_BTYPE) == VT_LLONG && !(reg_classes[vtop->r2] & rc2))) {
+            || ((vtop->type.t & VT_BTYPE) == VT_LLONG &&
+#ifdef TCC_TARGET_816
+                !(reg_classes[vtop->r2] & rc)))
+#else
+                !(reg_classes[vtop->r2] & rc2)))
+#endif
+        {
             r = get_reg(rc);
 #ifndef TCC_TARGET_X86_64
             if ((vtop->type.t & VT_BTYPE) == VT_LLONG) {
@@ -1256,9 +1262,14 @@ void gen_opic(int op)
                     op = TOK_SHR;
             }
             goto general_case;
-        } else if (c2 && (op == '+' || op == '-')
-                   && ((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM)
-                       || (vtop[-1].r & (VT_VALMASK | VT_LVAL)) == VT_LOCAL)) {
+        } else if (c2 && (op == '+' || op == '-') &&
+#ifdef TCC_TARGET_816
+                   (vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM))
+#else
+                   ((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM)
+                    || (vtop[-1].r & (VT_VALMASK | VT_LVAL)) == VT_LOCAL))
+#endif
+        {
             /* symbol + constant case */
             if (op == '-')
                 l2 = -l2;
@@ -1681,6 +1692,11 @@ static void gen_cast(CType *type)
                 vtop->c.ld = vtop->c.f;
             else if (sbt == VT_DOUBLE)
                 vtop->c.ld = vtop->c.d;
+#ifdef TCC_TARGET_816
+            else if ((dbt & VT_BTYPE) == VT_INT && !nocode_wanted)
+                if ((dbt & VT_UNSIGNED) && c)
+                    vtop->c.ui &= 0xffff;
+#endif
 
             if (df) {
                 if ((sbt & VT_BTYPE) == VT_LLONG) {
@@ -1757,6 +1773,12 @@ static void gen_cast(CType *type)
                         vtop->type.t = dbt;
                         gen_cast(type);
                     }
+#ifdef TCC_TARGET_816
+                    if (dbt == (VT_BOOL | VT_UNSIGNED)) {
+                        if (c)
+                            vtop->c.ui = vtop->c.d != 0 ? 1 : 0;
+                    }
+#endif
                 }
 #ifndef TCC_TARGET_X86_64
             } else if ((dbt & VT_BTYPE) == VT_LLONG) {
@@ -1801,9 +1823,9 @@ static void gen_cast(CType *type)
             }
 #ifdef TCC_TARGET_816
             else if ((dbt & VT_BTYPE) == VT_BOOL) {
-                if (c) {
+                if (c)
                     vtop->c.ui = vtop->c.ui ? 1 : 0;
-                } else {
+                else {
                     /* scalar to bool */
                     vpushi(0);
                     gen_op(TOK_NE);
@@ -1823,7 +1845,6 @@ static void gen_cast(CType *type)
                 }
                 force_charshort_cast(dbt);
             } else if ((dbt & VT_BTYPE) == VT_INT) {
-                /* scalar to int */
 #ifdef TCC_TARGET_816
                 /* fixes 960801-1.c */
                 /* this is important if the value is cast back to a larger type
@@ -1831,14 +1852,12 @@ static void gen_cast(CType *type)
                 if ((dbt & VT_UNSIGNED) && c)
                     vtop->c.ui &= 0xffff;
 #endif
+                /* scalar to int */
                 if (sbt == VT_LLONG) {
                     /* from long long: just take low order word */
                     lexpand();
                     vpop();
                 }
-                /* if lvalue and single word type, nothing to do because
-                   the lvalue already contains the real type size (see
-                   VT_LVAL_xxx constants) */
 #ifdef TCC_TARGET_816
                 /* Casting a byte to a word may not be necessary on other platforms
                    (I know it is not on ARM), but it is on the 65816, which does
@@ -1846,11 +1865,16 @@ static void gen_cast(CType *type)
                    If we do not do that here, the type is overwritten (see below),
                    and the code generator happily loads extra garbage bytes from
                    the stack or wherever. */
-                if ((sbt & VT_BTYPE) == VT_BYTE || (sbt & VT_BTYPE) == VT_BOOL)
+                if ((sbt & VT_BTYPE) == VT_BYTE || (sbt & VT_BTYPE) == VT_BOOL) {
                     gv(RC_INT);
+                }
 #endif
+                /* if lvalue and single word type, nothing to do because
+                   the lvalue already contains the real type size (see
+                   VT_LVAL_xxx constants) */
             }
-        }
+        } else
+            expect("constant expression");
     } else if ((dbt & VT_BTYPE) == VT_PTR && !(vtop->r & VT_LVAL)) {
         /* if we are casting between pointer types,
            we must update the VT_LVAL_xxx size */
@@ -3361,10 +3385,15 @@ tok_next:
             vtop->c.i = !vtop->c.i;
         } else if ((vtop->r & VT_VALMASK) == VT_CMP)
             vtop->c.i = vtop->c.i ^ 1;
-        else {
+        else
+#ifdef TCC_TARGET_816
+            vseti(VT_JMP, gtst(1, 0));
+#else
+        {
             save_regs(1);
             vseti(VT_JMP, gtst(1, 0));
         }
+#endif
         break;
     case '~':
         next();
@@ -4810,9 +4839,23 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
         array_length = 0;
         index = 0;
         n = s->c;
+#ifdef TCC_TARGET_816
+        if (!size_only && n != -1) {
+            /* zeroing the entire struct before filling in the values ensures
+               that decl_designator() won't forget filling in holes in structs inside
+               this one, and is probably more efficient anyway than filling each hole
+               with its own memset() call. */
+            init_putz(type, sec, c, n);
+        }
+#endif
         while (tok != '}') {
             decl_designator(type, sec, c, NULL, &f, size_only);
             index = f->c;
+#ifndef TCC_TARGET_816
+            if (!size_only && array_length < index) {
+                init_putz(type, sec, c + array_length, index - array_length);
+            }
+#endif
             if (!size_only && array_length < index) {
                 init_putz(type, sec, c + array_length, index - array_length);
             }
@@ -4844,10 +4887,12 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
                 break;
             skip(',');
         }
+#ifndef TCC_TARGET_816
         /* put zeros at the end */
         if (!size_only && array_length < n) {
             init_putz(type, sec, c + array_length, n - array_length);
         }
+#endif
         if (!no_oblock)
             skip('}');
         while (par_count) {
