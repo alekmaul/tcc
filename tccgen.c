@@ -4382,11 +4382,7 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
                 gsym((long) s->next); /* without this, labels end up in the wrong place (too late) */
 #endif
             }
-#ifdef TCC_TARGET_816
-            s->next = (void *) (long) ind;
-#else
             s->jnext = ind;
-#endif
             /* we accept this, but it is a mistake */
         block_after_label:
             if (tok == '}') {
@@ -4618,21 +4614,13 @@ static void init_putv(CType *type, Section *sec, unsigned long c, int v, int exp
             *(long double *) ptr = vtop->c.ld;
             break;
         case VT_LLONG:
-#ifdef TCC_TARGET_816
-            *(int *) ptr |= (vtop->c.ll & bit_mask) << bit_pos;
-#else
             *(long long *) ptr |= (vtop->c.ll & bit_mask) << bit_pos;
-#endif
             break;
         default:
             if (vtop->r & VT_SYM) {
                 greloc(sec, vtop->sym, c, R_DATA_PTR);
             }
-#ifdef TCC_TARGET_816
-            *(short *) ptr |= (vtop->c.i & bit_mask) << bit_pos;
-#else
             *(int *) ptr |= (vtop->c.i & bit_mask) << bit_pos;
-#endif
             break;
         }
         vtop--;
