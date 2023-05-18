@@ -454,8 +454,8 @@ static int gnu_ext = 1;
 static int tcc_ext = 1;
 
 /* max number of callers shown if error */
+#ifdef CONFIG_TCC_BACKTRACE
 static int num_callers = 6;
-#ifndef TCC_TARGET_816
 static const char **rt_bound_error_msg;
 #endif
 
@@ -10497,6 +10497,7 @@ static void asm_global_instr(void)
 #endif
 
 #ifndef TCC_TARGET_816
+#ifdef CONFIG_TCC_BACKTRACE
 /* print the position in the source file of PC value 'pc' by reading
    the stabs debug information */
 static void rt_printline(unsigned long wanted_pc)
@@ -10616,10 +10617,7 @@ found:
     fprintf(stderr, "\n");
 }
 
-#if !defined(_WIN32) && !defined(CONFIG_TCCBOOT)
-
 #ifdef __i386__
-
 /* fix for glibc 2.1 */
 #ifndef REG_EIP
 #define REG_EIP EIP
@@ -10683,9 +10681,7 @@ static int rt_get_caller_pc(unsigned long *paddr, ucontext_t *uc, int level)
     }
 }
 #else
-
 #warning add arch specific rt_get_caller_pc()
-
 static int rt_get_caller_pc(unsigned long *paddr, ucontext_t *uc, int level)
 {
     return -1;
@@ -10752,6 +10748,7 @@ static void sig_error(int signum, siginfo_t *siginf, void *puc)
     }
     exit(255);
 }
+
 #endif
 
 /* copy code into memory passed in by the caller and do all relocations
@@ -10848,9 +10845,7 @@ int tcc_run(TCCState *s1, int argc, char **argv)
     prog_main = tcc_get_symbol_err(s1, "main");
 
     if (do_debug) {
-#if defined(_WIN32) || defined(CONFIG_TCCBOOT)
-        error("debug mode currently not available for Windows");
-#else
+#ifdef CONFIG_TCC_BACKTRACE
         struct sigaction sigact;
         /* install TCC signal handlers to print debug info on fatal
            runtime errors */
@@ -10862,6 +10857,8 @@ int tcc_run(TCCState *s1, int argc, char **argv)
         sigaction(SIGSEGV, &sigact, NULL);
         sigaction(SIGBUS, &sigact, NULL);
         sigaction(SIGABRT, &sigact, NULL);
+#else
+        error("debug mode not available");
 #endif
     }
 
@@ -11706,9 +11703,11 @@ int parse_args(TCCState *s, int argc, char **argv)
             case TCC_OPTION_bench:
                 do_bench = 1;
                 break;
+#ifdef CONFIG_TCC_BACKTRACE
             case TCC_OPTION_bt:
                 num_callers = atoi(optarg);
                 break;
+#endif
 #ifdef CONFIG_TCC_BCHECK
             case TCC_OPTION_b:
                 do_bounds_check = 1;
@@ -11842,8 +11841,6 @@ int main(int argc, char **argv)
 #ifdef _WIN32
     tcc_set_lib_path_w32(s);
 #endif
-
-    s = tcc_new();
     output_type = TCC_OUTPUT_EXE;
     outfile = NULL;
     multiple_files = 1;

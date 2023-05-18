@@ -16,6 +16,7 @@ typedef char int8_t;
 typedef short int int16_t;
 typedef int int32_t;
 typedef long long int int64_t;
+#endif
 #ifdef __65816__
 typedef int int16_t;
 typedef long long int int32_t;
@@ -26,5 +27,4 @@ void *_alloca(size_t);
 #define alloca _alloca
 #endif
 
-#endif
 #endif
