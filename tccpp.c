@@ -31,6 +31,19 @@ static char tok_two_chars[] = "<=\236>=\235!=\225&&\240||\241++\244--\242==\224<
 /* true if isid(c) || isnum(c) */
 static unsigned char isidnum_table[256 - CH_EOF];
 
+struct macro_level
+{
+    struct macro_level *prev;
+    int *p;
+};
+
+static void next_nomacro(void);
+static void next_nomacro_spc(void);
+static void macro_subst(TokenString *tok_str,
+                        Sym **nested_list,
+                        const int *macro_str,
+                        struct macro_level **can_read_stream);
+
 /* allocate a new token */
 static TokenSym *tok_alloc_new(TokenSym **pts, const char *str, int len)
 {
@@ -443,12 +456,6 @@ end_of_comment:
 }
 
 #define cinp minp
-
-/* space exlcuding newline */
-static inline int is_space(int ch)
-{
-    return ch == ' ' || ch == '\t' || ch == '\v' || ch == '\f' || ch == '\r';
-}
 
 static inline void skip_spaces(void)
 {
@@ -1378,7 +1385,7 @@ redo:
             pstrcpy(f->inc_filename, sizeof(f->inc_filename), buf);
             file = f;
             /* add include file debug info */
-            if (do_debug) {
+            if (tcc_state->do_debug) {
                 put_stabs(file->filename, N_BINCL, 0, 0, 0);
             }
             tok_flags |= TOK_FLAG_BOF | TOK_FLAG_BOL;
@@ -2007,7 +2014,7 @@ redo_no_start:
             }
 
             /* add end of include file debug info */
-            if (do_debug) {
+            if (tcc_state->do_debug) {
                 put_stabd(N_EINCL, 0, 0);
             }
             /* pop include stack */

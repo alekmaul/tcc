@@ -20,6 +20,13 @@
 
 #include "tcc.h"
 
+/********************************************************/
+/* global variables */
+
+/* display benchmark infos */
+int total_lines;
+int total_bytes;
+
 /* parser */
 static struct BufferedFile *file;
 static int ch, tok;
@@ -103,19 +110,6 @@ static CType char_pointer_type, func_old_type, int_type, ptr_type;
 static CType char_pointer_type, func_old_type, int_type;
 #endif
 
-/* display some information during compilation */
-static int verbose = 0;
-
-/* compile with debug symbol (and use them if error during execution) */
-static int do_debug = 0;
-
-/* compile with built-in memory and bounds checker */
-static int do_bounds_check = 0;
-
-/* display benchmark infos */
-static int total_lines;
-static int total_bytes;
-
 /* use GNU C extensions */
 static int gnu_ext = 1;
 
@@ -124,17 +118,140 @@ static int tcc_ext = 1;
 
 /* max number of callers shown if error */
 #ifdef CONFIG_TCC_BACKTRACE
-static int num_callers = 6;
+int num_callers = 6;
 #ifndef TCC_TARGET_816
-static const char **rt_bound_error_msg;
+const char **rt_bound_error_msg;
 #endif
 #endif
 
 /* XXX: get rid of this ASAP */
 static struct TCCState *tcc_state;
 
-/* give the path of the tcc libraries */
-static const char *tcc_lib_path = CONFIG_TCCDIR;
+/********************************************************/
+/* function prototypes */
+
+/* tccpp.c */
+static void next(void);
+char *get_tok_str(int v, CValue *cv);
+
+/* tccgen.c */
+static void parse_expr_type(CType *type);
+static void expr_type(CType *type);
+static void unary_type(CType *type);
+static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_reg, int is_expr);
+static int expr_const(void);
+static void expr_eq(void);
+static void gexpr(void);
+static void gen_inline_functions(void);
+static void decl(int l);
+static void decl_initializer(CType *type, Section *sec, unsigned long c, int first, int size_only);
+static void decl_initializer_alloc(
+    CType *type, AttributeDef *ad, int r, int has_init, int v, int scope);
+int gv(int rc);
+void gv2(int rc1, int rc2);
+void move_reg(int r, int s);
+void save_regs(int n);
+void save_reg(int r);
+void vpop(void);
+void vswap(void);
+void vdup(void);
+int get_reg(int rc);
+int get_reg_ex(int rc, int rc2);
+
+void gen_op(int op);
+void force_charshort_cast(int t);
+static void gen_cast(CType *type);
+void vstore(void);
+static Sym *sym_find(int v);
+static Sym *sym_push(int v, CType *type, int r, int c);
+
+/* type handling */
+static int type_size(CType *type, int *a);
+static inline CType *pointed_type(CType *type);
+static int pointed_size(CType *type);
+static int lvalue_type(int t);
+static int parse_btype(CType *type, AttributeDef *ad);
+static void type_decl(CType *type, AttributeDef *ad, int *v, int td);
+static int compare_types(CType *type1, CType *type2, int unqualified);
+static int is_compatible_types(CType *type1, CType *type2);
+static int is_compatible_parameter_types(CType *type1, CType *type2);
+
+int ieee_finite(double d);
+void vpushi(int v);
+void vpushll(long long v);
+void vrott(int n);
+void vnrott(int n);
+void lexpand_nr(void);
+static void vpush_global_sym(CType *type, int v);
+void vset(CType *type, int r, int v);
+void type_to_str(char *buf, int buf_size, CType *type, const char *varstr);
+static Sym *get_sym_ref(CType *type, Section *sec, unsigned long offset, unsigned long size);
+static Sym *external_global_sym(int v, CType *type, int r);
+
+/* section generation */
+static void section_realloc(Section *sec, unsigned long new_size);
+static void *section_ptr_add(Section *sec, unsigned long size);
+static void put_extern_sym(Sym *sym, Section *section, unsigned long value, unsigned long size);
+static void greloc(Section *s, Sym *sym, unsigned long addr, int type);
+static int put_elf_str(Section *s, const char *sym);
+static int put_elf_sym(Section *s,
+                       unsigned long value,
+                       unsigned long size,
+                       int info,
+                       int other,
+                       int shndx,
+                       const char *name);
+static int add_elf_sym(Section *s,
+                       unsigned long value,
+                       unsigned long size,
+                       int info,
+                       int other,
+                       int sh_num,
+                       const char *name);
+static void put_elf_reloc(Section *symtab, Section *s, unsigned long offset, int type, int symbol);
+static void put_stabs(const char *str, int type, int other, int desc, unsigned long value);
+static void put_stabs_r(const char *str,
+                        int type,
+                        int other,
+                        int desc,
+                        unsigned long value,
+                        Section *sec,
+                        int sym_index);
+static void put_stabn(int type, int other, int desc, int value);
+static void put_stabd(int type, int other, int desc);
+static int tcc_add_dll(TCCState *s, const char *filename, int flags);
+
+#define AFF_PRINT_ERROR 0x0001    /* print error if file not found */
+#define AFF_REFERENCED_DLL 0x0002 /* load a referenced dll from another dll */
+#define AFF_PREPROCESS 0x0004     /* preprocess file */
+static int tcc_add_file_internal(TCCState *s, const char *filename, int flags);
+
+/* tcccoff.c */
+int tcc_output_coff(TCCState *s1, FILE *f);
+
+/* tccpe.c */
+void *resolve_sym(TCCState *s1, const char *sym, int type);
+int pe_load_def_file(struct TCCState *s1, int fd);
+int pe_test_res_file(void *v, int size);
+int pe_load_res_file(struct TCCState *s1, int fd);
+void pe_add_runtime(struct TCCState *s1);
+void pe_guess_outfile(char *objfilename, int output_type);
+int pe_output_file(struct TCCState *s1, const char *filename);
+
+/* tccasm.c */
+#ifdef CONFIG_TCC_ASM
+static void asm_expr(TCCState *s1, ExprValue *pe);
+static int asm_int_expr(TCCState *s1);
+static int find_constraint(ASMOperand *operands, int nb_operands, const char *name, const char **pp);
+
+static int tcc_assemble(TCCState *s1, int do_preprocess);
+#endif
+
+static void asm_instr(void);
+static void asm_global_instr(void);
+
+/********************************************************/
+/* global variables */
 
 #ifdef TCC_TARGET_I386
 #include "i386-gen.c"
@@ -578,7 +695,7 @@ static void put_extern_sym2(
     if (!sym->c) {
         name = get_tok_str(sym->v, NULL);
 #ifdef CONFIG_TCC_BCHECK
-        if (do_bounds_check) {
+        if (tcc_state->do_bounds_check) {
             char buf[32];
 
             /* XXX: avoid doing that for statics ? */
@@ -1018,10 +1135,10 @@ BufferedFile *tcc_open(TCCState *s1, const char *filename)
         fd = 0, filename = "stdin";
     else
         fd = open(filename, O_RDONLY | O_BINARY);
-    if ((verbose == 2 && fd >= 0) || verbose == 3)
+    if ((s1->verbose == 2 && fd >= 0) || s1->verbose == 3)
         printf("%s %*s%s\n",
                fd < 0 ? "nf" : "->",
-               (int) (s1->include_stack_ptr - s1->include_stack),
+               (s1->include_stack_ptr - s1->include_stack),
                "",
                filename);
     if (fd < 0)
@@ -1070,7 +1187,7 @@ static int tcc_compile(TCCState *s1)
 
     /* file info: full path + filename */
     section_sym = 0; /* avoid warning */
-    if (do_debug) {
+    if (s1->do_debug) {
         section_sym = put_elf_sym(symtab_section,
                                   0,
                                   0,
@@ -1142,7 +1259,7 @@ static int tcc_compile(TCCState *s1)
             expect("declaration");
 
         /* end of translation unit info */
-        if (do_debug) {
+        if (s1->do_debug) {
             put_stabs_r(NULL, N_SO, 0, 0, text_section->data_offset, text_section, section_sym);
         }
     }
@@ -1610,7 +1727,7 @@ int tcc_run(TCCState *s1, int argc, char **argv)
 
     prog_main = tcc_get_symbol_err(s1, "main");
 
-    if (do_debug) {
+    if (s1->do_debug) {
 #ifdef CONFIG_TCC_BACKTRACE
         struct sigaction sigact;
         /* install TCC signal handlers to print debug info on fatal
@@ -1629,7 +1746,7 @@ int tcc_run(TCCState *s1, int argc, char **argv)
     }
 
 #ifdef CONFIG_TCC_BCHECK
-    if (do_bounds_check) {
+    if (s1->do_bounds_check) {
         void (*bound_init)(void);
 
         /* set error function */
@@ -1691,6 +1808,7 @@ TCCState *tcc_new(void)
         return NULL;
     tcc_state = s;
     s->output_type = TCC_OUTPUT_MEMORY;
+    s->tcc_lib_path = CONFIG_TCCDIR;
 
     preprocess_new();
 
@@ -2053,17 +2171,17 @@ int tcc_set_output_type(TCCState *s, int output_type)
         tcc_add_sysinclude_path(s, CONFIG_SYSROOT "/usr/local/include");
         tcc_add_sysinclude_path(s, CONFIG_SYSROOT "/usr/include");
 #endif
-        snprintf(buf, sizeof(buf), "%s/include", tcc_lib_path);
+        snprintf(buf, sizeof(buf), "%s/include", s->tcc_lib_path);
         tcc_add_sysinclude_path(s, buf);
 #ifdef TCC_TARGET_PE
-        snprintf(buf, sizeof(buf), "%s/include/winapi", tcc_lib_path);
+        snprintf(buf, sizeof(buf), "%s/include/winapi", s->tcc_lib_path);
         tcc_add_sysinclude_path(s, buf);
 #endif
     }
 
     /* if bound checking, then add corresponding sections */
 #ifdef CONFIG_TCC_BCHECK
-    if (do_bounds_check) {
+    if (s->do_bounds_check) {
         /* define symbol */
         tcc_define_symbol(s, "__BOUNDS_CHECKING_ON", NULL);
         /* create bounds sections */
@@ -2077,7 +2195,7 @@ int tcc_set_output_type(TCCState *s, int output_type)
     }
 
     /* add debug sections */
-    if (do_debug) {
+    if (s->do_debug) {
         /* stab symbols */
         stab_section = new_section(s, ".stab", SHT_PROGBITS, 0);
         stab_section->sh_entsize = sizeof(Stab_Sym);
@@ -2098,7 +2216,7 @@ int tcc_set_output_type(TCCState *s, int output_type)
 #endif
 
 #ifdef TCC_TARGET_PE
-    snprintf(buf, sizeof(buf), "%s/lib", tcc_lib_path);
+    snprintf(buf, sizeof(buf), "%s/lib", s->tcc_lib_path);
     tcc_add_library_path(s, buf);
 #endif
 
@@ -2180,5 +2298,22 @@ int tcc_set_flag(TCCState *s, const char *flag_name, int value)
 /* set CONFIG_TCCDIR at runtime */
 void tcc_set_lib_path(TCCState *s, const char *path)
 {
-    tcc_lib_path = tcc_strdup(path);
+    s->tcc_lib_path = tcc_strdup(path);
+}
+
+void tcc_print_stats(TCCState *s, int64_t total_time)
+{
+    double tt;
+    tt = (double) total_time / 1000000.0;
+    if (tt < 0.001)
+        tt = 0.001;
+    if (total_bytes < 1)
+        total_bytes = 1;
+    printf("%d idents, %d lines, %d bytes, %0.3f s, %d lines/s, %0.1f MB/s\n",
+           tok_ident - TOK_IDENT,
+           total_lines,
+           total_bytes,
+           tt,
+           (int) (total_lines / tt),
+           total_bytes / tt / 1000000.0);
 }

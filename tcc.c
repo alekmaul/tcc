@@ -309,12 +309,12 @@ int parse_args(TCCState *s, int argc, char **argv)
 #endif
 #ifdef CONFIG_TCC_BCHECK
             case TCC_OPTION_b:
-                do_bounds_check = 1;
-                do_debug = 1;
+                s->do_bounds_check = 1;
+                s->do_debug = 1;
                 break;
 #endif
             case TCC_OPTION_g:
-                do_debug = 1;
+                s->do_debug = 1;
                 break;
             case TCC_OPTION_c:
                 multiple_files = 1;
@@ -359,7 +359,7 @@ int parse_args(TCCState *s, int argc, char **argv)
             } break;
             case TCC_OPTION_v:
                 do {
-                    if (0 == verbose++)
+                    if (0 == s->verbose++)
                         printf("tcc version %s\n", TCC_VERSION);
                 } while (*optarg++ == 'v');
                 break;
@@ -453,11 +453,11 @@ int main(int argc, char **argv)
     optind = parse_args(s, argc - 1, argv + 1);
     if (print_search_dirs) {
         /* enough for Linux kernel */
-        printf("install: %s/\n", tcc_lib_path);
+        printf("install: %s/\n", s->tcc_lib_path);
         return 0;
     }
     if (optind == 0 || nb_files == 0) {
-        if (optind && verbose)
+        if (optind && s->verbose)
             return 0;
         help();
         return 1;
@@ -527,7 +527,7 @@ int main(int argc, char **argv)
             if (tcc_add_library(s, filename + 2) < 0)
                 error("cannot find %s", filename);
         } else {
-            if (1 == verbose)
+            if (1 == s->verbose)
                 printf("-> %s\n", filename);
             if (tcc_add_file(s, filename) < 0)
                 ret = 1;
@@ -540,21 +540,8 @@ int main(int argc, char **argv)
     if (ret)
         goto the_end;
 
-    if (do_bench) {
-        double total_time;
-        total_time = (double) (getclock_us() - start_time) / 1000000.0;
-        if (total_time < 0.001)
-            total_time = 0.001;
-        if (total_bytes < 1)
-            total_bytes = 1;
-        printf("%d idents, %d lines, %d bytes, %0.3f s, %d lines/s, %0.1f MB/s\n",
-               tok_ident - TOK_IDENT,
-               total_lines,
-               total_bytes,
-               total_time,
-               (int) (total_lines / total_time),
-               total_bytes / total_time / 1000000.0);
-    }
+    if (do_bench)
+        tcc_print_stats(s, getclock_us() - start_time);
 
 #ifndef TCC_TARGET_816
     if (s->output_type == TCC_OUTPUT_PREPROCESS) {
@@ -567,7 +554,7 @@ int main(int argc, char **argv)
         ret = tcc_output_file(s, outfile) ? 1 : 0;
 the_end:
     /* XXX: cannot do it with bound checking because of the malloc hooks */
-    if (!do_bounds_check)
+    if (!s->do_bounds_check)
         tcc_delete(s);
 
 #ifdef MEM_DEBUG
