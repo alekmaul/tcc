@@ -8884,7 +8884,11 @@ static void init_putz(CType *t, Section *sec, unsigned long c, int size)
         /* nothing to do because globals are already set to zero */
     } else {
         vpush_global_sym(&func_old_type, TOK_memset);
+#ifdef TCC_TARGET_816
         vset(&ptr_type, VT_LOCAL, c);
+#else
+        vseti(VT_LOCAL, c);
+#endif
         vpushi(0);
         vpushi(size);
         gfunc_call(3);
