@@ -6202,8 +6202,7 @@ static void gen_cast(CType *type)
         } else if (sf) {
             /* convert fp to int */
             /* we handle char/short/etc... with generic code */
-            if (dbt != (VT_INT | VT_UNSIGNED) && dbt != (VT_LLONG | VT_UNSIGNED) && dbt != VT_LLONG
-                && (dbt & VT_BTYPE) != VT_BOOL)
+            if (dbt != (VT_INT | VT_UNSIGNED) && dbt != (VT_LLONG | VT_UNSIGNED) && dbt != VT_LLONG)
                 dbt = VT_INT;
             if (c) {
                 switch (dbt) {
@@ -6214,13 +6213,13 @@ static void gen_cast(CType *type)
                 case VT_INT | VT_UNSIGNED:
                     switch (sbt) {
                     case VT_FLOAT:
-                        vtop->c.ui = (UNSIGNED) vtop->c.d;
+                        vtop->c.ui = (unsigned int) vtop->c.d;
                         break;
                     case VT_DOUBLE:
-                        vtop->c.ui = (UNSIGNED) vtop->c.d;
+                        vtop->c.ui = (unsigned int) vtop->c.d;
                         break;
                     case VT_LDOUBLE:
-                        vtop->c.ui = (UNSIGNED) vtop->c.d;
+                        vtop->c.ui = (unsigned int) vtop->c.d;
                         break;
                     }
                     break;
@@ -6232,13 +6231,13 @@ static void gen_cast(CType *type)
                     /* int case */
                     switch (sbt) {
                     case VT_FLOAT:
-                        vtop->c.i = (SIGNED) vtop->c.d;
+                        vtop->c.i = (int) vtop->c.d;
                         break;
                     case VT_DOUBLE:
-                        vtop->c.i = (SIGNED) vtop->c.d;
+                        vtop->c.i = (int) vtop->c.d;
                         break;
                     case VT_LDOUBLE:
-                        vtop->c.i = (SIGNED) vtop->c.d;
+                        vtop->c.i = (int) vtop->c.d;
                         break;
                     }
                     break;
