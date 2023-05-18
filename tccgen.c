@@ -944,10 +944,11 @@ void gen_opl(int op)
             if (op != TOK_SHL)
                 vswap();
 #ifdef TCC_TARGET_816
-            if (c >= 16) {
+            if (c >= 16)
 #else
-            if (c >= 32) {
+            if (c >= 32)
 #endif
+            {
                 /* stack: L H */
                 vpop();
 #ifdef TCC_TARGET_816
@@ -1056,7 +1057,7 @@ void gen_opl(int op)
                 b = ind;
                 o(0x1A000000 | encbranch(ind, 0, 1));
 #elif defined(TCC_TARGET_C67)
-        error("not implemented");
+            error("not implemented");
 #elif defined(TCC_TARGET_816)
 #if 0
                 b = ind;
@@ -1065,11 +1066,11 @@ void gen_opl(int op)
                 // branches (too short) p("b%s " LOCAL_LABEL "\n", inv?"eq":"ne", jumps++);
                 pr("beq +\nbrl " LOCAL_LABEL "\n+\n", jumps++);
 #endif
-        pr("; cmpll high order word equal?\n");
-        b = ind;
-        jump[jumps][0] = ind;
-        // flags from the compare are long gone, but the compare opi has saved the value for us in y
-        pr("tya\nbne " LOCAL_LABEL "\n", jumps++);
+            pr("; cmpll high order word equal?\n");
+            b = ind;
+            jump[jumps][0] = ind;
+            // flags from the compare are long gone, but the compare opi has saved the value for us in y
+            pr("tya\nbne " LOCAL_LABEL "\n", jumps++);
 #else
 #error not supported
 #endif
@@ -4344,11 +4345,7 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
             }
             /* label already defined */
             if (s->r & LABEL_FORWARD)
-#ifdef TCC_TARGET_816
-                s->next = (void *) (long) gjmp((long) s->next);
-#else
                 s->jnext = gjmp(s->jnext);
-#endif
             else
                 gjmp_addr(s->jnext);
             next();
@@ -5416,7 +5413,7 @@ static void decl(int l)
                             r |= VT_CONST;
                             // handle with care: introducing a new flag seems to introduce subtle lossage
                             if (l == VT_LOCAL)
-                                type.t |= VT_STATICLOCAL;
+                                type.t |= VT_IMPORT;
                         }
 #else
                             r |= VT_CONST;

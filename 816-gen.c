@@ -138,7 +138,7 @@ char *get_sym_str(Sym *sym)
     /* if static, add prefix */
     if (sym->type.t & VT_STATIC) {
         // fprintf(stderr,"sym %s type 0x%x current_fn %s token %d\n",symname,sym->type.t,current_fn,sym->v);
-        if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0
+        if ((sym->type.t & VT_IMPORT) && current_fn[0] != 0
             && !((sym->type.t & VT_BTYPE) == VT_FUNC))
             sprintf(name, "%s_FUNC_%s_", static_prefix, current_fn);
         else

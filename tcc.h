@@ -607,16 +607,13 @@ struct TCCState
 #define VT_TYPEDEF 0x00000200 /* typedef definition */
 #define VT_INLINE 0x00000400  /* inline definition */
 #define VT_IMPORT 0x00004000  /* win32: extern data imported from dll */
-#ifdef TCC_TARGET_816
-#define VT_STATICLOCAL 0x00004000
-#endif
 
 #define VT_STRUCT_SHIFT 16 /* shift for bitfield shift values */
 
 /* type mask (except storage) */
 #define VT_STORAGE (VT_EXTERN | VT_STATIC | VT_TYPEDEF | VT_INLINE | VT_IMPORT)
 #ifdef TCC_TARGET_816
-#define VT_TYPE (~(VT_STORAGE) & ~(VT_STATICLOCAL))
+#define VT_TYPE (~(VT_STORAGE) & ~(VT_IMPORT))
 #else
 #define VT_TYPE (~(VT_STORAGE))
 #endif

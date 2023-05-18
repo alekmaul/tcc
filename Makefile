@@ -22,6 +22,9 @@ LIBS_P=
 
 ifneq ($(GCC_MAJOR),2)
 CFLAGS+=-fno-strict-aliasing
+ifneq ($(GCC_MAJOR),3)
+CFLAGS+=-Wno-pointer-sign -Wno-sign-compare -D_FORTIFY_SOURCE=0
+endif
 endif
 
 ifeq ($(ARCH),i386)
@@ -30,14 +33,7 @@ ifeq ($(GCC_MAJOR),2)
 CFLAGS+=-m386 -malign-functions=0
 else
 CFLAGS+=-march=i386 -falign-functions=0
-ifneq ($(GCC_MAJOR),3)
-CFLAGS+=-Wno-pointer-sign -Wno-sign-compare -D_FORTIFY_SOURCE=0
 endif
-endif
-endif
-
-ifeq ($(ARCH),x86-64)
-CFLAGS+=-Wno-pointer-sign
 endif
 
 ifndef CONFIG_WIN32
@@ -65,6 +61,8 @@ ifeq ($(ARCH),x86-64)
 ifndef CONFIG_816
 NATIVE_TARGET=-DTCC_TARGET_X86_64
 LIBTCC1=libtcc1.a
+BCHECK_O=
+ALLOCA_O=alloca86_64.o
 else
 NATIVE_TARGET=-DTCC_TARGET_816
 endif
@@ -90,6 +88,8 @@ endif
 
 I386_CROSS = i386-tcc$(EXESUF)
 WIN32_CROSS = i386-win32-tcc$(EXESUF)
+WIN64_CROSS = x86_64-win32-tcc$(EXESUF)
+WINCE_CROSS = arm-win32-tcc$(EXESUF)
 X64_CROSS = x86_64-tcc$(EXESUF)
 ARM_CROSS = arm-tcc-fpa$(EXESUF) arm-tcc-fpa-ld$(EXESUF) \
     arm-tcc-vfp$(EXESUF) arm-tcc-vfp-eabi$(EXESUF)
@@ -98,9 +98,11 @@ C67_CROSS = c67-tcc$(EXESUF)
 
 CORE_FILES = tcc.c libtcc.c tccpp.c tccgen.c tccelf.c tccasm.c \
     tcc.h config.h libtcc.h tcctok.h
-I386_FILES = $(CORE_FILES) i386-gen.c i386-asm.c i386-asm.h
-WIN32_FILES = $(CORE_FILES) i386-gen.c i386-asm.c i386-asm.h tccpe.c
-X86_64_FILES = $(CORE_FILES) x86_64-gen.c
+I386_FILES = $(CORE_FILES) i386-gen.c i386-asm.c i386-asm.h i386-tok.h
+WIN32_FILES = $(CORE_FILES) i386-gen.c i386-asm.c i386-asm.h i386-tok.h tccpe.c
+WIN64_FILES = $(CORE_FILES) x86_64-gen.c x86_64-asm.c x86_64-asm.h x86_64-tok.h tccpe.c
+WINCE_FILES = $(CORE_FILES) arm-gen.c tccpe.c
+X86_64_FILES = $(CORE_FILES) x86_64-gen.c x86_64-asm.c x86_64-asm.h x86_64-tok.h
 ARM_FILES = $(CORE_FILES) arm-gen.c
 C67_FILES = $(CORE_FILES) c67-gen.c tcccoff.c
 816_FILES = $(CORE_FILES) 816-gen.c
@@ -108,19 +110,19 @@ C67_FILES = $(CORE_FILES) c67-gen.c tcccoff.c
 ifdef CONFIG_WIN32
 PROGS+=tiny_impdef$(EXESUF) tiny_libmaker$(EXESUF)
 NATIVE_FILES=$(WIN32_FILES)
-PROGS_CROSS=$(I386_CROSS) $(X64_CROSS) $(ARM_CROSS) $(C67_CROSS)
+PROGS_CROSS=$(WIN64_CROSS) $(I386_CROSS) $(X64_CROSS) $(ARM_CROSS) $(C67_CROSS)
 else
 ifeq ($(ARCH),i386)
 NATIVE_FILES=$(I386_FILES)
-PROGS_CROSS=$(X64_CROSS) $(WIN32_CROSS) $(ARM_CROSS) $(C67_CROSS)
+PROGS_CROSS=$(X64_CROSS) $(WIN32_CROSS) $(WIN64_CROSS) $(ARM_CROSS) $(C67_CROSS)
 else
 ifeq ($(ARCH),x86-64)
 NATIVE_FILES=$(X86_64_FILES)
-PROGS_CROSS=$(I386_CROSS) $(WIN32_CROSS) $(ARM_CROSS) $(C67_CROSS)
+PROGS_CROSS=$(I386_CROSS) $(WIN32_CROSS) $(WIN64_CROSS) $(ARM_CROSS) $(C67_CROSS)
 else
 ifeq ($(ARCH),arm)
 NATIVE_FILES=$(ARM_FILES)
-PROGS_CROSS=$(I386_CROSS) $(X64_CROSS) $(WIN32_CROSS) $(C67_CROSS)
+PROGS_CROSS=$(I386_CROSS) $(X64_CROSS) $(WIN32_CROSS) $(WIN64_CROSS) $(C67_CROSS)
 endif
 endif
 endif
@@ -150,11 +152,17 @@ i386-tcc$(EXESUF): $(I386_FILES)
 i386-win32-tcc$(EXESUF): $(WIN32_FILES)
 	$(CC) -o $@ $< -DTCC_TARGET_PE $(CFLAGS) $(LIBS)
 
+x86_64-win32-tcc$(EXESUF): $(WIN32_FILES)
+	$(CC) -o $@ $< -DTCC_TARGET_PE -DTCC_TARGET_X86_64 $(CFLAGS) $(LIBS)
+
 x86_64-tcc$(EXESUF): $(X86_64_FILES)
 	$(CC) -o $@ $< -DTCC_TARGET_X86_64 $(CFLAGS) $(LIBS)
 
 c67-tcc$(EXESUF): $(C67_FILES)
 	$(CC) -o $@ $< -DTCC_TARGET_C67 $(CFLAGS) $(LIBS)
+
+arm-win32-tcc$(EXESUF): $(WIN32_FILES)
+	$(CC) -o $@ $< -DTCC_TARGET_PE -DTCC_TARGET_ARM $(CFLAGS) $(LIBS)
 
 arm-tcc-fpa$(EXESUF): $(ARM_FILES)
 	$(CC) -o $@ $< -DTCC_TARGET_ARM $(CFLAGS) $(LIBS)
@@ -198,10 +206,11 @@ tiny_libmaker$(EXESUF): win32/tools/tiny_libmaker.c
 LIBTCC1_OBJS=libtcc1.o
 LIBTCC1_CC=$(CC)
 VPATH+=lib
+
 ifdef CONFIG_WIN32
 # for windows, we must use TCC because we generate ELF objects
 LIBTCC1_OBJS+=crt1.o wincrt1.o dllcrt1.o dllmain.o chkstk.o
-LIBTCC1_CC=./tcc.exe -Bwin32 -DTCC_TARGET_PE
+LIBTCC1_CC=./tcc.exe -Bwin32 -Iinclude $(NATIVE_TARGET)
 VPATH+=win32/lib
 endif
 ifeq ($(ARCH),i386)
@@ -271,7 +280,7 @@ install: $(PROGS) $(LIBTCC1) libtcc.a tcc-doc.html
 	$(INSTALL) -m644 $(LIBTCC1) win32/lib/*.def "$(tccdir)/lib"
 	cp -r win32/include/. "$(tccdir)/include"
 	cp -r win32/examples/. "$(tccdir)/examples"
-#	$(INSTALL) -m644 $(addprefix include/,$(TCC_INCLUDES)) "$(tccdir)/include"
+	$(INSTALL) -m644 $(addprefix include/,$(TCC_INCLUDES)) "$(tccdir)/include"
 	$(INSTALL) -m644 tcc-doc.html win32/tcc-win32.txt "$(tccdir)/doc"
 	$(INSTALL) -m644 libtcc.a libtcc.h "$(tccdir)/libtcc"
 endif
@@ -311,6 +320,6 @@ local_clean:
 	rm -vf $(PROGS) tcc_p$(EXESUF) tcc.pod *~ *.o *.a *.out libtcc_test$(EXESUF)
 
 distclean: clean
-	rm -vf config.h config.mak config.texi tcc.1 tcc-doc.html
+	rm -vf config.h config.mak config.texi tcc.1
 
 endif # ifeq ($(TOP),.)
