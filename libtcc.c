@@ -1138,7 +1138,7 @@ BufferedFile *tcc_open(TCCState *s1, const char *filename)
     if ((s1->verbose == 2 && fd >= 0) || s1->verbose == 3)
         printf("%s %*s%s\n",
                fd < 0 ? "nf" : "->",
-               (s1->include_stack_ptr - s1->include_stack),
+               (int)(s1->include_stack_ptr - s1->include_stack),
                "",
                filename);
     if (fd < 0)
@@ -1825,6 +1825,9 @@ TCCState *tcc_new(void)
 #if defined(TCC_TARGET_I386)
     tcc_define_symbol(s, "__i386__", NULL);
 #endif
+#ifdef TCC_TARGET_816
+    tcc_define_symbol(s, "__65816__", NULL);
+#endif
 #if defined(TCC_TARGET_X86_64)
     tcc_define_symbol(s, "__x86_64__", NULL);
 #endif
@@ -1871,6 +1874,7 @@ TCCState *tcc_new(void)
     tcc_define_symbol(s, "__DBL_MAX__", "0x1.fffffep127");
     tcc_define_symbol(s, "__LDBL_MIN__", "0x0.1p-127");
     tcc_define_symbol(s, "__LDBL_MAX__", "0x1.fffffep127");
+    tcc_define_symbol(s, "__WCHAR_MAX__", "65535");
 #endif
 
 #ifndef TCC_TARGET_PE
