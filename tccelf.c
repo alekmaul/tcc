@@ -528,10 +528,6 @@ static unsigned long add_got_table(TCCState *s1, unsigned long val)
 }
 #endif
 
-#ifdef TCC_TARGET_816
-char **relocptrs = NULL;
-#endif
-
 /* relocate a given section (CPU dependent) */
 static void relocate_section(TCCState *s1, Section *s)
 {
@@ -694,15 +690,6 @@ static void relocate_section(TCCState *s1, Section *s)
             relocptrs[((unsigned long) ptr) & 0xfffff] = symtab_section->link->data + sym->st_name;
             break;
         default:
-#ifndef TCC_TARGET_816
-            fprintf(stderr,
-                    "FIXME: handle reloc type %x at %lx [%.8x] to %lx\n",
-                    type,
-                    addr,
-                    (unsigned int) ptr,
-                    val);
-            break;
-#else
             fprintf(stderr,
                     "FIXME: handle reloc type 0x%x at 0x%lx [%.8lx] to 0x%lx\n",
                     type,
@@ -710,7 +697,6 @@ static void relocate_section(TCCState *s1, Section *s)
                     (unsigned long) ptr,
                     val);
             break;
-#endif
 #elif defined(TCC_TARGET_X86_64)
         case R_X86_64_64:
             if (s1->output_type == TCC_OUTPUT_DLL) {

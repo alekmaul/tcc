@@ -98,8 +98,11 @@ int reg_classes[NB_REGS] = {
 
 char current_fn[256] = "";
 
-// Alekmaul 201125, variable for temp file name (token usage)
+// Variable for temp file name (token usage)
 char sztmpnam[STRING_MAX_SIZE];
+
+// Variable relocate a given section
+char **relocptrs = NULL;
 
 /* yet another terrible workaround
    WLA does not have file-local symbols, only section-local and global.
