@@ -7157,13 +7157,6 @@ static int parse_btype(CType *type, AttributeDef *ad)
             u = VT_FLOAT;
             goto basic_type;
         case TOK_DOUBLE:
-#ifdef TCC_TARGET_816
-            if ((t & VT_BTYPE) == VT_LONG) {
-                t = (t & ~VT_BTYPE);
-            }
-            u = VT_FLOAT;
-            goto basic_type;
-#else
             next();
             if ((t & VT_BTYPE) == VT_LONG) {
                 t = (t & ~VT_BTYPE) | VT_LDOUBLE;
@@ -7171,11 +7164,9 @@ static int parse_btype(CType *type, AttributeDef *ad)
                 u = VT_DOUBLE;
                 goto basic_type1;
             }
-#endif
             break;
         case TOK_ENUM:
             struct_decl(&type1, VT_ENUM);
-            type1.t |= VT_UNSIGNED;
         basic_type2:
             u = type1.t;
             type->ref = type1.ref;
