@@ -179,9 +179,14 @@ typedef struct SValue
 /* symbol management */
 typedef struct Sym
 {
-    int v;                /* symbol token */
-    long r;               /* associated register */
-    long c;               /* associated number */
+    int v; /* symbol token */
+#ifdef TCC_TARGET_816
+    long r; /* associated register */
+    long c; /* associated number */
+#else
+    int r;                                                 /* associated register */
+    int c;                                                 /* associated number */
+#endif
     CType type;           /* associated type */
     struct Sym *next;     /* next related symbol */
     struct Sym *prev;     /* prev symbol in stack */
@@ -519,9 +524,6 @@ struct TCCState
     /* pack stack */
     int pack_stack[PACK_STACK_SIZE];
     int *pack_stack_ptr;
-#ifdef TCC_TARGET_816
-    int optimize;
-#endif
 };
 
 /* The current value can be: */
@@ -1018,9 +1020,6 @@ void *resolve_sym(TCCState *s1, const char *sym, int type)
 
 #endif
 
-#ifdef TCC_TARGET_816
-char sztmpnam[STRING_MAX_SIZE]; // Alekmaul 201125, variable for temp file name (token usage)
-#endif
 /********************************************************/
 
 /* we use our own 'finite' function to avoid potential problems with
@@ -9223,9 +9222,13 @@ static void decl_initializer_alloc(
         /* allocate symbol in corresponding section */
         sec = ad->section;
         if (!sec) {
+#ifdef TCC_TARGET_816
             if (has_init == 2)
                 sec = rodata_section;
             else if (has_init)
+#else
+            if (has_init)
+#endif
                 sec = data_section;
             else if (tcc_state->nocommon)
                 sec = bss_section;
@@ -9557,7 +9560,11 @@ static void decl(int l)
                     }
                     tok_str_add(&func_str, -1);
                     tok_str_add(&func_str, 0);
+#ifdef TCC_TARGET_816
                     sym->r = (long) func_str.str;
+#else
+                    sym->r = (int) func_str.str;
+#endif
                 } else {
                     /* compute text section */
                     cur_text_section = ad.section;
@@ -9599,12 +9606,18 @@ static void decl(int l)
                            extern */
                         external_sym(v, &type, r);
                     } else {
-                        if (type.t & VT_STATIC) {
+                        if (type.t & VT_STATIC)
+#ifdef TCC_TARGET_816
+                        {
                             r |= VT_CONST;
                             // handle with care: introducing a new flag seems to introduce subtle lossage
                             if (l == VT_LOCAL)
                                 type.t |= VT_STATICLOCAL;
-                        } else
+                        }
+#else
+                            r |= VT_CONST;
+#endif
+                        else
                             r |= l;
                         if (has_init)
                             next();
@@ -9673,7 +9686,9 @@ static int tcc_compile(TCCState *s1)
 
     /* define some often used types */
     int_type.t = VT_INT;
+#ifdef TCC_TARGET_816
     ptr_type.t = VT_PTR;
+#endif
 
     char_pointer_type.t = VT_BYTE;
     mk_pointer(&char_pointer_type);
@@ -9722,7 +9737,9 @@ static int tcc_compile(TCCState *s1)
 
     gen_inline_functions();
 
-    // sym_pop(&global_stack, NULL);
+#ifndef TCC_TARGET_816
+    sym_pop(&global_stack, NULL);
+#endif
 
     return s1->nb_errors != 0 ? -1 : 0;
 }

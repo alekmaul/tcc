@@ -98,6 +98,9 @@ int reg_classes[NB_REGS] = {
 
 char current_fn[256] = "";
 
+// Alekmaul 201125, variable for temp file name (token usage)
+char sztmpnam[STRING_MAX_SIZE];
+
 /* yet another terrible workaround
    WLA does not have file-local symbols, only section-local and global.
    thus, everything that is file-local must be made global and given a
