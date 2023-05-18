@@ -5972,8 +5972,7 @@ void gen_op(int op)
         /* XXX: currently, some unsigned operations are explicit, so
            we modify them here */
         if (t & VT_UNSIGNED) {
-            /* change to SAR only if the shiftee is unsigned (shiftopt-1.c) */
-            if (op == TOK_SAR && (t1 & VT_UNSIGNED))
+            if (op == TOK_SAR)
                 op = TOK_SHR;
             else if (op == '/')
                 op = TOK_UDIV;
