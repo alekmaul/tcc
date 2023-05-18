@@ -459,7 +459,6 @@ int gv(int rc)
 #endif
                 for (i = 0; i < size; i++)
                     ptr[i] = vtop->c.tab[i];
-
             sym = get_sym_ref(&vtop->type, data_section, offset, size << 2);
             vtop->r |= VT_LVAL | VT_SYM;
             vtop->sym = sym;
@@ -1422,6 +1421,9 @@ void gen_op(int op)
                 swap(&t1, &t2);
             }
             type1 = vtop[-1].type;
+#ifndef TCC_TARGET_816
+            type1.t &= ~VT_ARRAY;
+#endif
 #ifdef TCC_TARGET_X86_64
             vpushll(pointed_size(&vtop[-1].type));
 #else
