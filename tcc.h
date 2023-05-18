@@ -46,7 +46,12 @@
 #include <direct.h> /* getcwd */
 #define inline __inline
 #define inp next_inp
-#define dlclose FreeLibrary
+#ifdef _MSC_VER
+#define __aligned(n) __declspec(align(n))
+#endif
+#ifdef _WIN64
+#define uplong unsigned long long
+#endif
 #endif
 
 #ifndef _WIN32
@@ -57,6 +62,14 @@
 #endif
 
 #endif /* !CONFIG_TCCBOOT */
+
+#ifndef uplong
+#define uplong unsigned long
+#endif
+
+#ifndef __aligned
+#define __aligned(n) __attribute__((aligned(n)))
+#endif
 
 #ifndef PAGESIZE
 #define PAGESIZE 4096
@@ -211,8 +224,11 @@ typedef struct Sym
         long c; /* associated number */
         int *d; /* define token stream */
     };
-    CType type;           /* associated type */
-    struct Sym *next;     /* next related symbol */
+    CType type; /* associated type */
+    union {
+        struct Sym *next; /* next related symbol */
+        long jnext;       /* next jump label */
+    };
     struct Sym *prev;     /* prev symbol in stack */
     struct Sym *prev_tok; /* previous symbol for this token */
 } Sym;
@@ -474,13 +490,16 @@ struct TCCState
     /* compile with built-in memory and bounds checker */
     int do_bounds_check;
     /* give the path of the tcc libraries */
-    const char *tcc_lib_path;
+    char *tcc_lib_path;
 
     /* error handling */
     void *error_opaque;
     void (*error_func)(void *opaque, const char *msg);
     int error_set_jmp_enabled;
-    jmp_buf error_jmp_buf;
+#ifdef _WIN64
+    __aligned(16)
+#endif
+        jmp_buf error_jmp_buf;
     int nb_errors;
 
     /* tiny assembler state */
@@ -508,16 +527,12 @@ struct TCCState
     struct InlineFunc **inline_fns;
     int nb_inline_fns;
 
+#ifndef TCC_TARGET_PE
 #ifdef TCC_TARGET_X86_64
     /* write PLT and GOT here */
     char *runtime_plt_and_got;
     unsigned int runtime_plt_and_got_offset;
 #endif
-
-#ifdef TCC_TARGET_X86_64
-    /* buffer to store jump tables */
-    char *jmp_table;
-    int jmp_table_num;
 #endif
 };
 
@@ -793,9 +808,7 @@ void dynarray_reset(void *pp, int *n);
 
 #ifdef CONFIG_TCC_BACKTRACE
 extern int num_callers;
-#ifndef TCC_TARGET_816
 extern const char **rt_bound_error_msg;
-#endif
 #endif
 
 /* true if float/double/long double type */

@@ -2780,7 +2780,9 @@ static int parse_btype(CType *type, AttributeDef *ad)
         case TOK_LONG:
             next();
             if ((t & VT_BTYPE) == VT_DOUBLE) {
+#ifndef TCC_TARGET_PE
                 t = (t & ~VT_BTYPE) | VT_LDOUBLE;
+#endif
             } else if ((t & VT_BTYPE) == VT_LONG) {
                 t = (t & ~VT_BTYPE) | VT_LLONG;
             } else {
@@ -2797,7 +2799,11 @@ static int parse_btype(CType *type, AttributeDef *ad)
         case TOK_DOUBLE:
             next();
             if ((t & VT_BTYPE) == VT_LONG) {
+#ifdef TCC_TARGET_PE
+                t = (t & ~VT_BTYPE) | VT_DOUBLE;
+#else
                 t = (t & ~VT_BTYPE) | VT_LDOUBLE;
+#endif
             } else {
                 u = VT_DOUBLE;
                 goto basic_type1;
@@ -2905,7 +2911,7 @@ the_end:
 
     /* long is never used as type */
     if ((t & VT_BTYPE) == VT_LONG)
-#ifndef TCC_TARGET_X86_64
+#if !defined TCC_TARGET_X86_64 || defined TCC_TARGET_PE
         t = (t & ~VT_BTYPE) | VT_INT;
 #else
         t = (t & ~VT_BTYPE) | VT_LLONG;
@@ -4336,10 +4342,10 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
 #ifdef TCC_TARGET_816
                 s->next = (void *) (long) gjmp((long) s->next);
 #else
-                s->next = (void *) gjmp((long) s->next);
+                s->jnext = gjmp(s->jnext);
 #endif
             else
-                gjmp_addr((long) s->next);
+                gjmp_addr(s->jnext);
             next();
         } else {
             expect("label identifier");
@@ -4362,6 +4368,8 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
                    label_workaround to NULL when done. */
                 label_workaround = get_tok_str(s->v, NULL);
                 gsym((long) s->next);
+#else
+                gsym(s->jnext);
 #endif
                 s->r = LABEL_DEFINED;
             } else {
@@ -4375,7 +4383,7 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
 #ifdef TCC_TARGET_816
             s->next = (void *) (long) ind;
 #else
-            s->next = (void *) ind;
+            s->jnext = ind;
 #endif
             /* we accept this, but it is a mistake */
         block_after_label:

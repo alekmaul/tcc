@@ -25,8 +25,9 @@ static const char tcc_keywords[] =
     ;
 
 /* WARNING: the content of this string encodes token numbers */
-static char tok_two_chars[] = "<=\236>=\235!=\225&&\240||\241++\244--\242==\224<<\1>>\2+=\253-="
-                              "\255*=\252/=\257%=\245&=\246^=\336|=\374->\313..\250##\266";
+static const unsigned char tok_two_chars[]
+    = "<=\236>=\235!=\225&&\240||\241++\244--\242==\224<<\1>>\2+=\253"
+      "-=\255*=\252/=\257%=\245&=\246^=\336|=\374->\313..\250##\266";
 
 /* true if isid(c) || isnum(c) */
 static unsigned char isidnum_table[256 - CH_EOF];
@@ -111,7 +112,6 @@ char *get_tok_str(int v, CValue *cv)
     static char buf[STRING_MAX_SIZE + 1];
     static CString cstr_buf;
     CString *cstr;
-    unsigned char *q;
     char *p;
     int i, len;
 
@@ -130,7 +130,11 @@ char *get_tok_str(int v, CValue *cv)
     case TOK_CLLONG:
     case TOK_CULLONG:
         /* XXX: not quite exact, but only useful for testing  */
+#ifdef _WIN32
+        sprintf(p, "%u", (unsigned) cv->ull);
+#else
         sprintf(p, "%Lu", cv->ull);
+#endif
         break;
     case TOK_LCHAR:
         cstr_ccat(&cstr_buf, 'L');
@@ -179,7 +183,7 @@ char *get_tok_str(int v, CValue *cv)
     default:
         if (v < TOK_IDENT) {
             /* search in two bytes table */
-            q = tok_two_chars;
+            const unsigned char *q = tok_two_chars;
             while (*q) {
                 if (q[2] == v) {
                     *p++ = q[0];
@@ -994,7 +998,7 @@ static void label_pop(Sym **ptop, Sym *slast)
             if (s->c) {
                 /* define corresponding symbol. A size of
                    1 is put. */
-                put_extern_sym(s, cur_text_section, (long) s->next, 1);
+                put_extern_sym(s, cur_text_section, s->jnext, 1);
             }
         }
         /* remove label */
@@ -1784,9 +1788,12 @@ void parse_number(const char *p)
                 tokc.f = (float) d;
             } else if (t == 'L') {
                 ch = *p++;
-#ifdef TCC_TARGET_816
+#if defined(TCC_TARGET_816)
                 tok = TOK_CFLOAT;
                 tokc.f = d;
+#elif defined(TCC_TARGET_PE)
+                tok = TOK_CDOUBLE;
+                tokc.d = d;
 #else
                 tok = TOK_CLDOUBLE;
                 /* XXX: not large enough */
@@ -1845,9 +1852,12 @@ void parse_number(const char *p)
                 tokc.f = strtof(token_buf, NULL);
             } else if (t == 'L') {
                 ch = *p++;
-#ifdef TCC_TARGET_816
+#if defined(TCC_TARGET_816)
                 tok = TOK_CFLOAT;
                 tokc.f = strtof(token_buf, NULL);
+#elif defined(TCC_TARGET_PE)
+                tok = TOK_CDOUBLE;
+                tokc.d = strtod(token_buf, NULL);
 #else
                 tok = TOK_CLDOUBLE;
                 tokc.ld = strtold(token_buf, NULL);

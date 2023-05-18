@@ -256,9 +256,7 @@ typedef struct
 
 #define EM_ALPHA 0x9026
 #define EM_C60 0x9c60
-#ifdef TCC_TARGET_816
 #define EM_W65 0x9816
-#endif
 
 /* Legal values for e_version (version).  */
 
