@@ -1,0 +1,137 @@
+name: tcc Build & Release
+
+      # ------------------------------------ #
+      # Events to trigger the action         #
+      # ------------------------------------ #
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "develop"
+      - "v0.9.23"
+      - "v0.9.24"
+      - "v0.9.25"
+
+      # ------------------------------------ #
+      # Set O.S matrix                       #
+      # ------------------------------------ #
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: linux
+          - os: windows-latest
+            name: windows
+          - os: macos-latest
+            name: darwin
+
+    steps:
+      # ------------------------------------ #
+      # Install dependencies                 #
+      # ------------------------------------ #
+      - name: Install dependencies for Linux
+        if: matrix.name == 'linux'
+        run: |
+          sudo apt update -y
+          sudo apt-get install -y build-essential \
+              gcc-12 \
+              cmake \
+              make \
+              git
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 90
+      - name: Install dependencies for Windows
+        if: matrix.name == 'windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: UCRT64
+          install: >-
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-cmake
+            base-devel
+            git
+            zip
+      - name: Install dependencies for MacOS
+        if: matrix.name == 'darwin'
+        run: |
+          brew update
+          sudo ln -s /usr/local/bin/gcc-12 /usr/local/bin/gcc
+          sudo ln -s /usr/local/bin/g++-12 /usr/local/bin/g++
+
+      # ------------------------------------ #
+      # Checkout the project                 #
+      # ------------------------------------ #
+      - name: Check out tcc
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          path: tcc
+
+      # ------------------------------------ #
+      # Compiling sources and create release #
+      # ------------------------------------ #
+      - name: Build & Release tcc for Linux
+        if: (matrix.name == 'linux')
+        run: |
+          cd tcc
+          make | tee tcc_${{ matrix.name }}.log
+      - name: Build & Release tcc for Windows
+        if: (matrix.name == 'windows')
+        shell: msys2 {0}
+        run: |
+          cd tcc
+          make | tee tcc_${{ matrix.name }}.log
+      - name: Build & Release tcc for MacOS
+        if: (matrix.name == 'darwin')
+        run: |
+          cd tcc
+          make | tee tcc_${{ matrix.name }}.log
+
+      # ------------------------------------ #
+      # Checking libraries linking           #
+      # ------------------------------------ #
+      - name: Checking libraries linking for tcc
+        if: matrix.name == 'darwin'
+        run: |
+          cd tcc
+          otool -L 816-tcc | tee tcc_linking_${{ matrix.name }}.log || true
+      - name: Checking libraries linking for tcc
+        if: matrix.name == 'windows' || matrix.name == 'linux'
+        run: |
+          cd tcc
+          ldd 816-tcc | tee tcc_linking_${{ matrix.name }}.log || true
+
+      # ------------------------------------ #
+      # Upload releases                      #
+      # ------------------------------------ #
+      - name: Upload tcc release
+        uses: actions/upload-artifact@v3
+        if: matrix.name == 'linux'
+        with:
+          name: tcc Release for ${{ matrix.name }}
+          path: tcc/816-tcc
+      - name: Upload tcc release
+        uses: actions/upload-artifact@v3
+        if: matrix.name == 'windows'
+        with:
+          name: tcc Release for ${{ matrix.name }}
+          path: tcc/816-tcc.exe
+      - name: Upload tcc release
+        uses: actions/upload-artifact@v3
+        if: matrix.name == 'darwin'
+        with:
+          name: tcc Release for ${{ matrix.name }}
+          path: tcc/816-tcc
+
+      # ------------------------------------ #
+      # Upload releases                      #
+      # ------------------------------------ #
+      - name: Upload tcc logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: tcc build Logs for ${{ matrix.name }}
+          path: tcc/*.log
