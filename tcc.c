@@ -7266,7 +7266,6 @@ the_end:
     /* long is never used as type */
     if ((t & VT_BTYPE) == VT_LONG)
         t = (t & ~VT_BTYPE) | VT_INT;
-
     type->t = t;
     return type_found;
 }
@@ -7303,7 +7302,7 @@ static void post_type(CType *type, AttributeDef *ad)
             if (l != FUNC_OLD) {
                 if (!parse_btype(&pt, &ad1)) {
                     if (l) {
-                        error("invalid type in function declaration");
+                        error("invalid type");
                     } else {
                         l = FUNC_OLD;
                         goto old_proto;
@@ -7320,8 +7319,10 @@ static void post_type(CType *type, AttributeDef *ad)
                 n = tok;
                 pt.t = VT_INT;
                 next();
+#ifdef TCC_TARGET_816
                 if (!(tok == ',' || tok == ')'))
                     error("unknown type in function declaration");
+#endif
             }
             convert_parameter_type(&pt);
             s = sym_push(n | SYM_FIELD, &pt, 0, 0);
@@ -7359,7 +7360,6 @@ static void post_type(CType *type, AttributeDef *ad)
             if (n < 0)
                 error("invalid array size");
         }
-
         skip(']');
         /* parse next post type */
         t1 = type->t & VT_STORAGE;
@@ -7369,7 +7369,6 @@ static void post_type(CType *type, AttributeDef *ad)
         /* we push a anonymous symbol which will contain the array
            element type */
         s = sym_push(SYM_FIELD, type, 0, n);
-        // asm("int $3");
         type->t = t1 | VT_ARRAY | VT_PTR;
         type->ref = s;
     }
@@ -7905,7 +7904,11 @@ tok_next:
                 ret.r = VT_LOCAL | VT_LVAL;
                 /* pass it as 'int' to avoid structure arg passing
                    problems */
+#ifdef TCC_TARGET_816
                 vset(&ptr_type, VT_LOCAL, loc);
+#else
+                vseti(VT_LOCAL, loc);
+#endif
                 ret.c = vtop->c;
                 nb_args++;
             } else {
@@ -8579,7 +8582,11 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
             }
             /* label already defined */
             if (s->r & LABEL_FORWARD)
+#ifdef TCC_TARGET_816
                 s->next = (void *) (long) gjmp((long) s->next);
+#else
+                s->next = (void *) gjmp((long) s->next);
+#endif
             else
                 gjmp_addr((long) s->next);
             next();
@@ -8614,7 +8621,11 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
                 gsym((long) s->next); /* without this, labels end up in the wrong place (too late) */
 #endif
             }
+#ifdef TCC_TARGET_816
             s->next = (void *) (long) ind;
+#else
+            s->next = (void *) ind;
+#endif
             /* we accept this, but it is a mistake */
         block_after_label:
             if (tok == '}') {
@@ -8797,6 +8808,7 @@ static void init_putv(CType *type, Section *sec, unsigned long c, int v, int exp
         gen_assign_cast(&dtype);
         bt = type->t & VT_BTYPE;
         ptr = sec->data + c;
+#ifdef TCC_TARGET_816
 #if 0
         if(!ptr) {
           fprintf(stderr,"section allocd %d size %d\n", sec->data_allocated, sec->sh_size);
@@ -8804,6 +8816,7 @@ static void init_putv(CType *type, Section *sec, unsigned long c, int v, int exp
           sec->sh_size += c + PTR_SIZE;
           ptr = sec->data + c;
         }
+#endif
 #endif
         /* XXX: make code faster ? */
         if (!(type->t & VT_BITFIELD)) {
@@ -8839,24 +8852,20 @@ static void init_putv(CType *type, Section *sec, unsigned long c, int v, int exp
             break;
         case VT_LLONG:
 #ifdef TCC_TARGET_816
-            *(int *)
+            *(int *) ptr |= (vtop->c.ll & bit_mask) << bit_pos;
 #else
             *(long long *) ptr |= (vtop->c.ll & bit_mask) << bit_pos;
 #endif
-                ptr
-                |= (vtop->c.ll & bit_mask) << bit_pos;
             break;
         default:
             if (vtop->r & VT_SYM) {
                 greloc(sec, vtop->sym, c, R_DATA_32);
             }
 #ifdef TCC_TARGET_816
-            *(short *)
+            *(short *) ptr |= (vtop->c.i & bit_mask) << bit_pos;
 #else
-            *(int *)
+            *(int *) ptr |= (vtop->c.i & bit_mask) << bit_pos;
 #endif
-                ptr
-                |= (vtop->c.i & bit_mask) << bit_pos;
             break;
         }
         vtop--;
