@@ -98,12 +98,35 @@ int reg_classes[NB_REGS] = {
 
 char current_fn[256] = "";
 
-// Variable for temp file name (token usage)
-char sztmpnam[STRING_MAX_SIZE];
-
 // Variable relocate a given section
 char **relocptrs = NULL;
 
+// Define random string maximum size (token usage)
+#define RS_MAX_SIZE 10
+
+void generate_token(char *str, size_t max_size)
+{
+    size_t i;
+    int seed;
+
+    // Generate a unique seed based on the current time
+    seed = (unsigned int) time(NULL);
+    srand(seed);
+
+    // Generate random mixed case letters
+    for (i = 0; i < max_size; i++) {
+        if (rand() % 2 == 0) {
+            str[i] = 'a' + (rand() % 26);
+        } else {
+            str[i] = 'A' + (rand() % 26);
+        }
+    }
+
+    // Null-terminate the string
+    str[max_size] = '\0';
+}
+
+char random_token[RS_MAX_SIZE + 1];
 /* yet another terrible workaround
    WLA does not have file-local symbols, only section-local and global.
    thus, everything that is file-local must be made global and given a

@@ -42,7 +42,7 @@ endif
 
 ifndef CONFIG_WIN32
 LIBS=-lm
-ifndef CONFIG_NOLDL
+ifneq ($(OS),Windows_NT)
 LIBS+=-ldl
 endif
 endif
