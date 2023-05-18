@@ -7010,11 +7010,6 @@ do_decl:
                             error("zero width for bit-field '%s'", get_tok_str(v, NULL));
                     }
                     size = type_size(&type1, &align);
-                    if (size < 0) {
-                        warning("unknown type size in struct %p", s);
-                        // size = 1;
-                        // asm("int $3");
-                    }
                     if (ad.aligned) {
                         if (align < ad.aligned)
                             align = ad.aligned;
@@ -7093,10 +7088,7 @@ do_decl:
             }
             skip('}');
             /* store size and alignment */
-            if (size < 0)
-                s->c = size;
-            else
-                s->c = (c + maxalign - 1) & -maxalign;
+            s->c = (c + maxalign - 1) & -maxalign;
             s->r = maxalign;
         }
     }
