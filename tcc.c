@@ -4979,7 +4979,6 @@ int gv(int rc)
             vpushi(16 - bit_size);
         else
             vpushi(16 - (bit_pos + bit_size));
-            // vpushi(16 - bit_size);
 #else
         vpushi(32 - (bit_pos + bit_size));
 #endif
@@ -4990,11 +4989,7 @@ int gv(int rc)
         vpushi(32 - bit_size);
 #endif
         /* NOTE: transformed to SHR if unsigned */
-        /* in theory. in practice, that doesn't work for some reason -- uli */
-        if (usigned)
-            gen_op(TOK_SHR);
-        else
-            gen_op(TOK_SAR);
+        gen_op(TOK_SAR);
         r = gv(rc);
     } else {
         if (is_float(vtop->type.t) && (vtop->r & (VT_VALMASK | VT_LVAL)) == VT_CONST) {
