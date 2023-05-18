@@ -47,7 +47,6 @@ LIBS+=-ldl
 endif
 endif
 
-ifndef CONFIG_816
 ifdef CONFIG_WIN32
 NATIVE_TARGET=-DTCC_TARGET_PE
 LIBTCC1=libtcc1.a
@@ -63,15 +62,15 @@ NATIVE_TARGET+=$(if $(wildcard /lib/ld-linux.so.3),-DTCC_ARM_EABI)
 NATIVE_TARGET+=$(if $(shell grep -l "^Features.* \(vfp\|iwmmxt\) " /proc/cpuinfo),-DTCC_ARM_VFP)
 else
 ifeq ($(ARCH),x86-64)
+ifndef CONFIG_816
 NATIVE_TARGET=-DTCC_TARGET_X86_64
 LIBTCC1=libtcc1.a
-endif
-endif
-endif
-endif
 else
 NATIVE_TARGET=-DTCC_TARGET_816
-LIBTCC1=libtcc1.a
+endif
+endif
+endif
+endif
 endif
 
 ifneq ($(wildcard /lib/ld-uClibc.so.0),)
@@ -106,7 +105,6 @@ ARM_FILES = $(CORE_FILES) arm-gen.c
 C67_FILES = $(CORE_FILES) c67-gen.c tcccoff.c
 816_FILES = $(CORE_FILES) 816-gen.c
 
-ifndef CONFIG_816
 ifdef CONFIG_WIN32
 PROGS+=tiny_impdef$(EXESUF) tiny_libmaker$(EXESUF)
 NATIVE_FILES=$(WIN32_FILES)
@@ -127,17 +125,16 @@ endif
 endif
 endif
 endif
-else
+
 NATIVE_FILES=$(816_FILES)
 PROGS_CROSS=$(816_CROSS)
-endif
 
 ifdef CONFIG_CROSS
 PROGS+=$(PROGS_CROSS)
 endif
 
 ifdef CONFIG_816
-all: $(PROGS) $(LIBTCC1) $(BCHECK_O) libtcc.a tcc-doc.html tcc.1
+all: $(PROGS) $(LIBTCC1) $(BCHECK_O) tcc-doc.html tcc.1
 else
 all: $(PROGS) $(LIBTCC1) $(BCHECK_O) libtcc.a tcc-doc.html tcc.1 libtcc_test$(EXESUF)
 endif
@@ -201,7 +198,6 @@ tiny_libmaker$(EXESUF): win32/tools/tiny_libmaker.c
 LIBTCC1_OBJS=libtcc1.o
 LIBTCC1_CC=$(CC)
 VPATH+=lib
-ifndef CONFIG_816
 ifdef CONFIG_WIN32
 # for windows, we must use TCC because we generate ELF objects
 LIBTCC1_OBJS+=crt1.o wincrt1.o dllcrt1.o dllmain.o chkstk.o
@@ -212,6 +208,7 @@ ifeq ($(ARCH),i386)
 LIBTCC1_OBJS+=alloca86.o alloca86-bt.o
 else
 ifeq ($(ARCH),x86-64)
+ifndef CONFIG_816
 LIBTCC1_OBJS+=alloca86_64.o
 endif
 endif
