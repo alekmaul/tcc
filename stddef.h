@@ -20,6 +20,10 @@ typedef long long int int64_t;
 typedef int int16_t;
 typedef long long int int32_t;
 #endif
+
+#ifdef __i386__
+void *_alloca(size_t);
+#define alloca _alloca
 #endif
 
 #endif

@@ -45,11 +45,11 @@ void tcc_undefine_symbol(TCCState *s, const char *sym);
 /* compiling */
 
 /* add a file (either a C file, dll, an object, a library or an ld
-   script). Return -1 if error. */
+       script). Return -1 if error. */
 int tcc_add_file(TCCState *s, const char *filename);
 
 /* compile a string containing a C source. Return non zero if
-   error. */
+       error. */
 int tcc_compile_string(TCCState *s, const char *buf);
 
 /*****************************/
@@ -57,11 +57,12 @@ int tcc_compile_string(TCCState *s, const char *buf);
 
 /* set output type. MUST BE CALLED before any compilation */
 #define TCC_OUTPUT_MEMORY \
-    0                    /* output will be ran in memory (no
-                                 output file) (default) */
-#define TCC_OUTPUT_EXE 1 /* executable file */
-#define TCC_OUTPUT_DLL 2 /* dynamic library */
-#define TCC_OUTPUT_OBJ 3 /* object file */
+    0                           /* output will be ran in memory (no \
+                                   output file) (default) */
+#define TCC_OUTPUT_EXE 1        /* executable file */
+#define TCC_OUTPUT_DLL 2        /* dynamic library */
+#define TCC_OUTPUT_OBJ 3        /* object file */
+#define TCC_OUTPUT_PREPROCESS 4 /* preprocessed file (used internally) */
 int tcc_set_output_type(TCCState *s, int output_type);
 
 #define TCC_OUTPUT_FORMAT_ELF 0    /* default output format: ELF */
@@ -78,15 +79,15 @@ int tcc_add_library(TCCState *s, const char *libraryname);
 int tcc_add_symbol(TCCState *s, const char *name, unsigned long val);
 
 /* output an executable, library or object file. DO NOT call
-   tcc_relocate() before. */
+       tcc_relocate() before. */
 int tcc_output_file(TCCState *s, const char *filename);
 
 /* link and run main() function and return its value. DO NOT call
-   tcc_relocate() before. */
+       tcc_relocate() before. */
 int tcc_run(TCCState *s, int argc, char **argv);
 
 /* do all relocations (needed before using tcc_get_symbol()). Return
-   non zero if link error. */
+       non zero if link error. */
 int tcc_relocate(TCCState *s);
 
 /* return symbol value. return 0 if OK, -1 if symbol not found */

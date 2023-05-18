@@ -21,7 +21,7 @@
 #ifndef _ELF_H
 #define _ELF_H 1
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <inttypes.h>
 #else
 #ifndef __int8_t_defined
@@ -284,15 +284,18 @@ typedef struct
 #define SHT_LOSUNW 0x6ffffffb /* Sun-specific low bound.  */
 #define SHT_SUNW_COMDAT 0x6ffffffb
 #define SHT_SUNW_syminfo 0x6ffffffc
-#define SHT_GNU_verdef 0x6ffffffd  /* Version definition section.  */
-#define SHT_GNU_verneed 0x6ffffffe /* Version needs section.  */
-#define SHT_GNU_versym 0x6fffffff  /* Version symbol table.  */
-#define SHT_HISUNW 0x6fffffff      /* Sun-specific high bound.  */
-#define SHT_HIOS 0x6fffffff        /* End OS-specific type */
-#define SHT_LOPROC 0x70000000      /* Start of processor-specific */
-#define SHT_HIPROC 0x7fffffff      /* End of processor-specific */
-#define SHT_LOUSER 0x80000000      /* Start of application-specific */
-#define SHT_HIUSER 0x8fffffff      /* End of application-specific */
+#define SHT_GNU_verdef 0x6ffffffd     /* Version definition section.  */
+#define SHT_GNU_verneed 0x6ffffffe    /* Version needs section.  */
+#define SHT_GNU_versym 0x6fffffff     /* Version symbol table.  */
+#define SHT_HISUNW 0x6fffffff         /* Sun-specific high bound.  */
+#define SHT_HIOS 0x6fffffff           /* End OS-specific type */
+#define SHT_LOPROC 0x70000000         /* Start of processor-specific */
+#define SHT_ARM_EXIDX 0x70000001      /* Exception Index table */
+#define SHT_ARM_PREEMPTMAP 0x70000002 /* dynamic linking pre-emption map */
+#define SHT_ARM_ATTRIBUTES 0x70000003 /* Object file compatibility attrs */
+#define SHT_HIPROC 0x7fffffff         /* End of processor-specific */
+#define SHT_LOUSER 0x80000000         /* Start of application-specific */
+#define SHT_HIUSER 0x8fffffff         /* End of application-specific */
 
 /* Legal values for sh_flags (section flags).  */
 
@@ -349,7 +352,7 @@ typedef struct
 #define SYMINFO_FLG_COPY 0x0004     /* Symbol is a copy-reloc */
 #define SYMINFO_FLG_LAZYLOAD \
     0x0008 /* Symbol bound to object to be lazy \
-                   loaded */
+                                       loaded */
 /* Syminfo version values.  */
 #define SYMINFO_NONE 0
 #define SYMINFO_CURRENT 1
@@ -590,7 +593,7 @@ typedef struct
 #define DT_VALRNGLO 0x6ffffd00
 #define DT_POSFLAG_1 \
     0x6ffffdfd                 /* Flags for DT_* entries, effecting \
-                   the following DT_* entry.  */
+                                   the following DT_* entry.  */
 #define DT_SYMINSZ 0x6ffffdfe  /* Size of syminfo table (in bytes) */
 #define DT_SYMINENT 0x6ffffdff /* Entry size of syminfo */
 #define DT_VALRNGHI 0x6ffffdff
@@ -612,11 +615,11 @@ typedef struct
 #define DT_FLAGS_1 0x6ffffffb /* State flags, see DF_1_* below.  */
 #define DT_VERDEF \
     0x6ffffffc                  /* Address of version definition \
-                                             table */
+                                                         table */
 #define DT_VERDEFNUM 0x6ffffffd /* Number of version definitions */
 #define DT_VERNEED \
     0x6ffffffe                                        /* Address of table with needed \
-                                             versions */
+                                                         versions */
 #define DT_VERNEEDNUM 0x6fffffff                      /* Number of needed versions */
 #define DT_VERSIONTAGIDX(tag) (DT_VERNEEDNUM - (tag)) /* Reverse order! */
 #define DT_VERSIONTAGNUM 16
@@ -649,7 +652,7 @@ typedef struct
     Elf32_Word vd_hash;    /* Version name hash value */
     Elf32_Word vd_aux;     /* Offset in bytes to verdaux array */
     Elf32_Word vd_next;    /* Offset in bytes to next verdef
-                  entry */
+                              entry */
 } Elf32_Verdef;
 
 typedef struct
@@ -661,7 +664,7 @@ typedef struct
     Elf64_Word vd_hash;    /* Version name hash value */
     Elf64_Word vd_aux;     /* Offset in bytes to verdaux array */
     Elf64_Word vd_next;    /* Offset in bytes to next verdef
-                  entry */
+                              entry */
 } Elf64_Verdef;
 
 /* Legal values for vd_version (version revision).  */
@@ -679,14 +682,14 @@ typedef struct
 {
     Elf32_Word vda_name; /* Version or dependency names */
     Elf32_Word vda_next; /* Offset in bytes to next verdaux
-                entry */
+                            entry */
 } Elf32_Verdaux;
 
 typedef struct
 {
     Elf64_Word vda_name; /* Version or dependency names */
     Elf64_Word vda_next; /* Offset in bytes to next verdaux
-                entry */
+                            entry */
 } Elf64_Verdaux;
 
 /* Version dependency section.  */
@@ -696,10 +699,10 @@ typedef struct
     Elf32_Half vn_version; /* Version of structure */
     Elf32_Half vn_cnt;     /* Number of associated aux entries */
     Elf32_Word vn_file;    /* Offset of filename for this
-                  dependency */
+                              dependency */
     Elf32_Word vn_aux;     /* Offset in bytes to vernaux array */
     Elf32_Word vn_next;    /* Offset in bytes to next verneed
-                  entry */
+                              entry */
 } Elf32_Verneed;
 
 typedef struct
@@ -707,10 +710,10 @@ typedef struct
     Elf64_Half vn_version; /* Version of structure */
     Elf64_Half vn_cnt;     /* Number of associated aux entries */
     Elf64_Word vn_file;    /* Offset of filename for this
-                  dependency */
+                              dependency */
     Elf64_Word vn_aux;     /* Offset in bytes to vernaux array */
     Elf64_Word vn_next;    /* Offset in bytes to next verneed
-                  entry */
+                              entry */
 } Elf64_Verneed;
 
 /* Legal values for vn_version (version revision).  */
@@ -727,7 +730,7 @@ typedef struct
     Elf32_Half vna_other; /* Unused */
     Elf32_Word vna_name;  /* Dependency name string offset */
     Elf32_Word vna_next;  /* Offset in bytes to next vernaux
-                 entry */
+                             entry */
 } Elf32_Vernaux;
 
 typedef struct
@@ -737,7 +740,7 @@ typedef struct
     Elf64_Half vna_other; /* Unused */
     Elf64_Word vna_name;  /* Dependency name string offset */
     Elf64_Word vna_next;  /* Offset in bytes to next vernaux
-                 entry */
+                             entry */
 } Elf64_Vernaux;
 
 /* Legal values for vna_flags.  */
@@ -794,7 +797,7 @@ typedef struct
 #define AT_PLATFORM 15 /* String identifying platform.  */
 #define AT_HWCAP \
     16 /* Machine dependent hints about \
-                  processor capabilities.  */
+                          processor capabilities.  */
 
 /* This entry gives some information about the FPU initialization
    performed by the kernel.  */
@@ -1113,10 +1116,10 @@ typedef struct
 typedef struct
 {
     unsigned char kind;    /* Determines interpretation of the
-                  variable part of descriptor.  */
+                              variable part of descriptor.  */
     unsigned char size;    /* Size of descriptor, including header.  */
     Elf32_Section section; /* Section header index of section affected,
-                  0 for global options.  */
+                              0 for global options.  */
     Elf32_Word info;       /* Kind-specific information.  */
 } Elf_Options;
 
@@ -1245,27 +1248,27 @@ typedef struct
 #define DT_MIPS_DELTA_CLASS 0x70000017 /* Delta C++ class definition.  */
 #define DT_MIPS_DELTA_CLASS_NO \
     0x70000018                            /* Number of entries in \
-                        DT_MIPS_DELTA_CLASS.  */
+                                                DT_MIPS_DELTA_CLASS.  */
 #define DT_MIPS_DELTA_INSTANCE 0x70000019 /* Delta C++ class instances.  */
 #define DT_MIPS_DELTA_INSTANCE_NO \
     0x7000001a                         /* Number of entries in \
-                        DT_MIPS_DELTA_INSTANCE.  */
+                                                DT_MIPS_DELTA_INSTANCE.  */
 #define DT_MIPS_DELTA_RELOC 0x7000001b /* Delta relocations.  */
 #define DT_MIPS_DELTA_RELOC_NO \
     0x7000001c /* Number of entries in \
-                            DT_MIPS_DELTA_RELOC.  */
+                                                DT_MIPS_DELTA_RELOC.  */
 #define DT_MIPS_DELTA_SYM \
     0x7000001d /* Delta symbols that Delta \
-                            relocations refer to.  */
+                                                relocations refer to.  */
 #define DT_MIPS_DELTA_SYM_NO \
     0x7000001e /* Number of entries in \
-                            DT_MIPS_DELTA_SYM.  */
+                                                DT_MIPS_DELTA_SYM.  */
 #define DT_MIPS_DELTA_CLASSSYM \
     0x70000020 /* Delta symbols that hold the \
-                            class declaration.  */
+                                                class declaration.  */
 #define DT_MIPS_DELTA_CLASSSYM_NO \
     0x70000021                       /* Number of entries in \
-                        DT_MIPS_DELTA_CLASSSYM.  */
+                                                DT_MIPS_DELTA_CLASSSYM.  */
 #define DT_MIPS_CXX_FLAGS 0x70000022 /* Flags indicating for C++ flavor.  */
 #define DT_MIPS_PIXIE_INIT 0x70000023
 #define DT_MIPS_SYMBOL_LIB 0x70000024
@@ -1279,10 +1282,10 @@ typedef struct
 #define DT_MIPS_INTERFACE_SIZE 0x7000002c /* Size of the .interface section. */
 #define DT_MIPS_RLD_TEXT_RESOLVE_ADDR \
     0x7000002d /* Address of rld_text_rsolve \
-                            function stored in GOT.  */
+                                                    function stored in GOT.  */
 #define DT_MIPS_PERF_SUFFIX \
     0x7000002e                          /* Default suffix of dso to be added \
-                                by rld on dlopen() calls.  */
+                                                    by rld on dlopen() calls.  */
 #define DT_MIPS_COMPACT_SIZE 0x7000002f /* (O32)Size of compact rel section. */
 #define DT_MIPS_GP_VALUE 0x70000030     /* GP value for aux GOTs.  */
 #define DT_MIPS_AUX_DYNAMIC 0x70000031  /* Address of aux .dynamic.  */
@@ -1349,10 +1352,10 @@ typedef Elf32_Addr Elf32_Conflict;
 #define EF_PARISC_EXT 2           /* Program uses arch. extensions.  */
 #define EF_PARISC_ARCH 0xffff0000 /* Architecture version.  */
 /* Defined values are:
-                0x020b  PA-RISC 1.0 big-endian
-                0x0210  PA-RISC 1.1 big-endian
-                0x028b  PA-RISC 1.0 little-endian
-                0x0290  PA-RISC 1.1 little-endian
+                                0x020b  PA-RISC 1.0 big-endian
+                                0x0210  PA-RISC 1.1 big-endian
+                                0x028b  PA-RISC 1.0 little-endian
+                                0x0290  PA-RISC 1.1 little-endian
 */
 
 /* Legal values for sh_type field of Elf32_Shdr.  */
@@ -1388,10 +1391,10 @@ typedef Elf32_Addr Elf32_Conflict;
 #define R_PARISC_PCREL14R 6 /* PC-relative, right 14 bits.  */
 #define R_PARISC_PCREL17C \
     7 /* Conditional PC-relative, ignore \
-                     if displacement > 17bits.  */
+                                 if displacement > 17bits.  */
 #define R_PARISC_PCREL17F \
     8                         /* Conditional PC-relative, must \
-                     fit in 17bits.  */
+                                 fit in 17bits.  */
 #define R_PARISC_DPREL21L 9   /* DP-relative, left 21 bits.  */
 #define R_PARISC_DPREL14R 10  /* DP-relative, right 14 bits.  */
 #define R_PARISC_DPREL14F 11  /* DP-relative, must bit in 14 bits. */
@@ -1400,13 +1403,13 @@ typedef Elf32_Addr Elf32_Conflict;
 #define R_PARISC_DLTREL14F 14 /* DLT-relative, must fit in 14 bits.*/
 #define R_PARISC_DLTIND21L \
     15 /* DLT-relative indirect, left \
-                     21 bits.  */
+                                 21 bits.  */
 #define R_PARISC_DLTIND14R \
     16 /* DLT-relative indirect, right \
-                     14 bits.  */
+                                 14 bits.  */
 #define R_PARISC_DLTIND14F \
     17                       /* DLT-relative indirect, must fit \
-                     int 14 bits.  */
+                                 int 14 bits.  */
 #define R_PARISC_PLABEL32 18 /* Direct 32-bit reference to proc.  */
 
 /* Alpha specific definitions.  */
@@ -1557,12 +1560,12 @@ typedef Elf32_Addr Elf32_Conflict;
 #define SHF_ARM_ENTRYSECT 0x10000000 /* Section contains an entry point */
 #define SHF_ARM_COMDEF \
     0x80000000 /* Section may be multiply defined \
-                    in the input to a link step */
+                                        in the input to a link step */
 
 /* ARM-specific program header flags */
 #define PF_ARM_SB \
     0x10000000 /* Segment contains the location \
-            addressed by the static base */
+                                addressed by the static base */
 
 /* ARM relocs.  */
 #define R_ARM_NONE 0  /* No reloc */
@@ -1586,10 +1589,13 @@ typedef Elf32_Addr Elf32_Conflict;
 #define R_ARM_GLOB_DAT 21  /* Create GOT entry */
 #define R_ARM_JUMP_SLOT 22 /* Create PLT entry */
 #define R_ARM_RELATIVE 23  /* Adjust by program base */
-#define R_ARM_GOTOFF 24    /* 32 bit offset to GOT */
-#define R_ARM_GOTPC 25     /* 32 bit PC relative offset to GOT */
-#define R_ARM_GOT32 26     /* 32 bit GOT entry */
+#define R_ARM_GOTOFF32 24  /* 32 bit offset to GOT */
+#define R_ARM_BASE_PREL 25 /* 32 bit PC relative offset to GOT */
+#define R_ARM_GOT_BREL 26  /* 32 bit GOT entry */
 #define R_ARM_PLT32 27     /* 32 bit PLT address */
+#define R_ARM_CALL 28
+#define R_ARM_JUMP24 29
+#define R_ARM_PREL31 42
 #define R_ARM_GNU_VTENTRY 100
 #define R_ARM_GNU_VTINHERIT 101
 #define R_ARM_THM_PC11 102 /* thumb unconditional branch */
