@@ -18,14 +18,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-//extern char sztmpnam[STRING_MAX_SIZE];  // Alekmaul 201125, variable for temp file name (token usage)
-
 static int put_elf_str(Section *s, const char *sym)
 {
     int offset, len;
     char *ptr;
 
-    //fprintf(stderr,"put_elf_str %s\n",sym);
     len = strlen(sym) + 1;
     offset = s->data_offset;
     ptr = section_ptr_add(s, len);
@@ -95,9 +92,7 @@ static int put_elf_sym(Section *s,
     int nbuckets, h;
     Elf32_Sym *sym;
     Section *hs;
-    //fprintf(stderr,"\\\\\\ putting elf symbol %s in section type %d, section %p, value %ld size %ld info %d other %d\n",name,s->sh_type,s,value,size,info,other);
-    // HACK
-    //info |= 0x10;
+
     sym = section_ptr_add(s, sizeof(Elf32_Sym));
     if (name)
         name_offset = put_elf_str(s->link, name);
@@ -176,6 +171,7 @@ int tcc_get_symbol(TCCState *s, unsigned long *pval, const char *name)
     return 0;
 }
 
+#ifdef TCC_TARGET_816
 /* return elf symbol value or error */
 Elf32_Sym *tcc_really_get_symbol(TCCState *s, unsigned long *pval, const char *name)
 {
@@ -189,6 +185,7 @@ Elf32_Sym *tcc_really_get_symbol(TCCState *s, unsigned long *pval, const char *n
     *pval = sym->st_value;
     return sym;
 }
+#endif
 
 void *tcc_get_symbol_err(TCCState *s, const char *name)
 {
@@ -327,7 +324,9 @@ static void put_stabd(int type, int other, int desc)
     put_stabs(NULL, type, other, desc, 0);
 }
 
+#ifdef TCC_TARGET_816
 char **relocptrs = NULL;
+#endif
 
 /* relocate a given section (CPU dependent) */
 static void relocate_section(TCCState *s1, Section *s)
@@ -341,10 +340,11 @@ static void relocate_section(TCCState *s1, Section *s)
 #if defined(TCC_TARGET_I386)
     int esym_index;
 #endif
-
+#ifdef TCC_TARGET_816
     if (!relocptrs) {
         relocptrs = calloc(0x100000, sizeof(char *));
     }
+#endif
 
     sr = s->reloc;
     rel_end = (Elf32_Rel *) (sr->data + sr->data_offset);
@@ -822,7 +822,11 @@ int tcc_output_file(TCCState *s1, const char *filename)
         /* when generating a DLL, we include relocations but we may
            patch them */
         if (file_type == TCC_OUTPUT_DLL && s->sh_type == SHT_REL && !(s->sh_flags & SHF_ALLOC)) {
+#ifdef TCC_TARGET_816
             abort();
+#else
+            prepare_dynamic_rel(s1, s);
+#endif
         } else if (do_debug || file_type == TCC_OUTPUT_OBJ || (s->sh_flags & SHF_ALLOC)
                    || i == (s1->nb_sections - 1)) {
             /* we output all sections if debug or object file */
@@ -863,8 +867,12 @@ int tcc_output_file(TCCState *s1, const char *filename)
     fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, mode);
     if (fd < 0) {
         error_noabort("could not write '%s'", filename);
+#ifdef TCC_TARGET_816
         ret = -1;
         goto the_end;
+#else
+        goto fail;
+#endif
     }
     f = fdopen(fd, "wb");
 
