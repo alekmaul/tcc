@@ -27,3 +27,4 @@ void *_alloca(size_t);
 #endif
 
 #endif
+#endif

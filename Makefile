@@ -7,7 +7,6 @@ include config.mak
 CFLAGS=-O2 \
 		-g \
 		-Wall \
-		-Wno-pointer-sign \
 		-Wno-maybe-uninitialized \
 		-Wno-unused-but-set-variable \
 		-Wno-array-bounds \
@@ -15,22 +14,31 @@ CFLAGS=-O2 \
 		-Wno-format-truncation
 
 ifndef CONFIG_WIN32
+LIBS=-lm
+ifndef CONFIG_NOLDL
+LIBS+=-ldl
+endif
 BCHECK_O=bcheck.o
 endif
 CFLAGS_P=$(CFLAGS) -pg -static -DCONFIG_TCC_STATIC
 LIBS_P=
 
-# these options not supported by gcc on arm architecture
-ifneq ($(ARCH),arm)
-# -m32 option sets "int", "long", and pointer types to 32 bits, and generates code for the x86-64 architecture.  Workaround for old tcc making assumptions about undefined behaviour in C.
-CFLAGS+=-m32
-CFLAGS+=-mpreferred-stack-boundary=4
-endif
-
 ifeq ($(GCC_MAJOR),2)
-CFLAGS+=-m386 -malign-functions=0
+CFLAGS+=-malign-functions=0
 else
 CFLAGS+=-falign-functions=0 -fno-strict-aliasing
+ifneq ($(GCC_MAJOR),3)
+CFLAGS+=-Wno-pointer-sign -Wno-sign-compare
+endif
+endif
+
+# these options not supported by gcc on arm architecture
+ifneq ($(ARCH),arm)
+# -m32 option sets "int", "long", and pointer types to 32 bits,
+# and generates code for the x86-64 architecture.  Workaround for old
+# tcc making assumptions about undefined behaviour in C.
+CFLAGS+=-m32
+CFLAGS+=-mpreferred-stack-boundary=4
 endif
 
 DISAS=objdump -d
@@ -52,7 +60,7 @@ test: test.ref test.out
 	@if diff -u test.ref test.out ; then echo "Auto Test OK"; fi
 
 tcctest.ref: tcctest.c
-	$(CC) $(CFLAGS) -I. -o $@ $<
+	$(CC) $(CFLAGS) -w -I. -o $@ $<
 
 test.ref: tcctest.ref
 	./tcctest.ref > $@
@@ -91,7 +99,7 @@ test4: tcc test.ref
 # dynamic output + bound check
 	$(TCC) -b -o tcctest4 tcctest.c
 	./tcctest4 > test4.out
-	@if diff -u test.ref test4.out ; then echo "BCheck Auto Test OK"; fi
+	@if diff -u test.ref test4.out ; the
 
 # memory and bound check auto test
 BOUNDS_OK  = 1 4 8 10
@@ -269,12 +277,12 @@ tcc-doc.html: tcc-doc.texi
 ifndef t2hinstalled
 	@echo "texi2html is not installed, documentation will be not generated.";
 else
-	texi2html -monolithic -number-sections $< >/dev/null 2>&1
+	-texi2html -monolithic -number-sections $< >/dev/null 2>&1
 endif
 
 tcc.1: tcc-doc.texi
-	./texi2pod.pl $< tcc.pod
-	pod2man --section=1 --center=" " --release=" " tcc.pod > $@
+	-./texi2pod.pl $< tcc.pod
+	-pod2man --section=1 --center=" " --release=" " tcc.pod > $@
 
 FILE=tcc-$(shell cat VERSION)
 
