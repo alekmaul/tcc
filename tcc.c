@@ -4946,10 +4946,9 @@ void float_to_woz(float f, unsigned char *w)
    register value (such as structures). */
 int gv(int rc)
 {
-#ifdef TCC_TARGET_816
     int r, r2, rc2, bit_pos, bit_size, size, align;
-#else
-    int r, r2, rc2, bit_pos, bit_size, size, align, i;
+#ifndef TCC_TARGET_816
+    int i;
 #endif
     unsigned long long ll;
 
@@ -7010,6 +7009,8 @@ do_decl:
                             error("zero width for bit-field '%s'", get_tok_str(v, NULL));
                     }
                     size = type_size(&type1, &align);
+                    if (size < 0)
+                        warning("unknown type size in struct %p", s);
                     if (ad.aligned) {
                         if (align < ad.aligned)
                             align = ad.aligned;
@@ -10240,7 +10241,6 @@ TCCState *tcc_new(void)
     tcc_define_symbol(s, "__SIZE_TYPE__", "unsigned int");
     tcc_define_symbol(s, "__PTRDIFF_TYPE__", "int");
     tcc_define_symbol(s, "__WCHAR_TYPE__", "int");
-    //tcc_define_symbol(s, "__CHAR_BIT__", "8");
 #ifdef TCC_TARGET_816
     tcc_define_symbol(s, "__INT_MAX__", "32767");
     tcc_define_symbol(s, "__LONG_MAX__", "32767");
@@ -10877,6 +10877,7 @@ int parse_args(TCCState *s, int argc, char **argv)
 #ifdef TCC_TARGET_816
     s->output_format = TCC_OUTPUT_FORMAT_BINARY;
 #endif
+
     optind = 0;
     while (1) {
         if (optind >= argc) {
