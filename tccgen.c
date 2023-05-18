@@ -61,7 +61,6 @@ void vpushll(long long v)
     CValue cval;
     CType ctype;
     ctype.t = VT_LLONG;
-    ctype.ref = 0;
     cval.ull = v;
     vsetc(&ctype, VT_CONST, &cval);
 }
@@ -149,7 +148,6 @@ void vseti(int r, int v)
 {
     CType type;
     type.t = VT_INT;
-    type.ref = 0;
     vset(&type, r, v);
 }
 
@@ -371,23 +369,61 @@ void gbound(void)
 }
 #endif
 
+#ifdef TCC_TARGET_816
+// convert floats to Woz format
+void float_to_woz(float f, unsigned char *w)
+{
+    unsigned int i = 0, b;
+
+    w[0] = 0x8e + 16; // 0x8e is the exp for 16-bit integers; we have 32-bit ints here
+
+    for (; w[0]; w[0]--) {
+        i = (unsigned int) (int) f;
+        // top bits different => normalized
+        b = i & 0xc0000000UL;
+        if (b == 0x80000000UL || b == 0x40000000UL)
+            break;
+
+        f *= 2;
+    }
+    w[1] = i >> 24;
+    w[2] = (i >> 16) & 0xff;
+    w[3] = (i >> 8) & 0xff;
+}
+#endif
+
 /* store vtop a register belonging to class 'rc'. lvalues are
    converted to values. Cannot be used if cannot be converted to
    register value (such as structures). */
 int gv(int rc)
 {
+#ifndef TCC_TARGET_816
     int r, rc2, bit_pos, bit_size, size, align, i;
+#else
+    int r, rc2, bit_pos, bit_size, size, align;
+#endif
 
     /* NOTE: get_reg can modify vstack[] */
     if (vtop->type.t & VT_BITFIELD) {
         CType type;
 #ifdef TCC_TARGET_816
         int bits = 16;
+        int usigned;
+        int cst;
 #else
         int bits = 32;
 #endif
         bit_pos = (vtop->type.t >> VT_STRUCT_SHIFT) & 0x3f;
         bit_size = (vtop->type.t >> (VT_STRUCT_SHIFT + 6)) & 0x3f;
+#ifdef TCC_TARGET_816
+        pr("; bitfielding bit_pos %d bit_size %d vtop->type.t 0x%x vtop->r 0x%x\n",
+           bit_pos,
+           bit_size,
+           vtop->type.t,
+           vtop->r);
+        usigned = vtop->type.t & VT_UNSIGNED;
+        cst = ((vtop->r & VT_VALMASK) == VT_CONST) && !(vtop->r & VT_LVAL);
+#endif
         /* remove bit field info to avoid loops */
         vtop->type.t &= ~(VT_BITFIELD | (-1 << VT_STRUCT_SHIFT));
         /* cast to int to propagate signedness in following ops */
@@ -400,7 +436,14 @@ int gv(int rc)
             type.t |= VT_UNSIGNED;
         gen_cast(&type);
         /* generate shifts */
-        vpushi(bits - (bit_pos + bit_size));
+#ifdef TCC_TARGET_816
+        if (cst)
+            vpushi(bits - bit_size);
+        else
+            vpushi(bits - (bit_pos + bit_size));
+#else
+        vpushi(bits - (bit_pos + bit_size))
+#endif
         gen_op(TOK_SHL);
         vpushi(bits - bit_size);
         /* NOTE: transformed to SHR if unsigned */
@@ -436,8 +479,12 @@ int gv(int rc)
                     ptr[i] = vtop->c.tab[size - 1 - i];
             else
 #endif
-                for (i = 0; i < size; i++)
-                    ptr[i] = vtop->c.tab[i];
+#ifdef TCC_TARGET_816
+                float_to_woz(vtop->c.f, (unsigned char *) ptr);
+#else
+            for (i = 0; i < size; i++)
+                ptr[i] = vtop->c.tab[i];
+#endif
             sym = get_sym_ref(&vtop->type, data_section, offset, size << 2);
             vtop->r |= VT_LVAL | VT_SYM;
             vtop->sym = sym;
@@ -457,10 +504,7 @@ int gv(int rc)
            - lvalue (need to dereference pointer)
            - already a register, but not in the right class */
         if (r >= VT_CONST || (vtop->r & VT_LVAL) || !(reg_classes[r] & rc)
-#ifndef TCC_TARGET_X86_64
-            || ((vtop->type.t & VT_BTYPE) == VT_LLONG && !(reg_classes[vtop->r2] & rc2))
-#endif
-        ) {
+            || ((vtop->type.t & VT_BTYPE) == VT_LLONG && !(reg_classes[vtop->r2] & rc2))) {
             r = get_reg(rc);
 #ifndef TCC_TARGET_X86_64
             if ((vtop->type.t & VT_BTYPE) == VT_LLONG) {
@@ -490,6 +534,22 @@ int gv(int rc)
                     load(r, vtop);
                     vdup();
                     vtop[-1].r = r; /* save register value */
+#ifdef TCC_TARGET_816
+                    /* A bug may hide here.
+                       This shortcut did not work for 65816 until I found out
+                       that the long long compare code seems to expect the
+                       result of the comparisons to end up in the same register.
+                       I do not think this is ascertained in the other code
+                       path, it may just happen to work. */
+#if 0 /* breaks ashrdi-1.c */
+                    if((vtop->r & VT_LOCAL) /* && !(vtop->r & VT_LVAL) */) {
+                      vtop->c.ul += 2;
+                    }
+                    else
+#endif
+                    pr("; pushit type 0x%x\n", vtop->type.t);
+                    ll_workaround = 1;
+#endif
                     /* increment pointer to get second word */
                     vtop->type.t = VT_INT;
                     gaddrof();
@@ -500,6 +560,10 @@ int gv(int rc)
 #endif
                     gen_op('+');
                     vtop->r |= VT_LVAL;
+#ifdef TCC_TARGET_816
+                    ll_workaround = 0;
+                    pr("; endpush\n");
+#endif
                 } else {
                     /* move registers */
                     load(r, vtop);
@@ -879,11 +943,10 @@ void gen_opl(int op)
             if (op != TOK_SHL)
                 vswap();
 #ifdef TCC_TARGET_816
-            if (c >= 16)
+            if (c >= 16) {
 #else
-            if (c >= 32)
+            if (c >= 32) {
 #endif
-            {
                 /* stack: L H */
                 vpop();
 #ifdef TCC_TARGET_816
@@ -992,7 +1055,7 @@ void gen_opl(int op)
                 b = ind;
                 o(0x1A000000 | encbranch(ind, 0, 1));
 #elif defined(TCC_TARGET_C67)
-            error("not implemented");
+        error("not implemented");
 #elif defined(TCC_TARGET_816)
 #if 0
                 b = ind;
@@ -1001,11 +1064,11 @@ void gen_opl(int op)
                 // branches (too short) p("b%s " LOCAL_LABEL "\n", inv?"eq":"ne", jumps++);
                 pr("beq +\nbrl " LOCAL_LABEL "\n+\n", jumps++);
 #endif
-            pr("; cmpll high order word equal?\n");
-            b = ind;
-            jump[jumps][0] = ind;
-            // flags from the compare are long gone, but the compare opi has saved the value for us in y
-            pr("tya\nbne " LOCAL_LABEL "\n", jumps++);
+        pr("; cmpll high order word equal?\n");
+        b = ind;
+        jump[jumps][0] = ind;
+        // flags from the compare are long gone, but the compare opi has saved the value for us in y
+        pr("tya\nbne " LOCAL_LABEL "\n", jumps++);
 #else
 #error not supported
 #endif
@@ -1194,8 +1257,7 @@ void gen_opic(int op)
             }
             goto general_case;
         } else if (c2 && (op == '+' || op == '-')
-                   && (((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM)
-                        && !(vtop[-1].sym->type.t & VT_IMPORT))
+                   && ((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM)
                        || (vtop[-1].r & (VT_VALMASK | VT_LVAL)) == VT_LOCAL)) {
             /* symbol + constant case */
             if (op == '-')
@@ -1403,9 +1465,6 @@ void gen_op(int op)
                 swap(&t1, &t2);
             }
             type1 = vtop[-1].type;
-#ifndef TCC_TARGET_816
-            type1.t &= ~VT_ARRAY;
-#endif
 #ifdef TCC_TARGET_X86_64
             vpushll(pointed_size(&vtop[-1].type));
 #else
@@ -1651,10 +1710,6 @@ static void gen_cast(CType *type)
                     vtop->c.ll = vtop->c.ull;
                 else if (sbt & VT_UNSIGNED)
                     vtop->c.ll = vtop->c.ui;
-#ifdef TCC_TARGET_X86_64
-                else if (sbt == VT_PTR)
-                    ;
-#endif
                 else if (sbt != VT_LLONG)
                     vtop->c.ll = vtop->c.i;
 
@@ -2151,6 +2206,9 @@ type_ok:
 void vstore(void)
 {
     int sbt, dbt, ft, r, t, size, align, bit_size, bit_pos, rc, delayed_cast;
+#ifdef TCC_TARGET_816
+    static int nocast = 0;
+#endif
 
     ft = vtop[-1].type.t;
     sbt = vtop->type.t & VT_BTYPE;
@@ -2165,7 +2223,11 @@ void vstore(void)
             warning("assignment of read-only location");
     } else {
         delayed_cast = 0;
+#ifdef TCC_TARGET_816
+        if (!(ft & VT_BITFIELD) && !nocast)
+#else
         if (!(ft & VT_BITFIELD))
+#endif
             gen_assign_cast(&vtop[-1].type);
     }
 
@@ -2176,12 +2238,6 @@ void vstore(void)
         if (!nocode_wanted) {
             size = type_size(&vtop->type, &align);
 
-            /* destination */
-            vswap();
-            vtop->type.t = VT_PTR;
-            gaddrof();
-
-            /* address of memcpy() */
 #ifdef TCC_ARM_EABI
             if (!(align & 7))
                 vpush_global_sym(&func_old_type, TOK_memcpy8);
@@ -2191,20 +2247,40 @@ void vstore(void)
 #endif
                 vpush_global_sym(&func_old_type, TOK_memcpy);
 
-            vswap();
+            /* destination */
+            vpushv(vtop - 2);
+#ifdef TCC_TARGET_816
+            vtop->type.t = VT_PTR;
+#else
+            vtop->type.t = VT_INT;
+#endif
+            gaddrof();
             /* source */
             vpushv(vtop - 2);
+#ifdef TCC_TARGET_816
             vtop->type.t = VT_PTR;
+#else
+            vtop->type.t = VT_INT;
+#endif
             gaddrof();
             /* type size */
             vpushi(size);
             gfunc_call(3);
+
+            vswap();
+            vpop();
         } else {
             vswap();
             vpop();
         }
         /* leave source on stack */
-    } else if (ft & VT_BITFIELD) {
+    }
+#ifdef TCC_TARGET_816
+    else if (ft & VT_BITFIELD && !nocast)
+#else
+    else if (ft & VT_BITFIELD)
+#endif
+    {
         /* bitfield store handling */
         bit_pos = (ft >> VT_STRUCT_SHIFT) & 0x3f;
         bit_size = (ft >> (VT_STRUCT_SHIFT + 6)) & 0x3f;
@@ -2327,6 +2403,9 @@ void vstore(void)
         vtop--; /* NOT vpop() because on x86 it would flush the fp stack */
         vtop->r |= delayed_cast;
     }
+#ifdef TCC_TARGET_816
+    nocast = 0;
+#endif
 }
 
 /* post defines POST/PRE add. c is the token ++ or -- */
@@ -2408,12 +2487,12 @@ static void parse_attribute(AttributeDef *ad)
             case TOK_CDECL1:
             case TOK_CDECL2:
             case TOK_CDECL3:
-                ad->func_call = FUNC_CDECL;
+                FUNC_CALL(ad->func_attr) = FUNC_CDECL;
                 break;
             case TOK_STDCALL1:
             case TOK_STDCALL2:
             case TOK_STDCALL3:
-                ad->func_call = FUNC_STDCALL;
+                FUNC_CALL(ad->func_attr) = FUNC_STDCALL;
                 break;
 #ifdef TCC_TARGET_I386
             case TOK_REGPARM1:
@@ -2425,20 +2504,17 @@ static void parse_attribute(AttributeDef *ad)
                 else if (n < 0)
                     n = 0;
                 if (n > 0)
-                    ad->func_call = FUNC_FASTCALL1 + n - 1;
+                    FUNC_CALL(ad->func_attr) = FUNC_FASTCALL1 + n - 1;
                 skip(')');
                 break;
             case TOK_FASTCALL1:
             case TOK_FASTCALL2:
             case TOK_FASTCALL3:
-                ad->func_call = FUNC_FASTCALLW;
+                FUNC_CALL(ad->func_attr) = FUNC_FASTCALLW;
                 break;
 #endif
             case TOK_DLLEXPORT:
-                ad->func_export = 1;
-                break;
-            case TOK_DLLIMPORT:
-                ad->func_import = 1;
+                FUNC_EXPORT(ad->func_attr) = 1;
                 break;
             default:
                 if (tcc_state->warn_unsupported)
@@ -2818,14 +2894,6 @@ static int parse_btype(CType *type, AttributeDef *ad)
             typedef_found = 1;
             t |= (s->type.t & ~VT_TYPEDEF);
             type->ref = s->type.ref;
-            if (s->r) {
-                /* get attributes from typedef */
-                if (0 == ad->aligned)
-                    ad->aligned = FUNC_ALIGN(s->r);
-                if (0 == ad->func_call)
-                    ad->func_call = FUNC_CALL(s->r);
-                ad->packed |= FUNC_PACKED(s->r);
-            }
             next();
             typespec_found = 1;
             break;
@@ -2935,8 +3003,8 @@ static void post_type(CType *type, AttributeDef *ad)
         type->t &= ~(VT_STORAGE | VT_CONSTANT);
         post_type(type, ad);
         /* we push a anonymous symbol which will contain the function prototype */
-        ad->func_args = arg_size;
-        s = sym_push(SYM_FIELD, type, INT_ATTR(ad), l);
+        FUNC_ARGS(ad->func_attr) = arg_size;
+        s = sym_push(SYM_FIELD, type, ad->func_attr, l);
         s->next = first;
         type->t = t1 | VT_FUNC;
         type->ref = s;
@@ -3077,10 +3145,8 @@ static void indir(void)
     if (!(vtop->type.t & VT_ARRAY) && (vtop->type.t & VT_BTYPE) != VT_FUNC) {
         vtop->r |= lvalue_type(vtop->type.t);
         /* if bound checking, the referenced pointer must be checked */
-#ifdef CONFIG_TCC_BCHECK
         if (tcc_state->do_bounds_check)
             vtop->r |= VT_MUSTBOUND;
-#endif
     }
 }
 
@@ -3139,7 +3205,6 @@ static void vpush_tokc(int t)
 {
     CType type;
     type.t = t;
-    type.ref = 0;
     vsetc(&type, VT_CONST, &tokc);
 }
 
@@ -3495,11 +3560,9 @@ tok_next:
             /* an array is never an lvalue */
             if (!(vtop->type.t & VT_ARRAY)) {
                 vtop->r |= lvalue_type(vtop->type.t);
-#ifdef CONFIG_TCC_BCHECK
                 /* if bound checking, the referenced pointer must be checked */
                 if (tcc_state->do_bounds_check)
                     vtop->r |= VT_MUSTBOUND;
-#endif
             }
             next();
         } else if (tok == '[') {
@@ -4276,7 +4339,11 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
             }
             /* label already defined */
             if (s->r & LABEL_FORWARD)
+#ifdef TCC_TARGET_816
+                s->next = (void *) (long) gjmp((long) s->next);
+#else
                 s->jnext = gjmp(s->jnext);
+#endif
             else
                 gjmp_addr(s->jnext);
             next();
@@ -4313,7 +4380,11 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
                 gsym((long) s->next); /* without this, labels end up in the wrong place (too late) */
 #endif
             }
+#ifdef TCC_TARGET_816
+            s->next = (void *) (long) ind;
+#else
             s->jnext = ind;
+#endif
             /* we accept this, but it is a mistake */
         block_after_label:
             if (tok == '}') {
@@ -4553,7 +4624,7 @@ static void init_putv(CType *type, Section *sec, unsigned long c, int v, int exp
             break;
         default:
             if (vtop->r & VT_SYM) {
-                greloc(sec, vtop->sym, c, R_DATA_PTR);
+                greloc(sec, vtop->sym, c, R_DATA_32);
             }
 #ifdef TCC_TARGET_816
             *(short *) ptr |= (vtop->c.i & bit_mask) << bit_pos;
@@ -4669,15 +4740,6 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
             }
         } else {
             index = 0;
-#ifdef TCC_TARGET_816
-            if (!size_only && n != -1) {
-                /* zeroing the entire struct before filling in the values ensures
-                   that decl_designator() won't forget filling in holes in structs inside
-                   this one, and is probably more efficient anyway than filling each hole
-                   with its own memset() call. */
-                init_putz(type, sec, c, n);
-            }
-#endif
             while (tok != '}') {
                 decl_designator(type, sec, c, &index, NULL, size_only);
                 if (n >= 0 && index >= n)
@@ -4895,13 +4957,10 @@ static void decl_initializer_alloc(
     }
     if ((r & VT_VALMASK) == VT_LOCAL) {
         sec = NULL;
-#ifdef CONFIG_TCC_BCHECK
         if (tcc_state->do_bounds_check && (type->t & VT_ARRAY))
             loc--;
-#endif
         loc = (loc - size) & -align;
         addr = loc;
-#ifdef CONFIG_TCC_BCHECK
         /* handles bounds */
         /* XXX: currently, since we do only one pass, we cannot track
            '&' operators, so we add only arrays */
@@ -4914,7 +4973,6 @@ static void decl_initializer_alloc(
             bounds_ptr[0] = addr;
             bounds_ptr[1] = size;
         }
-#endif
         if (v) {
             /* local variable */
             sym_push(v, type, r, addr);
@@ -4974,11 +5032,9 @@ static void decl_initializer_alloc(
             /* very important to increment global pointer at this time
                because initializers themselves can create new initializers */
             data_offset += size;
-#ifdef CONFIG_TCC_BCHECK
             /* add padding if bound check */
             if (tcc_state->do_bounds_check)
                 data_offset++;
-#endif
             sec->data_offset = data_offset;
             /* allocate section space to put the data */
             if (sec->sh_type != SHT_NOBITS && data_offset > sec->data_allocated)
@@ -5014,19 +5070,18 @@ static void decl_initializer_alloc(
             vsetc(type, VT_CONST | VT_SYM, &cval);
             vtop->sym = sym;
         }
-#ifdef CONFIG_TCC_BCHECK
+
         /* handles bounds now because the symbol must be defined
            before for the relocation */
         if (tcc_state->do_bounds_check) {
             unsigned long *bounds_ptr;
 
-            greloc(bounds_section, sym, bounds_section->data_offset, R_DATA_PTR);
+            greloc(bounds_section, sym, bounds_section->data_offset, R_DATA_32);
             /* then add global bound info */
             bounds_ptr = section_ptr_add(bounds_section, 2 * sizeof(long));
             bounds_ptr[0] = 0; /* relocated */
             bounds_ptr[1] = size;
         }
-#endif
     }
     if (has_init) {
         decl_initializer(type, sec, addr, 1, 0);
@@ -5164,16 +5219,12 @@ static void gen_inline_functions(void)
                 gen_function(sym);
                 macro_ptr = NULL; /* fail safe */
 
+                tok_str_free(str);
                 inline_generated = 1;
             }
         }
         if (!inline_generated)
             break;
-    }
-    for (i = 0; i < tcc_state->nb_inline_fns; ++i) {
-        fn = tcc_state->inline_fns[i];
-        str = fn->token_str;
-        tok_str_free(str);
     }
     dynarray_reset(&tcc_state->inline_fns, &tcc_state->nb_inline_fns);
 }
@@ -5322,12 +5373,13 @@ static void decl(int l)
                 if (btype.t & VT_TYPEDEF) {
                     /* save typedefed type  */
                     /* XXX: test storage specifiers ? */
-                    sym = sym_push(v, &type, INT_ATTR(&ad), 0);
+                    sym = sym_push(v, &type, 0, 0);
                     sym->type.t |= VT_TYPEDEF;
                 } else if ((type.t & VT_BTYPE) == VT_FUNC) {
                     /* external function definition */
                     /* specific case for func_call attribute */
-                    type.ref->r = INT_ATTR(&ad);
+                    if (ad.func_attr)
+                        type.ref->r = ad.func_attr;
                     external_sym(v, &type, 0);
                 } else {
                     /* not lvalue if array */
@@ -5342,10 +5394,6 @@ static void decl(int l)
                         /* NOTE: as GCC, uninitialized global static
                            arrays of null size are considered as
                            extern */
-#ifdef TCC_TARGET_PE
-                        if (ad.func_import)
-                            type.t |= VT_IMPORT;
-#endif
                         external_sym(v, &type, r);
                     } else {
                         type.t |= (btype.t & VT_STATIC); /* Retain "static". */
@@ -5355,7 +5403,7 @@ static void decl(int l)
                             r |= VT_CONST;
                             // handle with care: introducing a new flag seems to introduce subtle lossage
                             if (l == VT_LOCAL)
-                                type.t |= VT_IMPORT;
+                                type.t |= VT_STATICLOCAL;
                         }
 #else
                             r |= VT_CONST;
@@ -5364,10 +5412,6 @@ static void decl(int l)
                             r |= l;
                         if (has_init)
                             next();
-#ifdef TCC_TARGET_PE
-                        if (ad.func_export)
-                            type.t |= VT_EXPORT;
-#endif
                         decl_initializer_alloc(&type, &ad, r, has_init, v, l);
                     }
                 }

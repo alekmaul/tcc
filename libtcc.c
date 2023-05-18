@@ -64,13 +64,9 @@ static Section *cur_text_section; /* current section where function code is
 #ifdef CONFIG_TCC_ASM
 static Section *last_text_section; /* to handle .previous asm directive */
 #endif
-
-#ifdef CONFIG_TCC_BCHECK
 /* bound check related sections */
 static Section *bounds_section;  /* contains global data bound description */
 static Section *lbounds_section; /* contains local data bound description */
-#endif
-
 /* symbol sections */
 static Section *symtab_section, *strtab_section;
 
@@ -123,7 +119,6 @@ static int tcc_ext = 1;
 /* max number of callers shown if error */
 #ifdef CONFIG_TCC_BACKTRACE
 int num_callers = 6;
-void *rt_prog_main;
 const char **rt_bound_error_msg;
 unsigned long rt_prog_main;
 #endif
@@ -231,7 +226,6 @@ int tcc_output_coff(TCCState *s1, FILE *f);
 /* tccpe.c */
 int pe_load_file(struct TCCState *s1, const char *filename, int fd);
 int pe_output_file(struct TCCState *s1, const char *filename);
-int pe_dllimport(int r, SValue *sv, void (*fn)(int r, SValue *sv));
 
 /* tccasm.c */
 #ifdef CONFIG_TCC_ASM
@@ -340,11 +334,9 @@ static inline int toup(int c)
 #include "tccgen.c"
 
 #ifdef CONFIG_TCC_ASM
-
-#if defined TCC_TARGET_I386 || defined TCC_TARGET_X86_64
+#ifdef TCC_TARGET_I386
 #include "i386-asm.c"
 #endif
-
 #include "tccasm.c"
 #else
 static void asm_instr(void)
@@ -366,8 +358,6 @@ static void asm_global_instr(void)
 #ifdef TCC_TARGET_PE
 #include "tccpe.c"
 #endif
-
-#include "tccrun.c"
 
 /********************************************************/
 #ifdef _WIN32
@@ -404,6 +394,72 @@ BOOL WINAPI DllMain(HANDLE hDll, DWORD dwReason, LPVOID lpReserved)
     return TRUE;
 }
 #endif
+#endif
+
+/********************************************************/
+#ifdef CONFIG_TCC_STATIC
+
+#define RTLD_LAZY 0x001
+#define RTLD_NOW 0x002
+#define RTLD_GLOBAL 0x100
+#define RTLD_DEFAULT NULL
+
+/* dummy function for profiling */
+void *dlopen(const char *filename, int flag)
+{
+    return NULL;
+}
+
+void dlclose(void *p) {}
+
+const char *dlerror(void)
+{
+    return "error";
+}
+
+typedef struct TCCSyms
+{
+    char *str;
+    void *ptr;
+} TCCSyms;
+
+#define TCCSYM(a) \
+    {             \
+        #a,       \
+        &a,       \
+    },
+
+/* add the symbol you want here if no dynamic linking is done */
+static TCCSyms tcc_syms[] = {
+#if !defined(CONFIG_TCCBOOT)
+    TCCSYM(printf) TCCSYM(fprintf) TCCSYM(fopen) TCCSYM(fclose)
+#endif
+        {NULL, NULL},
+};
+
+void *resolve_sym(TCCState *s1, const char *symbol)
+{
+    TCCSyms *p;
+    p = tcc_syms;
+    while (p->str != NULL) {
+        if (!strcmp(p->str, symbol))
+            return p->ptr;
+        p++;
+    }
+    return NULL;
+}
+
+#elif defined(_WIN32)
+#define dlclose FreeLibrary
+
+#else
+#include <dlfcn.h>
+
+void *resolve_sym(TCCState *s1, const char *sym)
+{
+    return dlsym(RTLD_DEFAULT, sym);
+}
+
 #endif
 
 /********************************************************/
@@ -461,6 +517,20 @@ char *tcc_fileextension(const char *name)
     char *b = tcc_basename(name);
     char *e = strrchr(b, '.');
     return e ? e : strchr(b, 0);
+}
+
+void set_pages_executable(void *ptr, unsigned long length)
+{
+#ifdef _WIN32
+    unsigned long old_protect;
+    VirtualProtect(ptr, length, PAGE_EXECUTE_READWRITE, &old_protect);
+#else
+    unsigned long start, end;
+    start = (unsigned long) ptr & ~(PAGESIZE - 1);
+    end = (unsigned long) ptr + length;
+    end = (end + PAGESIZE - 1) & ~(PAGESIZE - 1);
+    mprotect((void *) start, end - start, PROT_READ | PROT_WRITE | PROT_EXEC);
+#endif
 }
 
 /* memory management */
@@ -522,13 +592,6 @@ char *tcc_strdup(const char *str)
     ptr = tcc_malloc(strlen(str) + 1);
     strcpy(ptr, str);
     return ptr;
-}
-
-void tcc_memstats(void)
-{
-#ifdef MEM_DEBUG
-    printf("memory in use: %d\n", mem_cur_size);
-#endif
 }
 
 #define free(p) use_tcc_free(p)
@@ -699,7 +762,7 @@ static void put_extern_sym2(
     int sym_type, sym_bind, sh_num, info, other, attr;
     ElfW(Sym) * esym;
     const char *name;
-    char buf1[MAXLEN * 2];
+    char buf1[256];
 
     if (section == NULL)
         sh_num = SHN_UNDEF;
@@ -720,14 +783,8 @@ static void put_extern_sym2(
         if (FUNC_CALL(attr) == FUNC_STDCALL)
             other |= 2;
 #endif
-    } else if ((sym->type.t & VT_BTYPE) == VT_VOID) {
-        sym_type = STT_NOTYPE;
     } else {
         sym_type = STT_OBJECT;
-#ifdef TCC_TARGET_PE
-        if (sym->type.t & VT_EXPORT)
-            other |= 1;
-#endif
     }
 
     if (sym->type.t & VT_STATIC)
@@ -745,7 +802,7 @@ static void put_extern_sym2(
             /* if bound checking is activated, we change some function
                names by adding the "__bound" prefix */
             switch (sym->v) {
-#ifdef TCC_TARGET_PE
+#if 0
             /* XXX: we rely only on malloc hooks */
             case TOK_malloc:
             case TOK_free:
@@ -780,11 +837,11 @@ static void put_extern_sym2(
         }
 #ifdef TCC_TARGET_816
         if (sym->type.t & VT_STATIC) {
-            if ((sym->type.t & VT_IMPORT) && current_fn[0] != 0)
-                snprintf(buf1, sizeof(buf1), "%s_FUNC_%s_", static_prefix, current_fn);
+            if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0)
+                sprintf(buf1, "%s_FUNC_%s_", static_prefix, current_fn);
             else
-                snprintf(buf1, sizeof(buf1), "%s%s", static_prefix, name);
-
+                strcpy(buf1, static_prefix);
+            strcat(buf1, name);
             name = buf1;
         }
 #endif
@@ -807,14 +864,10 @@ static void put_extern_sym(Sym *sym, Section *section, unsigned long value, unsi
 /* add a new relocation entry to symbol 'sym' in section 's' */
 static void greloc(Section *s, Sym *sym, unsigned long offset, int type)
 {
-    int c = 0;
-    if (sym) {
-        if (0 == sym->c)
-            put_extern_sym(sym, NULL, 0, 0);
-        c = sym->c;
-    }
+    if (!sym->c)
+        put_extern_sym(sym, NULL, 0, 0);
     /* now we can add ELF relocation info */
-    put_elf_reloc(symtab_section, s, offset, type, c);
+    put_elf_reloc(symtab_section, s, offset, type, sym->c);
 }
 
 static void strcat_vprintf(char *buf, int buf_size, const char *fmt, va_list ap)
@@ -898,7 +951,12 @@ void error(const char *fmt, ...)
     va_end(ap);
     /* better than nothing: in some cases, we accept to handle errors */
     if (s1->error_set_jmp_enabled) {
+#ifdef TCC_TARGET_816
+        // Alek 201125 hangs on winxp longjmp(s1->error_jmp_buf, 1);
+        exit(1);
+#else
         longjmp(s1->error_jmp_buf, 1);
+#endif
     } else {
         /* XXX: eliminate this someday */
         exit(1);
@@ -1032,7 +1090,6 @@ static Sym *sym_push2(Sym **ps, int v, int t, long c)
     s = sym_malloc();
     s->v = v;
     s->type.t = t;
-    s->type.ref = NULL;
 #ifdef _WIN64
     s->d = NULL;
 #endif
@@ -1291,12 +1348,15 @@ static int tcc_compile(TCCState *s1)
 
     gen_inline_functions();
 
+#ifndef TCC_TARGET_816
     sym_pop(&global_stack, NULL);
     sym_pop(&local_stack, NULL);
+#endif
 
     return s1->nb_errors != 0 ? -1 : 0;
 }
 
+#ifdef LIBTCC
 int tcc_compile_string(TCCState *s, const char *str)
 {
     BufferedFile bf1, *bf = &bf1;
@@ -1324,6 +1384,7 @@ int tcc_compile_string(TCCState *s, const char *str)
     /* currently, no need to close */
     return ret;
 }
+#endif
 
 /* define a preprocessor symbol. A value can also be provided with the '=' operator */
 void tcc_define_symbol(TCCState *s1, const char *sym, const char *value)
@@ -1367,6 +1428,409 @@ void tcc_undefine_symbol(TCCState *s1, const char *sym)
         define_undef(s);
 }
 
+#ifdef CONFIG_TCC_BACKTRACE
+/* print the position in the source file of PC value 'pc' by reading
+   the stabs debug information */
+static unsigned long rt_printline(unsigned long wanted_pc)
+{
+    Stab_Sym *sym, *sym_end;
+    char func_name[128], last_func_name[128];
+    unsigned long func_addr, last_pc, pc;
+    const char *incl_files[INCLUDE_STACK_SIZE];
+    int incl_index, len, last_line_num, i;
+    const char *str, *p;
+
+    fprintf(stderr, "0x%08lx:", wanted_pc);
+
+    func_name[0] = '\0';
+    func_addr = 0;
+    incl_index = 0;
+    last_func_name[0] = '\0';
+    last_pc = 0xffffffff;
+    last_line_num = 1;
+    sym = (Stab_Sym *) stab_section->data + 1;
+    sym_end = (Stab_Sym *) (stab_section->data + stab_section->data_offset);
+    while (sym < sym_end) {
+        switch (sym->n_type) {
+            /* function start or end */
+        case N_FUN:
+            if (sym->n_strx == 0) {
+                /* we test if between last line and end of function */
+                pc = sym->n_value + func_addr;
+                if (wanted_pc >= last_pc && wanted_pc < pc)
+                    goto found;
+                func_name[0] = '\0';
+                func_addr = 0;
+            } else {
+                str = stabstr_section->data + sym->n_strx;
+                p = strchr(str, ':');
+                if (!p) {
+                    pstrcpy(func_name, sizeof(func_name), str);
+                } else {
+                    len = p - str;
+                    if (len > sizeof(func_name) - 1)
+                        len = sizeof(func_name) - 1;
+                    memcpy(func_name, str, len);
+                    func_name[len] = '\0';
+                }
+                func_addr = sym->n_value;
+            }
+            break;
+            /* line number info */
+        case N_SLINE:
+            pc = sym->n_value + func_addr;
+            if (wanted_pc >= last_pc && wanted_pc < pc)
+                goto found;
+            last_pc = pc;
+            last_line_num = sym->n_desc;
+            /* XXX: slow! */
+            strcpy(last_func_name, func_name);
+            break;
+            /* include files */
+        case N_BINCL:
+            str = stabstr_section->data + sym->n_strx;
+        add_incl:
+            if (incl_index < INCLUDE_STACK_SIZE) {
+                incl_files[incl_index++] = str;
+            }
+            break;
+        case N_EINCL:
+            if (incl_index > 1)
+                incl_index--;
+            break;
+        case N_SO:
+            if (sym->n_strx == 0) {
+                incl_index = 0; /* end of translation unit */
+            } else {
+                str = stabstr_section->data + sym->n_strx;
+                /* do not add path */
+                len = strlen(str);
+                if (len > 0 && str[len - 1] != '/')
+                    goto add_incl;
+            }
+            break;
+        }
+        sym++;
+    }
+
+    /* second pass: we try symtab symbols (no line number info) */
+    incl_index = 0;
+    {
+        ElfW(Sym) * sym, *sym_end;
+        int type;
+
+        sym_end = (ElfW(Sym) *) (symtab_section->data + symtab_section->data_offset);
+        for (sym = (ElfW(Sym) *) symtab_section->data + 1; sym < sym_end; sym++) {
+            type = ELFW(ST_TYPE)(sym->st_info);
+            if (type == STT_FUNC) {
+                if (wanted_pc >= sym->st_value && wanted_pc < sym->st_value + sym->st_size) {
+                    pstrcpy(last_func_name,
+                            sizeof(last_func_name),
+                            strtab_section->data + sym->st_name);
+                    func_addr = sym->st_value;
+                    goto found;
+                }
+            }
+        }
+    }
+    /* did not find any info: */
+    fprintf(stderr, " ???\n");
+    return 0;
+found:
+    if (last_func_name[0] != '\0') {
+        fprintf(stderr, " %s()", last_func_name);
+    }
+    if (incl_index > 0) {
+        fprintf(stderr, " (%s:%d", incl_files[incl_index - 1], last_line_num);
+        for (i = incl_index - 2; i >= 0; i--)
+            fprintf(stderr, ", included from %s", incl_files[i]);
+        fprintf(stderr, ")");
+    }
+    fprintf(stderr, "\n");
+    return func_addr;
+}
+
+#ifdef __i386__
+/* fix for glibc 2.1 */
+#ifndef REG_EIP
+#define REG_EIP EIP
+#define REG_EBP EBP
+#endif
+
+/* return the PC at frame level 'level'. Return non zero if not found */
+static int rt_get_caller_pc(unsigned long *paddr, ucontext_t *uc, int level)
+{
+    unsigned long fp;
+    int i;
+
+    if (level == 0) {
+#if defined(__FreeBSD__)
+        *paddr = uc->uc_mcontext.mc_eip;
+#elif defined(__dietlibc__)
+        *paddr = uc->uc_mcontext.eip;
+#else
+        *paddr = uc->uc_mcontext.gregs[REG_EIP];
+#endif
+        return 0;
+    } else {
+#if defined(__FreeBSD__)
+        fp = uc->uc_mcontext.mc_ebp;
+#elif defined(__dietlibc__)
+        fp = uc->uc_mcontext.ebp;
+#else
+        fp = uc->uc_mcontext.gregs[REG_EBP];
+#endif
+        for (i = 1; i < level; i++) {
+            /* XXX: check address validity with program info */
+            if (fp <= 0x1000 || fp >= 0xc0000000)
+                return -1;
+            fp = ((unsigned long *) fp)[0];
+        }
+        *paddr = ((unsigned long *) fp)[1];
+        return 0;
+    }
+}
+#elif defined(__x86_64__)
+/* return the PC at frame level 'level'. Return non zero if not found */
+static int rt_get_caller_pc(unsigned long *paddr, ucontext_t *uc, int level)
+{
+    unsigned long fp;
+    int i;
+
+    if (level == 0) {
+        /* XXX: only support linux */
+        *paddr = uc->uc_mcontext.gregs[REG_RIP];
+        return 0;
+    } else {
+        fp = uc->uc_mcontext.gregs[REG_RBP];
+        for (i = 1; i < level; i++) {
+            /* XXX: check address validity with program info */
+            if (fp <= 0x1000)
+                return -1;
+            fp = ((unsigned long *) fp)[0];
+        }
+        *paddr = ((unsigned long *) fp)[1];
+        return 0;
+    }
+}
+#else
+#warning add arch specific rt_get_caller_pc()
+static int rt_get_caller_pc(unsigned long *paddr, ucontext_t *uc, int level)
+{
+    return -1;
+}
+#endif
+
+/* emit a run time error at position 'pc' */
+void rt_error(ucontext_t *uc, const char *fmt, ...)
+{
+    va_list ap;
+    unsigned long pc;
+    int i;
+
+    va_start(ap, fmt);
+    fprintf(stderr, "Runtime error: ");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    for (i = 0; i < num_callers; i++) {
+        if (rt_get_caller_pc(&pc, uc, i) < 0)
+            break;
+        if (i == 0)
+            fprintf(stderr, "at ");
+        else
+            fprintf(stderr, "by ");
+        pc = rt_printline(pc);
+        if (pc == rt_prog_main && pc)
+            break;
+    }
+    exit(255);
+    va_end(ap);
+}
+
+/* signal handler for fatal errors */
+static void sig_error(int signum, siginfo_t *siginf, void *puc)
+{
+    ucontext_t *uc = puc;
+
+    switch (signum) {
+    case SIGFPE:
+        switch (siginf->si_code) {
+        case FPE_INTDIV:
+        case FPE_FLTDIV:
+            rt_error(uc, "division by zero");
+            break;
+        default:
+            rt_error(uc, "floating point exception");
+            break;
+        }
+        break;
+    case SIGBUS:
+    case SIGSEGV:
+        if (rt_bound_error_msg && *rt_bound_error_msg)
+            rt_error(uc, *rt_bound_error_msg);
+        else
+            rt_error(uc, "dereferencing invalid pointer");
+        break;
+    case SIGILL:
+        rt_error(uc, "illegal instruction");
+        break;
+    case SIGABRT:
+        rt_error(uc, "abort() called");
+        break;
+    default:
+        rt_error(uc, "caught signal %d", signum);
+        break;
+    }
+    exit(255);
+}
+
+#endif
+
+#ifndef TCC_TARGET_816
+/* copy code into memory passed in by the caller and do all relocations
+   (needed before using tcc_get_symbol()).
+   returns -1 on error and required size if ptr is NULL */
+int tcc_relocate(TCCState *s1, void *ptr)
+{
+    Section *s;
+    unsigned long offset, length;
+    uplong mem;
+    int i;
+
+    if (0 == s1->runtime_added) {
+        s1->runtime_added = 1;
+        s1->nb_errors = 0;
+#ifdef TCC_TARGET_PE
+        pe_output_file(s1, NULL);
+#else
+        tcc_add_runtime(s1);
+        relocate_common_syms();
+        tcc_add_linker_symbols(s1);
+        build_got_entries(s1);
+#endif
+        if (s1->nb_errors)
+            return -1;
+    }
+
+    offset = 0, mem = (uplong) ptr;
+    for (i = 1; i < s1->nb_sections; i++) {
+        s = s1->sections[i];
+        if (0 == (s->sh_flags & SHF_ALLOC))
+            continue;
+        length = s->data_offset;
+        s->sh_addr = mem ? (mem + offset + 15) & ~15 : 0;
+        offset = (offset + length + 15) & ~15;
+    }
+
+    /* relocate symbols */
+    relocate_syms(s1, 1);
+    if (s1->nb_errors)
+        return -1;
+
+#ifndef TCC_TARGET_PE
+#ifdef TCC_TARGET_X86_64
+    s1->runtime_plt_and_got_offset = 0;
+    s1->runtime_plt_and_got = (char *) (mem + offset);
+    /* double the size of the buffer for got and plt entries
+       XXX: calculate exact size for them? */
+    offset *= 2;
+#endif
+#endif
+
+    if (0 == mem)
+        return offset + 15;
+
+    /* relocate each section */
+    for (i = 1; i < s1->nb_sections; i++) {
+        s = s1->sections[i];
+        if (s->reloc)
+            relocate_section(s1, s);
+    }
+
+    for (i = 1; i < s1->nb_sections; i++) {
+        s = s1->sections[i];
+        if (0 == (s->sh_flags & SHF_ALLOC))
+            continue;
+        length = s->data_offset;
+        // printf("%-12s %08x %04x\n", s->name, s->sh_addr, length);
+        ptr = (void *) (uplong) s->sh_addr;
+        if (NULL == s->data || s->sh_type == SHT_NOBITS)
+            memset(ptr, 0, length);
+        else
+            memcpy(ptr, s->data, length);
+        /* mark executable sections as executable in memory */
+        if (s->sh_flags & SHF_EXECINSTR)
+            set_pages_executable(ptr, length);
+    }
+#ifndef TCC_TARGET_PE
+#ifdef TCC_TARGET_X86_64
+    set_pages_executable(s1->runtime_plt_and_got, s1->runtime_plt_and_got_offset);
+#endif
+#endif
+    return 0;
+}
+
+/* launch the compiled program with the given arguments */
+int tcc_run(TCCState *s1, int argc, char **argv)
+{
+    int (*prog_main)(int, char **);
+    void *ptr;
+    int ret;
+
+    ret = tcc_relocate(s1, NULL);
+    if (ret < 0)
+        return -1;
+    ptr = tcc_malloc(ret);
+    tcc_relocate(s1, ptr);
+
+    prog_main = tcc_get_symbol_err(s1, "main");
+
+    if (s1->do_debug) {
+#ifdef CONFIG_TCC_BACKTRACE
+        struct sigaction sigact;
+        /* install TCC signal handlers to print debug info on fatal
+           runtime errors */
+        sigact.sa_flags = SA_SIGINFO | SA_RESETHAND;
+        sigact.sa_sigaction = sig_error;
+        sigemptyset(&sigact.sa_mask);
+        sigaction(SIGFPE, &sigact, NULL);
+        sigaction(SIGILL, &sigact, NULL);
+        sigaction(SIGSEGV, &sigact, NULL);
+        sigaction(SIGBUS, &sigact, NULL);
+        sigaction(SIGABRT, &sigact, NULL);
+#else
+        error("debug mode not available");
+#endif
+    }
+
+#ifdef CONFIG_TCC_BCHECK
+    if (s1->do_bounds_check) {
+        void (*bound_init)(void);
+        void (*bound_exit)(void);
+        /* set error function */
+        rt_bound_error_msg = tcc_get_symbol_err(s1, "__bound_error_msg");
+        rt_prog_main = (unsigned long) prog_main;
+        /* XXX: use .init section so that it also work in binary ? */
+        bound_init = tcc_get_symbol_err(s1, "__bound_init");
+        bound_exit = tcc_get_symbol_err(s1, "__bound_exit");
+        bound_init();
+        ret = (*prog_main)(argc, argv);
+        bound_exit();
+    } else
+#endif
+        ret = (*prog_main)(argc, argv);
+    tcc_free(ptr);
+    return ret;
+}
+#endif
+
+void tcc_memstats(void)
+{
+#ifdef MEM_DEBUG
+    printf("memory in use: %d\n", mem_cur_size);
+#endif
+}
+
 static void tcc_cleanup(void)
 {
     int i, n;
@@ -1397,8 +1861,6 @@ static void tcc_cleanup(void)
 TCCState *tcc_new(void)
 {
     TCCState *s;
-    char buffer[100];
-    int a, b, c;
 
     tcc_cleanup();
 
@@ -1425,9 +1887,7 @@ TCCState *tcc_new(void)
     tcc_define_symbol(s, "__STDC__", NULL);
     tcc_define_symbol(s, "__STDC_VERSION__", "199901L");
 #if defined(TCC_TARGET_I386)
-    tcc_define_symbol(s, "__i386__", "1");
-    tcc_define_symbol(s, "__i386", "1");
-    tcc_define_symbol(s, "i386", "1");
+    tcc_define_symbol(s, "__i386__", NULL);
 #endif
 #if defined(TCC_TARGET_X86_64)
     tcc_define_symbol(s, "__x86_64__", NULL);
@@ -1448,32 +1908,34 @@ TCCState *tcc_new(void)
     tcc_define_symbol(s, "_WIN64", NULL);
 #endif
 #else
-    tcc_define_symbol(s, "__unix__", "1");
-    tcc_define_symbol(s, "__unix", "1");
-    tcc_define_symbol(s, "unix", "1");
-#if defined(__FreeBSD__)
-#define str(s) #s
-    tcc_define_symbol(s, "__FreeBSD__", str(__FreeBSD__));
-    tcc_define_symbol(s, "__INTEL_COMPILER", "1");
-#undef str
-#endif
+    tcc_define_symbol(s, "__unix__", NULL);
+    tcc_define_symbol(s, "__unix", NULL);
 #if defined(__linux)
     tcc_define_symbol(s, "__linux__", NULL);
     tcc_define_symbol(s, "__linux", NULL);
 #endif
 #endif
     /* tiny C specific defines */
-    sscanf(TCC_VERSION, "%d.%d.%d", &a, &b, &c);
-    sprintf(buffer, "%d", a * 10000 + b * 100 + c);
-    tcc_define_symbol(s, "__TINYC__", buffer);
+    tcc_define_symbol(s, "__TINYC__", NULL);
 
     /* tiny C & gcc defines */
-    tcc_define_symbol(s, "__SIZE_TYPE__", "unsigned long");
-    tcc_define_symbol(s, "__PTRDIFF_TYPE__", "long");
+    tcc_define_symbol(s, "__SIZE_TYPE__", "unsigned int");
+    tcc_define_symbol(s, "__PTRDIFF_TYPE__", "int");
 #ifdef TCC_TARGET_PE
     tcc_define_symbol(s, "__WCHAR_TYPE__", "unsigned short");
 #else
     tcc_define_symbol(s, "__WCHAR_TYPE__", "int");
+#endif
+#ifdef TCC_TARGET_816
+    tcc_define_symbol(s, "__INT_MAX__", "32767");
+    tcc_define_symbol(s, "__LONG_MAX__", "32767");
+    tcc_define_symbol(s, "__LONG_LONG_MAX__", "2147483647LL");
+    tcc_define_symbol(s, "__FLT_MIN__", "0x0.1p-127");
+    tcc_define_symbol(s, "__FLT_MAX__", "0x1.fffffep127");
+    tcc_define_symbol(s, "__DBL_MIN__", "0x0.1p-127");
+    tcc_define_symbol(s, "__DBL_MAX__", "0x1.fffffep127");
+    tcc_define_symbol(s, "__LDBL_MIN__", "0x0.1p-127");
+    tcc_define_symbol(s, "__LDBL_MAX__", "0x1.fffffep127");
 #endif
 
 #ifndef TCC_TARGET_PE
@@ -1515,13 +1977,6 @@ TCCState *tcc_new(void)
     /* XXX: currently the PE linker is not ready to support that */
     s->leading_underscore = 1;
 #endif
-
-    if (s->section_align == 0)
-        s->section_align = ELF_PAGE_SIZE;
-
-#ifdef TCC_TARGET_I386
-    s->seg_size = 32;
-#endif
     return s;
 }
 
@@ -1559,7 +2014,6 @@ void tcc_delete(TCCState *s1)
     dynarray_reset(&s1->sysinclude_paths, &s1->nb_sysinclude_paths);
 
     tcc_free(s1->tcc_lib_path);
-    tcc_free(s1->runtime_mem);
     tcc_free(s1);
 }
 
@@ -1584,8 +2038,12 @@ int tcc_add_sysinclude_path(TCCState *s1, const char *pathname)
 static int tcc_add_file_internal(TCCState *s1, const char *filename, int flags)
 {
     const char *ext;
+#ifdef TCC_TARGET_816
+    int ret;
+#else
     ElfW(Ehdr) ehdr;
-    int fd, ret, size;
+    int fd, ret;
+#endif
     BufferedFile *saved_file;
 
     ret = -1;
@@ -1628,6 +2086,11 @@ static int tcc_add_file_internal(TCCState *s1, const char *filename, int flags)
         goto the_end;
     }
 #endif
+
+#ifdef TCC_TARGET_816
+    error_noabort("unrecognized file type");
+    goto the_end;
+#else
 
     fd = file->fd;
     /* assume executable format: auto guess file type */
@@ -1684,7 +2147,7 @@ static int tcc_add_file_internal(TCCState *s1, const char *filename, int flags)
 #endif
     if (ret < 0)
         error_noabort("unrecognized file type");
-
+#endif
 the_end:
     if (file)
         tcc_close(file);
@@ -1741,6 +2204,7 @@ int tcc_add_library(TCCState *s, const char *libraryname)
             return 0;
 #endif
     }
+
     /* then we look for the static library */
     for (i = 0; i < s->nb_library_paths; i++) {
         snprintf(buf, sizeof(buf), "%s/lib%s.a", s->library_paths[i], libraryname);

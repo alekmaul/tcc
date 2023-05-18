@@ -554,22 +554,6 @@ static void asm_parse_directive(TCCState *s1)
         use_section1(s1, last_text_section);
         last_text_section = sec;
     } break;
-#ifdef TCC_TARGET_I386
-    case TOK_ASM_code16: {
-        next();
-        s1->seg_size = 16;
-    } break;
-    case TOK_ASM_code32: {
-        next();
-        s1->seg_size = 32;
-    } break;
-#endif
-#ifdef TCC_TARGET_X86_64
-    /* added for compatibility with GAS */
-    case TOK_ASM_code64:
-        next();
-        break;
-#endif
     default:
         error("unknown assembler directive '.%s'", get_tok_str(tok, NULL));
         break;
@@ -689,10 +673,6 @@ static int tcc_assemble(TCCState *s1, int do_preprocess)
     ind = cur_text_section->data_offset;
 
     define_start = define_stack;
-
-    /* an elf symbol of type STT_FILE must be put so that STB_LOCAL
-       symbols can be safely used */
-    put_elf_sym(symtab_section, 0, 0, ELFW(ST_INFO)(STB_LOCAL, STT_FILE), 0, SHN_ABS, file->filename);
 
     ret = tcc_assemble_internal(s1, do_preprocess);
 

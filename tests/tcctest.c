@@ -591,8 +591,6 @@ void array_test(int a[4])
         printf(" %3d", ((int *) tab2)[i]);
     }
     printf("\n");
-    printf("sizeof(size_t)=%d\n", sizeof(size_t));
-    printf("sizeof(ptrdiff_t)=%d\n", sizeof(ptrdiff_t));
 }
 
 void expr_test()
@@ -956,7 +954,7 @@ void bool_test()
 static int tab_reinit[];
 static int tab_reinit[10];
 
-// int cinit1; /* a global variable can be defined several times without error ! */
+//int cinit1; /* a global variable can be defined several times without error ! */
 int cinit1;
 int cinit1;
 int cinit1 = 0;
@@ -2052,8 +2050,7 @@ ntf("min=%d\n", 4);
 ";
     printf("len1=%d str[0]=%d\n", strlen(str), str[0]);
 #endif
-    printf("len1=%d\n", strlen("
-a
+    printf("len1=%d\n", strlen("a
 "));
 #endif /* ACCEPT_CR_IN_STRINGS */
 }
