@@ -197,7 +197,7 @@ void *tcc_get_symbol(TCCState *s, const char *name)
     if (!sym_index)
         return NULL;
     sym = &((ElfW(Sym) *) symtab_section->data)[sym_index];
-    return (void *) sym->st_value;
+    return (void *) (intptr_t) sym->st_value;
 }
 
 void *tcc_get_symbol_err(TCCState *s, const char *name)
