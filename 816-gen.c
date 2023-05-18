@@ -959,6 +959,8 @@ int gtst(int inv, int t)
     return t;
 }
 
+void warning(const char *fmt, ...);
+
 // generate an integer operation
 void gen_opi(int op)
 {
