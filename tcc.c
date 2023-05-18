@@ -5554,7 +5554,7 @@ void gen_opl(int op)
                 b = ind;
                 o(0x1A000000 | encbranch(ind, 0, 1));
 #elif defined(TCC_TARGET_C67)
-        error("not implemented (ind %d, a %d)", ind, a);
+        error("not implemented");
 #elif defined(TCC_TARGET_816)
 #if 0
                 b = ind;
@@ -5596,11 +5596,6 @@ void gen_opl(int op)
 #define SIGNED short
 #define UNSIGNEDLL unsigned int
 #define SIGNEDLL int
-#else
-#define UNSIGNED unsigned int
-#define SIGNED int
-#define UNSIGNEDLL unsigned long long
-#define SIGNEDLL long long
 #endif
 
 /* handle integer constant optimizations and various machine
@@ -5656,28 +5651,28 @@ void gen_opic(int op)
                 v1->c.i %= fc;
                 break;
             case TOK_UDIV:
-                v1->c.i = (UNSIGNED) v1->c.i / fc;
+                v1->c.i = (unsigned) v1->c.i / fc;
                 break;
             case TOK_UMOD:
-                v1->c.i = (UNSIGNED) v1->c.i % fc;
+                v1->c.i = (unsigned) v1->c.i % fc;
                 break;
             }
             break;
         case TOK_SHL:
-            v1->c.i = (SIGNED) v1->c.i << fc;
+            v1->c.i = (signed) v1->c.i << fc;
             break;
         case TOK_SHR:
-            v1->c.i = (UNSIGNED) v1->c.i >> fc;
+            v1->c.i = (unsigned) v1->c.i >> fc;
             break;
         case TOK_SAR:
-            v1->c.i = (SIGNED) v1->c.i >> fc;
+            v1->c.i = (signed) v1->c.i >> fc;
             break;
             /* tests */
         case TOK_ULT:
-            v1->c.i = (UNSIGNED) v1->c.i < (UNSIGNED) fc;
+            v1->c.i = (unsigned) v1->c.i < (unsigned) fc;
             break;
         case TOK_UGE:
-            v1->c.i = (UNSIGNED) v1->c.i >= (UNSIGNED) fc;
+            v1->c.i = (unsigned) v1->c.i >= (unsigned) fc;
             break;
         case TOK_EQ:
             v1->c.i = v1->c.i == fc;
@@ -5686,10 +5681,10 @@ void gen_opic(int op)
             v1->c.i = v1->c.i != fc;
             break;
         case TOK_ULE:
-            v1->c.i = (UNSIGNED) v1->c.i <= (UNSIGNED) fc;
+            v1->c.i = (unsigned) v1->c.i <= (unsigned) fc;
             break;
         case TOK_UGT:
-            v1->c.i = (UNSIGNED) v1->c.i > (UNSIGNED) fc;
+            v1->c.i = (unsigned) v1->c.i > (unsigned) fc;
             break;
         case TOK_LT:
             v1->c.i = v1->c.i < fc;
@@ -5997,8 +5992,8 @@ void gen_op(int op)
         /* XXX: currently, some unsigned operations are explicit, so
            we modify them here */
         if (t & VT_UNSIGNED) {
+            /* change to SAR only if the shiftee is unsigned (shiftopt-1.c) */
             if (op == TOK_SAR && (t1 & VT_UNSIGNED))
-                /* change to SAR only if the shiftee is unsigned (shiftopt-1.c) */
                 op = TOK_SHR;
             else if (op == '/')
                 op = TOK_UDIV;
@@ -6084,14 +6079,15 @@ void gen_cvt_ftoi1(int t)
 void force_charshort_cast(int t)
 {
     int bits, dbt;
+#ifdef TCC_TARGET_816
     int tmpt;
+#endif
     dbt = t & VT_BTYPE;
     /* XXX: add optimization if lvalue : just change type and offset */
     if (dbt == VT_BYTE)
         bits = 8;
     else
         bits = 16;
-
     if (t & VT_UNSIGNED) {
         vpushi((1 << bits) - 1);
         gen_op('&');
@@ -6100,16 +6096,16 @@ void force_charshort_cast(int t)
         bits = 16 - bits;
         if ((vtop->type.t & VT_BTYPE) == VT_LLONG)
             bits += 16;
+        tmpt = vtop->type.t;
+        vtop->type.t &= ~VT_UNSIGNED;
+        vtop->type.t = tmpt;
 #else
         bits = 32 - bits;
 #endif
-        tmpt = vtop->type.t;
-        vtop->type.t &= ~VT_UNSIGNED;
         vpushi(bits);
         gen_op(TOK_SHL);
         vpushi(bits);
         gen_op(TOK_SAR);
-        vtop->type.t = tmpt;
     }
 }
 
