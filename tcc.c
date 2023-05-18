@@ -7141,12 +7141,7 @@ static int parse_btype(CType *type, AttributeDef *ad)
             break;
         case TOK_LONG:
             next();
-#ifdef TCC_TARGET_816
-            if ((t & VT_BTYPE) == VT_FLOAT) {
-                // ignore
-            } else
-#endif
-                if ((t & VT_BTYPE) == VT_DOUBLE) {
+            if ((t & VT_BTYPE) == VT_DOUBLE) {
                 t = (t & ~VT_BTYPE) | VT_LDOUBLE;
             } else if ((t & VT_BTYPE) == VT_LONG) {
                 t = (t & ~VT_BTYPE) | VT_LLONG;
