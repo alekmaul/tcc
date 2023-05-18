@@ -5639,13 +5639,13 @@ void gen_opic(int op)
             }
             break;
         case TOK_SHL:
-            v1->c.i = (signed) v1->c.i << fc;
+            v1->c.i <<= fc;
             break;
         case TOK_SHR:
             v1->c.i = (unsigned) v1->c.i >> fc;
             break;
         case TOK_SAR:
-            v1->c.i = (signed) v1->c.i >> fc;
+            v1->c.i >>= fc;
             break;
             /* tests */
         case TOK_ULT:
