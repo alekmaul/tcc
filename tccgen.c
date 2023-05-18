@@ -4574,13 +4574,21 @@ static void init_putv(CType *type, Section *sec, unsigned long c, int v, int exp
             *(long double *) ptr = vtop->c.ld;
             break;
         case VT_LLONG:
+#ifdef TCC_TARGET_816
+            *(int *) ptr |= (vtop->c.ll & bit_mask) << bit_pos;
+#else
             *(long long *) ptr |= (vtop->c.ll & bit_mask) << bit_pos;
+#endif
             break;
         default:
             if (vtop->r & VT_SYM) {
                 greloc(sec, vtop->sym, c, R_DATA_PTR);
             }
+#ifdef TCC_TARGET_816
+            *(short *) ptr |= (vtop->c.i & bit_mask) << bit_pos;
+#else
             *(int *) ptr |= (vtop->c.i & bit_mask) << bit_pos;
+#endif
             break;
         }
         vtop--;
