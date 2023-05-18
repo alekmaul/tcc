@@ -77,7 +77,9 @@ ifeq ($(TOP),.)
 PROGS=816-tcc$(EXESUF)
 
 all: $(PROGS) $(LIBTCC1) $(BCHECK_O) libtcc.a tcc-doc.html tcc.1
-CORE_FILES = tcc.c tccelf.c tccasm.c tcctok.h libtcc.h config.h
+
+CORE_FILES = tcc.c libtcc.c tccpp.c tccgen.c tccelf.c tccasm.c \
+    tcc.h config.h libtcc.h tcctok.h
 816_FILES =  $(CORE_FILES) 816-gen.c
 NATIVE_FILES=$(816_FILES)
 
@@ -88,7 +90,7 @@ NATIVE_FILES=$(816_FILES)
 
 # libtcc generation and test
 libtcc.o: $(NATIVE_FILES)
-	$(CC) -o $@ -c $< $(NATIVE_TARGET) -DLIBTCC $(CFLAGS)
+	$(CC) -o $@ -c libtcc.c $(NATIVE_TARGET) $(CFLAGS)
 
 libtcc.a: libtcc.o
 	$(AR) rcs $@ $^
@@ -213,10 +215,9 @@ test clean :
 # clean
 clean: local_clean
 local_clean:
-	rm -vf $(PROGS) tcc_p$(EXESUF) tcc.pod *~ *.o *.a *.out libtcc_test$(EXESUF)
+	rm -vf 816-tcc$(EXESUF) tcc_p$(EXESUF) tcc.pod *~ *.o *.a *.out libtcc_test$(EXESUF)
 
 distclean: clean
 	rm -vf config.h config.mak config.texi tcc.1 tcc-doc.html
 
-endif
-# ifeq ($(TOP),.)
+endif # ifeq ($(TOP),.)

@@ -20,8 +20,6 @@
 
 #include "libtcc.c"
 
-#if !defined(LIBTCC)
-
 void help(void)
 {
     printf("tcc version " TCC_VERSION
@@ -579,5 +577,3 @@ the_end:
 #endif
     return ret;
 }
-
-#endif
