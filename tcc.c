@@ -1018,8 +1018,9 @@ void *resolve_sym(TCCState *s1, const char *sym, int type)
 
 #endif
 
+#ifdef TCC_TARGET_816
 char sztmpnam[STRING_MAX_SIZE]; // Alekmaul 201125, variable for temp file name (token usage)
-
+#endif
 /********************************************************/
 
 /* we use our own 'finite' function to avoid potential problems with
@@ -1263,7 +1264,6 @@ static void *section_ptr_add(Section *sec, unsigned long size)
 
     offset = sec->data_offset;
     offset1 = offset + size;
-    // fprintf(stderr,"section_ptr_add sec %s data %p size %ld offset %ld offset1 %ld allocd %ld\n", sec->name, sec->data, size,offset,offset1,sec->data_allocated);
     if (offset1 > sec->data_allocated)
         section_realloc(sec, offset1);
     sec->data_offset = offset1;
