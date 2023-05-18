@@ -34,8 +34,7 @@ int main(int argc, char **argv)
 {
     TCCState *s;
     int (*func)(int);
-    void *mem;
-    int size;
+    unsigned long val;
 
     s = tcc_new();
     if (!s) {
@@ -48,30 +47,18 @@ int main(int argc, char **argv)
 
     tcc_compile_string(s, my_program);
 
-    /* as a test, we add a symbol that the compiled program can use.
-       You may also open a dll with tcc_add_dll() and use symbols from that */
-    tcc_add_symbol(s, "add", add);
+    /* as a test, we add a symbol that the compiled program can be
+       linked with. You can have a similar result by opening a dll
+       with tcc_add_dll(() and using its symbols directly. */
+    tcc_add_symbol(s, "add", (unsigned long) &add);
 
-    /* get needed size of the code */
-    size = tcc_relocate(s, NULL);
-    if (size == -1)
-        return 1;
+    tcc_relocate(s);
 
-    /* allocate memory and copy the code into it */
-    mem = malloc(size);
-    tcc_relocate(s, mem);
+    tcc_get_symbol(s, &val, "foo");
+    func = (void *) val;
 
-    /* get entry symbol */
-    func = tcc_get_symbol(s, "foo");
-    if (!func)
-        return 1;
-
-    /* delete the state */
-    tcc_delete(s);
-
-    /* run the code */
     func(32);
 
-    free(mem);
+    tcc_delete(s);
     return 0;
 }

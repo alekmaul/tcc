@@ -521,7 +521,6 @@ int tcc_output_coff(TCCState *s1, FILE *f)
                 csym.n_numaux = 0;
                 fwrite(&csym, 18, 1, f);
                 n++;
-
             } else if (p->st_info == 0x12) {
                 // find the function data
 
@@ -596,7 +595,6 @@ int tcc_output_coff(TCCState *s1, FILE *f)
                 fwrite(&auxef, 18, 1, f);
 
                 n += 6;
-
             } else {
                 // try an put some type info
 
@@ -770,7 +768,6 @@ int FindCoffSymbolIndex(const char *func_name)
             // put a .ef
 
             // now put aux info
-
         } else {
             n += 2;
         }

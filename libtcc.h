@@ -43,9 +43,9 @@ void tcc_undefine_symbol(TCCState *s, const char *sym);
 
 /*****************************/
 /* compiling */
+
 /* add a file (either a C file, dll, an object, a library or an ld
    script). Return -1 if error. */
-
 int tcc_add_file(TCCState *s, const char *filename);
 
 /* compile a string containing a C source. Return non zero if
@@ -76,7 +76,7 @@ int tcc_add_library_path(TCCState *s, const char *pathname);
 int tcc_add_library(TCCState *s, const char *libraryname);
 
 /* add a symbol to the compiled program */
-int tcc_add_symbol(TCCState *s, const char *name, void *val);
+int tcc_add_symbol(TCCState *s, const char *name, unsigned long val);
 
 /* output an executable, library or object file. DO NOT call
    tcc_relocate() before. */
@@ -86,13 +86,12 @@ int tcc_output_file(TCCState *s, const char *filename);
    tcc_relocate() before. */
 int tcc_run(TCCState *s, int argc, char **argv);
 
-/* copy code into memory passed in by the caller and do all relocations
-   (needed before using tcc_get_symbol()).
-   returns -1 on error and required size if ptr is NULL */
-int tcc_relocate(TCCState *s1, void *ptr);
+/* do all relocations (needed before using tcc_get_symbol()). Return
+   non zero if link error. */
+int tcc_relocate(TCCState *s);
 
-/* return symbol value or NULL if not found */
-void *tcc_get_symbol(TCCState *s, const char *name);
+/* return symbol value. return 0 if OK, -1 if symbol not found */
+int tcc_get_symbol(TCCState *s, unsigned long *pval, const char *name);
 
 #ifdef __cplusplus
 }
