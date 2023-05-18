@@ -6348,7 +6348,10 @@ static int type_size(CType *type, int *a)
         return 8;
 #endif
     } else if (bt == VT_INT || bt == VT_ENUM || bt == VT_FLOAT) {
-#ifdef TCC_TARGET_816
+#ifndef TCC_TARGET_816
+        *a = 4;
+        return 4;
+#else
         if (bt == VT_FLOAT) {
             *a = 4;
             return 4;
@@ -6356,9 +6359,6 @@ static int type_size(CType *type, int *a)
             *a = 2;
             return 2;
         }
-#else
-        *a = 4;
-        return 4;
 #endif
     } else if (bt == VT_SHORT) {
         *a = 2;
@@ -6789,8 +6789,9 @@ void vstore(void)
         vtop--; /* NOT vpop() because on x86 it would flush the fp stack */
         vtop->r |= delayed_cast;
     }
+#ifdef TCC_TARGET_816
     nocast = 0;
-    // fprintf(stderr,"end vstore\n");
+#endif
 }
 
 /* post defines POST/PRE add. c is the token ++ or -- */
