@@ -12,10 +12,7 @@ endif
 
 CFLAGS+=-g -Wall
 ifdef CONFIG_816
-CFLAGS+=-Wno-unused-but-set-variable  \
-		-Wno-format-overflow \
-		-Wno-array-bounds \
-		-Wno-format-truncation
+CFLAGS+=-Wno-array-bounds
 endif
 CFLAGS_P=$(CFLAGS) -pg -static -DCONFIG_TCC_STATIC
 LIBS_P=
@@ -84,7 +81,9 @@ endif
 
 ifeq ($(TOP),.)
 
+ifndef CONFIG_816
 PROGS=tcc$(EXESUF)
+endif
 I386_CROSS = i386-tcc$(EXESUF)
 WIN32_CROSS = i386-win32-tcc$(EXESUF)
 WIN64_CROSS = x86_64-win32-tcc$(EXESUF)

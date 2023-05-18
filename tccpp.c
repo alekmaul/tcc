@@ -200,12 +200,7 @@ char *get_tok_str(int v, CValue *cv)
             return table_ident[v - TOK_IDENT]->str;
         } else if (v >= SYM_FIRST_ANOM) {
             /* special name for anonymous symbol */
-#ifdef TCC_TARGET_816
-            // Add temp file name to token name
-            sprintf(p, "L.%s%d", sztmpnam, v - SYM_FIRST_ANOM);
-#else
             sprintf(p, "L.%u", v - SYM_FIRST_ANOM);
-#endif
         } else {
             /* should never happen */
             return NULL;
@@ -2877,7 +2872,10 @@ void preprocess_new()
 {
     int i, c;
     const char *p, *r;
+// remove this because not used, should disappear later ...
+#ifndef TCC_TARGET_816
     TokenSym *ts;
+#endif
 
     /* init isid table */
     for (i = CH_EOF; i < 256; i++)
@@ -2896,7 +2894,11 @@ void preprocess_new()
             if (c == '\0')
                 break;
         }
+#ifndef TCC_TARGET_816
         ts = tok_alloc(p, r - p - 1);
+#else
+        tok_alloc(p, r - p - 1);
+#endif
         p = r;
     }
 }

@@ -371,29 +371,6 @@ void gbound(void)
 }
 #endif
 
-#ifdef TCC_TARGET_816
-// convert floats to Woz format
-void float_to_woz(float f, unsigned char *w)
-{
-    unsigned int i = 0, b;
-
-    w[0] = 0x8e + 16; // 0x8e is the exp for 16-bit integers; we have 32-bit ints here
-
-    for (; w[0]; w[0]--) {
-        i = (unsigned int) (int) f;
-        // top bits different => normalized
-        b = i & 0xc0000000UL;
-        if (b == 0x80000000UL || b == 0x40000000UL)
-            break;
-
-        f *= 2;
-    }
-    w[1] = i >> 24;
-    w[2] = (i >> 16) & 0xff;
-    w[3] = (i >> 8) & 0xff;
-}
-#endif
-
 /* store vtop a register belonging to class 'rc'. lvalues are
    converted to values. Cannot be used if cannot be converted to
    register value (such as structures). */

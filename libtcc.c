@@ -781,7 +781,7 @@ static void put_extern_sym2(
 #ifdef TCC_TARGET_816
         if (sym->type.t & VT_STATIC) {
             if ((sym->type.t & VT_IMPORT) && current_fn[0] != 0)
-                sprintf(buf1, "%s_FUNC_%s_", static_prefix, current_fn);
+                snprintf_nowarn(buf1, MAXLEN, "%s_FUNC_%s_", static_prefix, current_fn);
             else
                 strcpy(buf1, static_prefix);
             strcat(buf1, name);

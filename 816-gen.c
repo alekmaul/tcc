@@ -97,13 +97,22 @@ int reg_classes[NB_REGS] = {
 
 #define LOCAL_LABEL "__local_%d"
 
+#define MAXLEN 255
+
+#ifndef __GNUC__
+#define snprintf_nowarn snprintf
+#else
+#define snprintf_nowarn(...)                                       \
+    __extension__({                                                \
+        _Pragma("GCC diagnostic push");                            \
+        _Pragma("GCC diagnostic ignored \"-Wformat-truncation\""); \
+        const int _snprintf_nowarn = snprintf(__VA_ARGS__);        \
+        _Pragma("GCC diagnostic pop");                             \
+        _snprintf_nowarn;                                          \
+    })
+#endif
+
 char current_fn[256] = "";
-
-// Variable for temp file name (token usage)
-char sztmpnam[STRING_MAX_SIZE];
-
-// Variable relocate a given section
-char **relocptrs = NULL;
 
 /* yet another terrible workaround
    WLA does not have file-local symbols, only section-local and global.
@@ -123,13 +132,12 @@ struct labels_816
 {
     char *name;
     int pos;
-};
-struct labels_816 label[1000];
+} label[1000];
 int labels = 0;
 
 char *get_sym_str(Sym *sym)
 {
-    static char name[256];
+    static char name[MAXLEN + 1];
     char *symname;
 
     symname = get_tok_str(sym->v, NULL);
@@ -137,10 +145,9 @@ char *get_sym_str(Sym *sym)
     name[0] = 0;
     /* if static, add prefix */
     if (sym->type.t & VT_STATIC) {
-        // fprintf(stderr,"sym %s type 0x%x current_fn %s token %d\n",symname,sym->type.t,current_fn,sym->v);
         if ((sym->type.t & VT_IMPORT) && current_fn[0] != 0
             && !((sym->type.t & VT_BTYPE) == VT_FUNC))
-            sprintf(name, "%s_FUNC_%s_", static_prefix, current_fn);
+            snprintf_nowarn(name, MAXLEN, "%s_FUNC_%s_", static_prefix, current_fn);
         else
             strcpy(name, static_prefix);
     }
@@ -148,7 +155,6 @@ char *get_sym_str(Sym *sym)
     /* add symbol name */
     strcat(name, symname);
 
-    // fprintf(stderr,"symbol %s type 0x%x\n", name, sym->type.t);
     return name;
 }
 
@@ -169,26 +175,25 @@ void s(char *str)
         g(*str);
 }
 
-char line[256];
-#define pr(x...)          \
-    do {                  \
-        sprintf(line, x); \
-        s(line);          \
+char line[MAXLEN + 1];
+#define pr(x...)                          \
+    do {                                  \
+        snprintf_nowarn(line, MAXLEN, x); \
+        s(line);                          \
     } while (0)
 
-int jump[20000][2]; // update from mic_ to have more space
+// update from mic_ to have more space
+int jump[20000][2];
 int jumps = 0;
 
 void gsym_addr(int t, int a)
 {
     /* code at t wants to jump to a */
-    // fprintf(stderr, "gsymming t 0x%x a 0x%x\n", t, a);
     pr("; gsym_addr t %d a %d ind %d\n", t, a, ind);
     /* the label generation code sets this for us so we know when a symbol
        is a label and what its name is, so that we can remember its name
        and position so the output code can insert it correctly */
     if (label_workaround) {
-        // fprintf("setting label %s to a %d (t %d)\n", label_workaround, a, t);
         label[labels].name = label_workaround;
         label[labels].pos = a;
         labels++;
@@ -213,7 +218,7 @@ void gsym(int t)
     gsym_addr(t, ind);
 }
 
-int stack_back = 0;
+static int stack_back = 0;
 int adjust_stack(int fc, int disp)
 {
     pr("; stack adjust: fc + disp - loc %d\n", fc + disp - loc);
@@ -237,7 +242,7 @@ int restore_stack(int fc)
 // this used to be local to gfunc_call, but we need it to get the correct
 // stack pointer displacement while building the argument stack for
 // a function call
-int args_size = 0;
+static int args_size = 0;
 
 void load(int r, SValue *sv)
 {
@@ -961,8 +966,6 @@ int gtst(int inv, int t)
     return t;
 }
 
-void warning(const char *fmt, ...);
-
 // generate an integer operation
 void gen_opi(int op)
 {
@@ -1374,7 +1377,26 @@ void gen_opi(int op)
     }
 }
 
-void float_to_woz(float, unsigned char *);
+// convert floats to Woz format
+void float_to_woz(float f, unsigned char *w)
+{
+    unsigned int i = 0, b;
+
+    w[0] = 0x8e + 16; // 0x8e is the exp for 16-bit integers; we have 32-bit ints here
+
+    for (; w[0]; w[0]--) {
+        i = (unsigned int) (int) f;
+        // top bits different => normalized
+        b = i & 0xc0000000UL;
+        if (b == 0x80000000UL || b == 0x40000000UL)
+            break;
+
+        f *= 2;
+    }
+    w[1] = i >> 24;
+    w[2] = (i >> 16) & 0xff;
+    w[3] = (i >> 8) & 0xff;
+}
 
 void gen_opf(int op)
 {
@@ -1543,16 +1565,14 @@ void ggoto(void)
     pr("jml.l tcc__r9\n");
 }
 
-int section_count = 0;
-int ind_before_section = 0;
 int section_closed = 1;
+static int section_count = 0;
 
 void gfunc_prolog(CType *func_type)
 {
     Sym *sym; //, *sym2;
     Sym *symf;
     int n, addr, size, align;
-    // fprintf(stderr,"gfunc_prolog t %d sym %p\n",func_type->t,func_type->ref);
 
     sym = func_type->ref;
     func_vt = sym->type;
@@ -1576,7 +1596,6 @@ void gfunc_prolog(CType *func_type)
        to be a bit economical: gfunc_epilog() only closes the section if more
        than 50K of assembler code have been written */
     if (section_closed) {
-        ind_before_section = ind;
         pr("\n.SECTION \".text_0x%x\" SUPERFREE\n", section_count++);
         section_closed = 0;
     }
@@ -1597,7 +1616,8 @@ void gfunc_prolog(CType *func_type)
     loc = 0; // huh squared?
 }
 
-char locals[1000][256]; // update from mic_ 80->256
+// update from mic_ 80->256
+char locals[1000][256];
 int localnos[1000];
 int localno = 0;
 
