@@ -593,6 +593,7 @@ struct TCCState
 #else
 #define VT_TYPE (~(VT_STORAGE))
 #endif
+
 /* token values */
 
 /* warning: the following compare tokens depend on i386 asm code */
@@ -940,8 +941,6 @@ static inline int is_float(int t)
     return bt == VT_LDOUBLE || bt == VT_DOUBLE || bt == VT_FLOAT;
 }
 
-void warning(const char *fmt, ...);
-
 #ifdef TCC_TARGET_I386
 #include "i386-gen.c"
 #endif
@@ -956,6 +955,67 @@ void warning(const char *fmt, ...);
 
 #ifdef TCC_TARGET_816
 #include "816-gen.c"
+#endif
+
+#ifdef CONFIG_TCC_STATIC
+
+#define RTLD_LAZY 0x001
+#define RTLD_NOW 0x002
+#define RTLD_GLOBAL 0x100
+#define RTLD_DEFAULT NULL
+
+/* dummy function for profiling */
+void *dlopen(const char *filename, int flag)
+{
+    return NULL;
+}
+
+const char *dlerror(void)
+{
+    return "error";
+}
+
+typedef struct TCCSyms
+{
+    char *str;
+    void *ptr;
+} TCCSyms;
+
+#define TCCSYM(a) \
+    {             \
+        #a,       \
+        &a,       \
+    },
+
+/* add the symbol you want here if no dynamic linking is done */
+static TCCSyms tcc_syms[] = {
+#if !defined(CONFIG_TCCBOOT)
+    TCCSYM(printf) TCCSYM(fprintf) TCCSYM(fopen) TCCSYM(fclose)
+#endif
+        {NULL, NULL},
+};
+
+void *resolve_sym(TCCState *s1, const char *symbol, int type)
+{
+    TCCSyms *p;
+    p = tcc_syms;
+    while (p->str != NULL) {
+        if (!strcmp(p->str, symbol))
+            return p->ptr;
+        p++;
+    }
+    return NULL;
+}
+
+#elif !defined(WIN32)
+
+#include <dlfcn.h>
+
+void *resolve_sym(TCCState *s1, const char *sym, int type)
+{
+    return dlsym(RTLD_DEFAULT, sym);
+}
+
 #endif
 
 char sztmpnam[STRING_MAX_SIZE]; // Alekmaul 201125, variable for temp file name (token usage)
@@ -2460,48 +2520,85 @@ static void tok_str_add_tok(TokenString *s)
 
 /* get a token from an integer array and increment pointer
    accordingly. we code it as a macro to avoid pointer aliasing. */
-#define TOK_GET(t, p, cv)                                             \
-    {                                                                 \
-        t = *p++;                                                     \
-        switch (t) {                                                  \
-        case TOK_CINT:                                                \
-        case TOK_CUINT:                                               \
-        case TOK_CCHAR:                                               \
-        case TOK_LCHAR:                                               \
-        case TOK_CFLOAT:  /* this is correct (compiler ints array) */ \
-        case TOK_CDOUBLE: /* FIXME: make portable */                  \
-        case TOK_LINENUM:                                             \
-            cv.tab[0] = *p++;                                         \
-            break;                                                    \
-        case TOK_STR:                                                 \
-        case TOK_LSTR:                                                \
-        case TOK_PPNUM:                                               \
-            cv.cstr = (CString *) p;                                  \
-            cv.cstr->data = (char *) p + sizeof(CString);             \
-            p += (sizeof(CString) + cv.cstr->size + 3) >> 2;          \
-            break;                                                    \
-        /* case TOK_CDOUBLE: */                                       \
-        case TOK_CLLONG:                                              \
-        case TOK_CULLONG:                                             \
-            cv.tab[0] = p[0];                                         \
-            cv.tab[1] = p[1];                                         \
-            p += 2;                                                   \
-            break;                                                    \
-        case TOK_CLDOUBLE:                                            \
-            LDOUBLE_GET(p, cv);                                       \
-            p += LDOUBLE_SIZE / 4;                                    \
-            break;                                                    \
-        default:                                                      \
-            break;                                                    \
-        }                                                             \
+#ifdef TCC_TARGET_816
+#define TOK_GET(t, p, cv)                                    \
+    {                                                        \
+        t = *p++;                                            \
+        switch (t) {                                         \
+        case TOK_CINT:                                       \
+        case TOK_CUINT:                                      \
+        case TOK_CCHAR:                                      \
+        case TOK_LCHAR:                                      \
+        case TOK_CFLOAT:                                     \
+        case TOK_CDOUBLE:                                    \
+        case TOK_LINENUM:                                    \
+            cv.tab[0] = *p++;                                \
+            break;                                           \
+        case TOK_STR:                                        \
+        case TOK_LSTR:                                       \
+        case TOK_PPNUM:                                      \
+            cv.cstr = (CString *) p;                         \
+            cv.cstr->data = (char *) p + sizeof(CString);    \
+            p += (sizeof(CString) + cv.cstr->size + 3) >> 2; \
+            break;                                           \
+        /* case TOK_CDOUBLE: */                              \
+        case TOK_CLLONG:                                     \
+        case TOK_CULLONG:                                    \
+            cv.tab[0] = p[0];                                \
+            cv.tab[1] = p[1];                                \
+            p += 2;                                          \
+            break;                                           \
+        case TOK_CLDOUBLE:                                   \
+            LDOUBLE_GET(p, cv);                              \
+            p += LDOUBLE_SIZE / 4;                           \
+            break;                                           \
+        default:                                             \
+            break;                                           \
+        }                                                    \
     }
+#else
+#define TOK_GET(t, p, cv)                                    \
+    {                                                        \
+        t = *p++;                                            \
+        switch (t) {                                         \
+        case TOK_CINT:                                       \
+        case TOK_CUINT:                                      \
+        case TOK_CCHAR:                                      \
+        case TOK_LCHAR:                                      \
+        case TOK_CFLOAT:                                     \
+        case TOK_LINENUM:                                    \
+            cv.tab[0] = *p++;                                \
+            break;                                           \
+        case TOK_STR:                                        \
+        case TOK_LSTR:                                       \
+        case TOK_PPNUM:                                      \
+            cv.cstr = (CString *) p;                         \
+            cv.cstr->data = (char *) p + sizeof(CString);    \
+            p += (sizeof(CString) + cv.cstr->size + 3) >> 2; \
+            break;                                           \
+        case TOK_CDOUBLE:                                    \
+        case TOK_CLLONG:                                     \
+        case TOK_CULLONG:                                    \
+            cv.tab[0] = p[0];                                \
+            cv.tab[1] = p[1];                                \
+            p += 2;                                          \
+            break;                                           \
+        case TOK_CLDOUBLE:                                   \
+            LDOUBLE_GET(p, cv);                              \
+            p += LDOUBLE_SIZE / 4;                           \
+            break;                                           \
+        default:                                             \
+            break;                                           \
+        }                                                    \
+    }
+#endif
 
 /* defines handling */
 static inline void define_push(int v, int macro_type, int *str, Sym *first_arg)
 {
     Sym *s;
 
-    s = sym_push2(&define_stack, v, macro_type, (long) str);
+    s = sym_push2(&define_stack, v, macro_type, (int) str);
     s->next = first_arg;
     table_ident[v - TOK_IDENT]->sym_define = s;
 }
@@ -4192,7 +4289,7 @@ static int macro_subst_tok(TokenString *tok_str,
                     next_nomacro();
                 }
                 tok_str_add(&str, 0);
-                sym_push2(&args, sa->v & ~SYM_FIELD, sa->type.t, (long) str.str);
+                sym_push2(&args, sa->v & ~SYM_FIELD, sa->type.t, (int) str.str);
                 sa = sa->next;
                 if (tok == ')') {
                     /* special case for gcc var args: add an empty
@@ -4644,21 +4741,21 @@ void save_reg(int r)
     for (p = vstack; p <= vtop; p++) {
         if ((p->r & VT_VALMASK) == r || (p->r2 & VT_VALMASK) == r) {
             /* must save value on stack if not already done */
-            // fprintf(stderr,"p->r before 0x%x type 0x%x\n", p->r,p->type.t);
             if (!saved) {
+#ifdef TCC_TARGET_816
                 pr("; saveregging\n");
+#endif
                 /* NOTE: must reload 'r' because r might be equal to r2 */
                 r = p->r & VT_VALMASK;
                 /* store register in the stack */
                 type = &p->type;
-                // fprintf(stderr,"### type 0x%x r 0x%x\n", type->t, p->r);
-                if ((type->t & VT_BTYPE) == VT_FUNC) {
-                    // fprintf(stderr,"### funcptr type 0x%x r 0x%x\n",type->t,p->r);
-                } else if ((p->r & VT_LVAL)
-                           || (!is_float(type->t) && (type->t & VT_BTYPE) != VT_LLONG))
+                if ((p->r & VT_LVAL) || (!is_float(type->t) && (type->t & VT_BTYPE) != VT_LLONG))
+#ifdef TCC_TARGET_816
                     type = &ptr_type;
+#else
+                    type = &int_type;
+#endif
                 size = type_size(type, &align);
-                // fprintf(stderr,"### size %d align %d\n", size, align);
                 loc = (loc - size) & -align;
                 sv.type.t = type->t;
                 sv.r = VT_LOCAL | VT_LVAL;
@@ -4682,7 +4779,6 @@ void save_reg(int r)
                 l = loc;
                 saved = 1;
             }
-            // asdf
             /* mark that stack entry as being saved on the stack */
             if (p->r & VT_LVAL) {
                 /* also clear the bounded flag because the
@@ -4694,7 +4790,6 @@ void save_reg(int r)
             }
             p->r2 = VT_CONST;
             p->c.ul = l;
-            // fprintf(stderr,"p->r after 0x%x type 0x%x\n", p->r, p->type.t);
         }
     }
 }
@@ -4829,18 +4924,11 @@ void gbound(void)
 void float_to_woz(float f, unsigned char *w)
 {
     unsigned int i, b;
-    // w[0] exponent
-    // w[1-3] mantissa (big-endian)
-    // fprintf(stderr,"wozzing out at %f\n",f);
-    // if(f == 1.0)
-    // asm("int $3");
 
     w[0] = 0x8e + 16; // 0x8e is the exp for 16-bit integers; we have 32-bit ints here
 
     for (; w[0]; w[0]--) {
         i = (unsigned int) (int) f;
-        // fprintf(stderr,"i 0x%08x\n", i);
-
         // top bits different => normalized
         b = i & 0xc0000000UL;
         if (b == 0x80000000UL || b == 0x40000000UL)
@@ -4851,8 +4939,6 @@ void float_to_woz(float f, unsigned char *w)
     w[1] = i >> 24;
     w[2] = (i >> 16) & 0xff;
     w[3] = (i >> 8) & 0xff;
-
-    // fprintf(stderr,"wozzed 0x%02x%02x%02x%02x\n", w[0],w[1],w[2],w[3]);
 }
 #endif
 
@@ -4861,18 +4947,22 @@ void float_to_woz(float f, unsigned char *w)
    register value (such as structures). */
 int gv(int rc)
 {
+#ifdef TCC_TARGET_816
     int r, r2, rc2, bit_pos, bit_size, size, align;
-#ifndef TCC_TARGET_816
-    int i;
+#else
+    int r, r2, rc2, bit_pos, bit_size, size, align, i;
 #endif
     unsigned long long ll;
 
     /* NOTE: get_reg can modify vstack[] */
     if (vtop->type.t & VT_BITFIELD) {
+#ifdef TCC_TARGET_816
         int usigned;
         int cst;
+#endif
         bit_pos = (vtop->type.t >> VT_STRUCT_SHIFT) & 0x3f;
         bit_size = (vtop->type.t >> (VT_STRUCT_SHIFT + 6)) & 0x3f;
+#ifdef TCC_TARGET_816
         pr("; bitfielding bit_pos %d bit_size %d vtop->type.t 0x%x vtop->r 0x%x\n",
            bit_pos,
            bit_size,
@@ -4880,6 +4970,7 @@ int gv(int rc)
            vtop->r);
         usigned = vtop->type.t & VT_UNSIGNED;
         cst = ((vtop->r & VT_VALMASK) == VT_CONST) && !(vtop->r & VT_LVAL);
+#endif
         /* remove bit field info to avoid loops */
         vtop->type.t &= ~(VT_BITFIELD | (-1 << VT_STRUCT_SHIFT));
         /* generate shifts */
@@ -4965,10 +5056,11 @@ int gv(int rc)
                        efficient) is to save all the other registers
                        in the stack. XXX: totally inefficient. */
                     save_regs(1);
+                    /* load from memory */
                     load(r, vtop);
                     vdup();
                     vtop[-1].r = r; /* save register value */
-
+#ifdef TCC_TARGET_816
                     /* A bug may hide here.
                        This shortcut did not work for 65816 until I found out
                        that the long long compare code seems to expect the
@@ -4981,22 +5073,23 @@ int gv(int rc)
                     }
                     else
 #endif
-                    {
-                        /* increment pointer to get second word */
-                        pr("; pushit type 0x%x\n", vtop->type.t);
-                        ll_workaround = 1;
-                        vtop->type.t = VT_INT;
-                        gaddrof();
-#ifdef TCC_TARGET_816
-                        vpushi(2);
-#else
-                        vpushi(4);
+                    /* increment pointer to get second word */
+                    pr("; pushit type 0x%x\n", vtop->type.t);
+                    ll_workaround = 1;
 #endif
-                        gen_op('+');
-                        vtop->r |= VT_LVAL;
-                        ll_workaround = 0;
-                        pr("; endpush\n");
-                    }
+                    vtop->type.t = VT_INT;
+                    gaddrof();
+#ifdef TCC_TARGET_816
+                    vpushi(2);
+#else
+                    vpushi(4);
+#endif
+                    gen_op('+');
+                    vtop->r |= VT_LVAL;
+#ifdef TCC_TARGET_816
+                    ll_workaround = 0;
+                    pr("; endpush\n");
+#endif
                 } else {
                     /* move registers */
                     load(r, vtop);
