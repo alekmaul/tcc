@@ -184,10 +184,11 @@ char line[MAXLEN + 1];
         s(line);                          \
     } while (0)
 
-// update from mic_ to have more space
+// update from mic_to have more space
 int jump[20000][2];
 int jumps = 0;
 
+/* output a symbol and patch all calls to it */
 void gsym_addr(int t, int a)
 {
     /* code at t wants to jump to a */
@@ -246,6 +247,7 @@ int restore_stack(int fc)
 // a function call
 static int args_size = 0;
 
+/* load 'r' from value 'sv' */
 void load(int r, SValue *sv)
 {
     int fr, ft, fc;
@@ -534,6 +536,7 @@ void load(int r, SValue *sv)
     error("load unimplemented");
 }
 
+/* store register 'r' in lvalue 'v' */
 void store(int r, SValue *sv)
 {
     int v, ft, fc, fr, sign;
@@ -716,6 +719,7 @@ void store(int r, SValue *sv)
     error("store unimplemented");
 }
 
+/* generate function call */
 void gfunc_call(int nb_args)
 {
     int align, r, i, func_call;
@@ -873,6 +877,7 @@ void gfunc_call(int nb_args)
     vtop--;
 }
 
+/* generate a jump to a label */
 int gjmp(int t)
 {
     int r;
@@ -893,11 +898,13 @@ int gjmp(int t)
     return r;
 }
 
+/* generate a jump to a fixed address */
 void gjmp_addr(int a)
 {
     gjmp(a);
 }
 
+/* generate a test. set 'inv' to invert test. Stack entry is popped */
 int gtst(int inv, int t)
 {
     int v, r;
@@ -967,7 +974,7 @@ int gtst(int inv, int t)
     return t;
 }
 
-// generate an integer operation
+/* generate an integer binary operation */
 void gen_opi(int op)
 {
     int r, fr, fc, c, r5; // only set, remove it ,ft;
@@ -1378,7 +1385,7 @@ void gen_opi(int op)
     }
 }
 
-// convert floats to Woz format
+/* convert floats to Woz format */
 void float_to_woz(float f, unsigned char *w)
 {
     unsigned int i = 0, b;
@@ -1399,6 +1406,7 @@ void float_to_woz(float f, unsigned char *w)
     w[3] = (i >> 8) & 0xff;
 }
 
+/* generate a floating point operation */
 void gen_opf(int op)
 {
     // Not used int r, fr, ft;
@@ -1492,6 +1500,8 @@ void gen_opf(int op)
     vtop->r = TREG_F0;
 }
 
+/* convert integers to fp 't' type. Must handle 'int', 'unsigned int'
+   and 'long long' cases. */
 void gen_cvt_itof(int t)
 {
     int r, r2, it;
@@ -1503,9 +1513,6 @@ void gen_cvt_itof(int t)
     pr("; itof tcc__r%d, f0\n", r);
     if ((vtop->type.t & VT_BTYPE) == VT_LLONG) {
         pr("pei (tcc__r%d)\npei (tcc__r%d)\n", r2, r);
-        /*         if (it & VT_UNSIGNED)
-                    error("jsr.l tcc__ulltof\n"); // this is probably dead code
-                else */
         pr("jsr.l tcc__lltof\n");
         pr("pla\npla\n");
     } else {
@@ -1520,6 +1527,7 @@ void gen_cvt_itof(int t)
     vtop->r = TREG_F0; // tell TCC that the result is in f0
 }
 
+/* convert fp to int 't' type */
 void gen_cvt_ftoi(int t)
 {
     int r = 0;
@@ -1549,11 +1557,13 @@ void gen_cvt_ftoi(int t)
     vtop->r = r;
 }
 
+/* convert from one floating point type to another */
 void gen_cvt_ftof(int t)
 {
     error("gen_cvt_ftof 0x%x\n", t);
 }
 
+/* computed goto support */
 void ggoto(void)
 {
     int r = gv(RC_INT);
@@ -1569,6 +1579,7 @@ void ggoto(void)
 int section_closed = 1;
 static int section_count = 0;
 
+/* generate function prolog of type 't' */
 void gfunc_prolog(CType *func_type)
 {
     Sym *sym; //, *sym2;
@@ -1622,6 +1633,7 @@ char locals[1000][256];
 int localnos[1000];
 int localno = 0;
 
+/* generate function epilog */
 void gfunc_epilog(void)
 {
     pr("; add sp, #__%s_locals\n", current_fn);
