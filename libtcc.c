@@ -699,7 +699,7 @@ static void put_extern_sym2(
     int sym_type, sym_bind, sh_num, info, other, attr;
     ElfW(Sym) * esym;
     const char *name;
-    char buf1[256];
+    char buf1[MAXLEN * 2];
 
     if (section == NULL)
         sh_num = SHN_UNDEF;
@@ -781,10 +781,10 @@ static void put_extern_sym2(
 #ifdef TCC_TARGET_816
         if (sym->type.t & VT_STATIC) {
             if ((sym->type.t & VT_IMPORT) && current_fn[0] != 0)
-                snprintf_nowarn(buf1, MAXLEN, "%s_FUNC_%s_", static_prefix, current_fn);
+                snprintf(buf1, sizeof(buf1), "%s_FUNC_%s_", static_prefix, current_fn);
             else
-                strcpy(buf1, static_prefix);
-            strcat(buf1, name);
+                snprintf(buf1, sizeof(buf1), "%s%s", static_prefix, name);
+
             name = buf1;
         }
 #endif
