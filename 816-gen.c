@@ -130,7 +130,7 @@ char *get_sym_str(Sym *sym)
     name[0] = 0;
     /* if static, add prefix */
     if (sym->type.t & VT_STATIC) {
-        //fprintf(stderr,"sym %s type 0x%x current_fn %s token %d\n",symname,sym->type.t,current_fn,sym->v);
+        // fprintf(stderr,"sym %s type 0x%x current_fn %s token %d\n",symname,sym->type.t,current_fn,sym->v);
         if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0
             && !((sym->type.t & VT_BTYPE) == VT_FUNC))
             sprintf(name, "%s_FUNC_%s_", static_prefix, current_fn);
@@ -141,7 +141,7 @@ char *get_sym_str(Sym *sym)
     /* add symbol name */
     strcat(name, symname);
 
-    //fprintf(stderr,"symbol %s type 0x%x\n", name, sym->type.t);
+    // fprintf(stderr,"symbol %s type 0x%x\n", name, sym->type.t);
     return name;
 }
 
@@ -175,13 +175,13 @@ int jumps = 0;
 void gsym_addr(int t, int a)
 {
     /* code at t wants to jump to a */
-    //fprintf(stderr, "gsymming t 0x%x a 0x%x\n", t, a);
+    // fprintf(stderr, "gsymming t 0x%x a 0x%x\n", t, a);
     pr("; gsym_addr t %d a %d ind %d\n", t, a, ind);
     /* the label generation code sets this for us so we know when a symbol
-     is a label and what its name is, so that we can remember its name
-     and position so the output code can insert it correctly */
+       is a label and what its name is, so that we can remember its name
+       and position so the output code can insert it correctly */
     if (label_workaround) {
-        //fprintf("setting label %s to a %d (t %d)\n", label_workaround, a, t);
+        // fprintf("setting label %s to a %d (t %d)\n", label_workaround, a, t);
         label[labels].name = label_workaround;
         label[labels].pos = a;
         labels++;
@@ -253,7 +253,7 @@ void load(int r, SValue *sv)
     if (ll_workaround)
         length = 4;
 
-    //pr("; load r 0x%x fr 0x%x ft 0x%x fc 0x%x\n",r,fr,ft,fc);
+    // pr("; load r 0x%x fr 0x%x ft 0x%x fc 0x%x\n",r,fr,ft,fc);
 
     int base = -1;
     v = fr & VT_VALMASK;
@@ -312,7 +312,7 @@ void load(int r, SValue *sv)
                     }
                 }
             } else { // deref constant pointer
-                //error("ld [%d],tcc__r%d\n",fc,r);
+                // error("ld [%d],tcc__r%d\n",fc,r);
                 pr("; deref constant ptr ld [%d],tcc__r%d\n", fc, r);
                 if (is_float(ft)) {
                     error("dereferencing constant float pointers unimplemented\n");
@@ -591,7 +591,7 @@ void store(int r, SValue *sv)
                 }
                 return;
             } else {
-                v1.type.t = VT_PTR; //ft;
+                v1.type.t = VT_PTR; // ft;
                 v1.r = fr & ~VT_LVAL;
                 v1.c.ul = sv->c.ul;
                 v1.sym = sv->sym;
@@ -601,7 +601,7 @@ void store(int r, SValue *sv)
             }
         }
         if (v == VT_LOCAL) {
-            if (r >= TREG_F0) { //is_float(ft)) {
+            if (r >= TREG_F0) { // is_float(ft)) {
                 if (base < 0) {
                     pr("; fst%d tcc__f%d, [sp,%d]\n", length, r - TREG_F0, fc);
                     fc = adjust_stack(fc, args_size + 2);
@@ -716,11 +716,11 @@ void gfunc_call(int nb_args)
     int length;
 
     /* args_size is the size of the function call arguments already
-     pushed on the stack. needed so that loads and stores to
-     locals on the stack still work while building an argument
-     list. needs to be restored before returning to make
-     nested function calls work (passing structs by value causes
-     a memcpy call) */
+       pushed on the stack. needed so that loads and stores to
+       locals on the stack still work while building an argument
+       list. needs to be restored before returning to make
+       nested function calls work (passing structs by value causes
+       a memcpy call) */
     int restore_args_size = args_size;
 
     for (i = 0; i < nb_args; i++) {
@@ -737,13 +737,13 @@ void gfunc_call(int nb_args)
             /* generate structure store */
             r = get_reg(RC_INT);
             /* put the pointer to struct store on the stack
-             always remember: the 65xxs are off-by-one processors
-             there is always something to increment or decrement to
-             get the value you actually want. (cf. mvn/mvp) */
+               always remember: the 65xxs are off-by-one processors
+               there is always something to increment or decrement to
+               get the value you actually want. (cf. mvn/mvp) */
             pr("stz.b tcc__r%dh\ntsa\nina\nsta.b tcc__r%d\n", r, r);
 
             /* here, TCC generates a memcpy call
-             this recursion makes the restore_args_size stuff necessary */
+               this recursion makes the restore_args_size stuff necessary */
             vset(&vtop->type, r | VT_LVAL, 0);
             vswap();
             vstore();
@@ -799,16 +799,16 @@ void gfunc_call(int nb_args)
                 case 1:
                     pr("sep #$20\nlda.b tcc__r%d\npha\nrep #$20\n", r);
                     break;
-                //case 2: pr("lda.b tcc__r%d\npha\n", r); break;
+                // case 2: pr("lda.b tcc__r%d\npha\n", r); break;
                 case 2:
                     pr("pei (tcc__r%d)\n", r);
                     break;
                 case 4:
                     if ((vtop->type.t & VT_BTYPE) == VT_LLONG) {
-                        //pr("lda.b tcc__r%d\npha\nlda.b tcc__r%d\npha\n", vtop->r2, r);
+                        // pr("lda.b tcc__r%d\npha\nlda.b tcc__r%d\npha\n", vtop->r2, r);
                         pr("pei (tcc__r%d)\npei (tcc__r%d)\n", vtop->r2, r);
                     }
-                    //else pr("lda.b tcc__r%dh\npha\nlda.b tcc__r%d\npha\n", r, r);
+                    // else pr("lda.b tcc__r%dh\npha\nlda.b tcc__r%d\npha\n", r, r);
                     else
                         pr("pei (tcc__r%dh)\npei (tcc__r%d)\n", r, r);
                     break;
@@ -898,7 +898,7 @@ int gtst(int inv, int t)
     pr("; gtst inv %d t %d v %d r %d ind %d\n", inv, t, v, r, ind);
     if (v == VT_CMP) {
         pr("; cmp op 0x%x inv %d v %d r %d\n", vtop->c.i, inv, v, r);
-        //gsym(t);
+        // gsym(t);
         switch (vtop->c.i) {
         case TOK_NE:
             // remember that we need a label to jump to
@@ -1374,21 +1374,21 @@ void float_to_woz(float, unsigned char *);
 
 void gen_opf(int op)
 {
-    //Alek 20/11/25 not used int r, fr, ft;
-    //Alek 20/11/25 not used float fcf;
+    // Alek 20/11/25 not used int r, fr, ft;
+    // Alek 20/11/25 not used float fcf;
     int length, align;
     int ir;
 
     length = type_size(&vtop[0].type, &align);
-    //Alek 20/11/25 not used r = vtop[-1].r;
-    //Alek 20/11/25 not used fr = vtop[0].r;
-    //Alek 20/11/25 not used fcf = vtop[0].c.f;
+    // Alek 20/11/25 not used r = vtop[-1].r;
+    // Alek 20/11/25 not used fr = vtop[0].r;
+    // Alek 20/11/25 not used fcf = vtop[0].c.f;
 
     // get the actual values
     gv2(RC_F1, RC_F0);
-    //Alek 20/11/25 not used r = vtop[-1].r;
-    //Alek 20/11/25 not used fr = vtop[0].r;
-    //Alek 20/11/25 not used ft = vtop[0].type.t;
+    // Alek 20/11/25 not used r = vtop[-1].r;
+    // Alek 20/11/25 not used fr = vtop[0].r;
+    // Alek 20/11/25 not used ft = vtop[0].type.t;
     vtop--;
 
     pr("; gen_opf len %d op 0x%x ('%c')\n", length, op, op);
@@ -1548,7 +1548,7 @@ void gfunc_prolog(CType *func_type)
     Sym *sym; //, *sym2;
     Sym *symf;
     int n, addr, size, align;
-    //fprintf(stderr,"gfunc_prolog t %d sym %p\n",func_type->t,func_type->ref);
+    // fprintf(stderr,"gfunc_prolog t %d sym %p\n",func_type->t,func_type->ref);
 
     sym = func_type->ref;
     func_vt = sym->type;
@@ -1567,10 +1567,10 @@ void gfunc_prolog(CType *func_type)
     strcpy(current_fn, get_sym_str(symf));
 
     /* wlalink does not cut up sections, so it is desirable to have a section
-     for each function to keep the amount of unused memory in the ROM banks
-     low. WLA DX barfs, however, if fed more than 255 sections, so we have
-     to be a bit economical: gfunc_epilog() only closes the section if more
-     than 50K of assembler code have been written */
+       for each function to keep the amount of unused memory in the ROM banks
+       low. WLA DX barfs, however, if fed more than 255 sections, so we have
+       to be a bit economical: gfunc_epilog() only closes the section if more
+       than 50K of assembler code have been written */
     if (section_closed) {
         ind_before_section = ind;
         pr("\n.SECTION \".text_0x%x\" SUPERFREE\n", section_count++);
@@ -1584,7 +1584,7 @@ void gfunc_prolog(CType *func_type)
         type = &sym->type;
         sym_push(sym->v & ~SYM_FIELD, type, VT_LOCAL | VT_LVAL, addr);
         size = type_size(type, &align);
-        //fprintf(stderr,"pushed sym type 0x%x size %d addr 0x%x\n",type->t,size,addr);
+        // fprintf(stderr,"pushed sym type 0x%x size %d addr 0x%x\n",type->t,size,addr);
         addr += size;
         n += size;
     }
@@ -1609,10 +1609,10 @@ void gfunc_epilog(void)
     if (-loc > 0x1f00)
         error("stack overflow");
     /* simply putting a ".define __<current_fn>_locals -<loc>" after the
-     function does not work in some cases for unknown reasons (wla-dx
-     complains about unresolved symbols); putting them before the reference
-     works, but this has to be done by the output code, so we have to save
-     the various locals sizes somewhere */
+       function does not work in some cases for unknown reasons (wla-dx
+       complains about unresolved symbols); putting them before the reference
+       works, but this has to be done by the output code, so we have to save
+       the various locals sizes somewhere */
     strcpy(locals[localno], current_fn);
     localnos[localno] = -loc;
     localno++;
