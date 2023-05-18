@@ -226,6 +226,7 @@ int tcc_output_coff(TCCState *s1, FILE *f);
 /* tccpe.c */
 int pe_load_file(struct TCCState *s1, const char *filename, int fd);
 int pe_output_file(struct TCCState *s1, const char *filename);
+int pe_dllimport(int r, SValue *sv, void (*fn)(int r, SValue *sv));
 
 /* tccasm.c */
 #ifdef CONFIG_TCC_ASM
@@ -335,12 +336,8 @@ static inline int toup(int c)
 
 #ifdef CONFIG_TCC_ASM
 
-#ifdef TCC_TARGET_I386
+#if defined TCC_TARGET_I386 || defined TCC_TARGET_X86_64
 #include "i386-asm.c"
-#endif
-
-#ifdef TCC_TARGET_X86_64
-#include "x86_64-asm.c"
 #endif
 
 #include "tccasm.c"
@@ -789,8 +786,14 @@ static void put_extern_sym2(
         if (FUNC_CALL(attr) == FUNC_STDCALL)
             other |= 2;
 #endif
+    } else if ((sym->type.t & VT_BTYPE) == VT_VOID) {
+        sym_type = STT_NOTYPE;
     } else {
         sym_type = STT_OBJECT;
+#ifdef TCC_TARGET_PE
+        if (sym->type.t & VT_EXPORT)
+            other |= 1;
+#endif
     }
 
     if (sym->type.t & VT_STATIC)
@@ -870,10 +873,14 @@ static void put_extern_sym(Sym *sym, Section *section, unsigned long value, unsi
 /* add a new relocation entry to symbol 'sym' in section 's' */
 static void greloc(Section *s, Sym *sym, unsigned long offset, int type)
 {
-    if (!sym->c)
-        put_extern_sym(sym, NULL, 0, 0);
+    int c = 0;
+    if (sym) {
+        if (0 == sym->c)
+            put_extern_sym(sym, NULL, 0, 0);
+        c = sym->c;
+    }
     /* now we can add ELF relocation info */
-    put_elf_reloc(symtab_section, s, offset, type, sym->c);
+    put_elf_reloc(symtab_section, s, offset, type, c);
 }
 
 static void strcat_vprintf(char *buf, int buf_size, const char *fmt, va_list ap)
@@ -1091,6 +1098,7 @@ static Sym *sym_push2(Sym **ps, int v, int t, long c)
     s = sym_malloc();
     s->v = v;
     s->type.t = t;
+    s->type.ref = NULL;
 #ifdef _WIN64
     s->d = NULL;
 #endif
