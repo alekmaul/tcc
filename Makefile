@@ -9,7 +9,6 @@ TARGET=
 CFLAGS=-Wall -g \
 		-Wno-unused-but-set-variable  \
 		-Wno-format-overflow
-
 ifeq ($(ARCH),x86-64)
 TARGET=-DTCC_TARGET_X86_64
 CFLAGS+=-Wno-pointer-sign
