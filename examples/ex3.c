@@ -1,4 +1,5 @@
-#include <tcclib.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 int fib(n)
 {
