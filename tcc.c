@@ -4922,7 +4922,7 @@ void gbound(void)
 // convert floats to Woz format
 void float_to_woz(float f, unsigned char *w)
 {
-    unsigned int i, b;
+    unsigned int i = 0, b;
 
     w[0] = 0x8e + 16; // 0x8e is the exp for 16-bit integers; we have 32-bit ints here
 
