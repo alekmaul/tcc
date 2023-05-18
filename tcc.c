@@ -9039,20 +9039,11 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
         array_length = 0;
         index = 0;
         n = s->c;
-        if (!size_only && n != -1) {
-            /* zeroing the entire struct before filling in the values ensures
-               that decl_designator() won't forget filling in holes in structs inside
-               this one, and is probably more efficient anyway than filling each hole
-               with its own memset() call. */
-            init_putz(type, sec, c, n);
-        }
         while (tok != '}') {
             decl_designator(type, sec, c, NULL, &f, size_only);
             index = f->c;
             if (!size_only && array_length < index) {
-                // printf("; init_putz 1\n");
-                // init_putz(type, sec, c + array_length,
-                //           index - array_length);
+                init_putz(type, sec, c + array_length, index - array_length);
             }
             index = index + type_size(&f->type, &align1);
             if (index > array_length)
@@ -9064,17 +9055,10 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
                 break;
             skip(',');
         }
-        if (n == -1)
-            n = s->c = array_length; /* size was unknown before, set it properly */
-
-#if 0
         /* put zeros at the end */
         if (!size_only && array_length < n) {
-            printf("; init_putz 2\n");
-            init_putz(type, sec, c + array_length,
-                      n - array_length);
+            init_putz(type, sec, c + array_length, n - array_length);
         }
-#endif
         if (!no_oblock)
             skip('}');
         while (par_count) {
