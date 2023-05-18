@@ -7151,9 +7151,7 @@ static int parse_btype(CType *type, AttributeDef *ad)
             }
             break;
         case TOK_BOOL:
-            /* _Bool must be unsigned, or sign extension will get in our way when
-               using it in bitfields (20030714-1.c) */
-            u = VT_BOOL | VT_UNSIGNED;
+            u = VT_BOOL;
             goto basic_type;
         case TOK_FLOAT:
             u = VT_FLOAT;
