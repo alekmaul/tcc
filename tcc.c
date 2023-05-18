@@ -349,7 +349,6 @@ typedef struct CachedInclude
 /* parser */
 static struct BufferedFile *file;
 static int ch, tok;
-static CString tok_spaces; /* spaces before current token */
 static CValue tokc;
 static CString tokcstr; /* current parsed string, if any */
 /* additional informations about token */
@@ -371,6 +370,7 @@ static int parse_flags;
                                           token. line feed is also   \
                                           returned at eof */
 #define PARSE_FLAG_ASM_COMMENTS 0x0008 /* '#' can be used for line comment */
+#define PARSE_FLAG_SPACES 0x0010       /* next() returns space tokens (for -E) */
 
 #ifdef TCC_TARGET_816
 static Section *text_section, *data_section, *rodata_section,
@@ -841,6 +841,7 @@ static char *tcc_fileextension(const char *p);
 
 static void next(void);
 static void next_nomacro(void);
+static void next_nomacro_spc(void);
 static void parse_expr_type(CType *type);
 static void expr_type(CType *type);
 static void unary_type(CType *type);
@@ -1180,7 +1181,7 @@ char *normalize_slashes(char *path)
     return path;
 }
 
-char *w32_tcc_lib_path(void)
+void tcc_set_lib_path_w32(TCCState *s)
 {
     /* on win32, we suppose the lib and includes are at the location
        of 'tcc.exe' */
@@ -1192,7 +1193,7 @@ char *w32_tcc_lib_path(void)
     else if (p > path)
         p--;
     *p = 0;
-    return strdup(path);
+    tcc_set_lib_path(s, path);
 }
 #endif
 
@@ -2370,6 +2371,17 @@ static inline void skip_spaces(void)
         cinp();
 }
 
+static inline int check_space(int t, int *spc)
+{
+    if (is_space(t)) {
+        if (*spc)
+            return 1;
+        *spc = 1;
+    } else
+        *spc = 0;
+    return 0;
+}
+
 /* parse a string without interpreting escapes */
 static uint8_t *parse_pp_string(uint8_t *p, int sep, CString *str)
 {
@@ -2942,13 +2954,14 @@ static void tok_print(int *str)
     int t;
     CValue cval;
 
+    printf("<");
     while (1) {
         TOK_GET(t, str, cval);
         if (!t)
             break;
-        printf(" %s", get_tok_str(t, &cval));
+        printf("%s", get_tok_str(t, &cval));
     }
-    printf("\n");
+    printf(">\n");
 }
 #endif
 
@@ -2956,7 +2969,7 @@ static void tok_print(int *str)
 static void parse_define(void)
 {
     Sym *s, *first, **ps;
-    int v, t, varg, is_vaargs, c;
+    int v, t, varg, is_vaargs, spc;
     TokenString str;
 
     v = tok;
@@ -2966,11 +2979,8 @@ static void parse_define(void)
     first = NULL;
     t = MACRO_OBJ;
     /* '(' must be just after macro definition for MACRO_FUNC */
-    c = file->buf_ptr[0];
-    if (c == '\\')
-        c = handle_stray1(file->buf_ptr);
-    if (c == '(') {
-        next_nomacro();
+    next_nomacro_spc();
+    if (tok == '(') {
         next_nomacro();
         ps = &first;
         while (tok != ')') {
@@ -2993,15 +3003,30 @@ static void parse_define(void)
                 break;
             next_nomacro();
         }
+        if (tok == ')')
+            next_nomacro_spc();
         t = MACRO_FUNC;
     }
     tok_str_new(&str);
-    next_nomacro();
+    spc = 2;
     /* EOF testing necessary for '-D' handling */
     while (tok != TOK_LINEFEED && tok != TOK_EOF) {
+        /* remove spaces around ## and after '#' */
+        if (TOK_TWOSHARPS == tok) {
+            if (1 == spc)
+                --str.len;
+            spc = 2;
+        } else if ('#' == tok) {
+            spc = 2;
+        } else if (check_space(tok, &spc)) {
+            goto skip;
+        }
         tok_str_add2(&str, tok, &tokc);
-        next_nomacro();
+    skip:
+        next_nomacro_spc();
     }
+    if (spc == 1)
+        --str.len; /* remove trailing space */
     tok_str_add(&str, 0);
 #ifdef PP_DEBUG
     printf("define %s %d: ", get_tok_str(v, NULL), t);
@@ -3842,20 +3867,20 @@ static inline void next_nomacro1(void)
     uint8_t *p, *p1;
     unsigned int h;
 
-    cstr_reset(&tok_spaces);
     p = file->buf_ptr;
 redo_no_start:
     c = *p;
     switch (c) {
     case ' ':
     case '\t':
+        tok = c;
+        p++;
+        goto keep_tok_flags;
     case '\f':
     case '\v':
     case '\r':
-        cstr_ccat(&tok_spaces, c);
         p++;
         goto redo_no_start;
-
     case '\\':
         /* first look if it is in fact an end of buffer */
         if (p >= file->buf_end) {
@@ -4296,7 +4321,7 @@ keep_tok_flags:
 
 /* return next token without macro substitution. Can read input from
    macro_ptr buffer */
-static void next_nomacro(void)
+static void next_nomacro_spc(void)
 {
     if (macro_ptr) {
     redo:
@@ -4313,10 +4338,17 @@ static void next_nomacro(void)
     }
 }
 
+static void next_nomacro(void)
+{
+    do {
+        next_nomacro_spc();
+    } while (is_space(tok));
+}
+
 /* substitute args in macro_str and return allocated string */
 static int *macro_arg_subst(Sym **nested_list, int *macro_str, Sym *args)
 {
-    int *st, last_tok, t, notfirst;
+    int *st, last_tok, t, spc;
     Sym *s;
     CValue cval;
     TokenString str;
@@ -4337,16 +4369,13 @@ static int *macro_arg_subst(Sym **nested_list, int *macro_str, Sym *args)
             if (s) {
                 cstr_new(&cstr);
                 st = (int *) s->c;
-                notfirst = 0;
+                spc = 0;
                 while (*st) {
-                    if (notfirst)
-                        cstr_ccat(&cstr, ' ');
                     TOK_GET(t, st, cval);
-                    cstr_cat(&cstr, get_tok_str(t, &cval));
-#ifndef PP_NOSPACES
-                    notfirst = 1;
-#endif
+                    if (!check_space(t, &spc))
+                        cstr_cat(&cstr, get_tok_str(t, &cval));
                 }
+                cstr.size -= spc;
                 cstr_ccat(&cstr, '\0');
 #ifdef PP_DEBUG
                 printf("stringize: %s\n", (char *) cstr.data);
@@ -4419,7 +4448,7 @@ static int macro_subst_tok(TokenString *tok_str,
                            struct macro_level **can_read_stream)
 {
     Sym *args, *sa, *sa1;
-    int mstr_allocated, parlevel, *mstr, t, t1;
+    int mstr_allocated, parlevel, *mstr, t, t1, *p, spc;
     TokenString str;
     char *cstrval;
     CValue cval;
@@ -4470,7 +4499,9 @@ static int macro_subst_tok(TokenString *tok_str,
                next token. XXX: find better solution */
         redo:
             if (macro_ptr) {
-                t = *macro_ptr;
+                p = macro_ptr;
+                while (is_space(t = *p) || TOK_LINEFEED == t)
+                    ++p;
                 if (t == 0 && can_read_stream) {
                     /* end of macro stream: we must look at the token
                        after in the file */
@@ -4506,17 +4537,20 @@ static int macro_subst_tok(TokenString *tok_str,
                 if (!sa)
                     error("macro '%s' used with too many args", get_tok_str(s->v, 0));
                 tok_str_new(&str);
-                parlevel = 0;
+                parlevel = spc = 0;
                 /* NOTE: non zero sa->t indicates VA_ARGS */
                 while ((parlevel > 0 || (tok != ')' && (tok != ',' || sa->type.t))) && tok != -1) {
                     if (tok == '(')
                         parlevel++;
                     else if (tok == ')')
                         parlevel--;
-                    if (tok != TOK_LINEFEED)
+                    if (tok == TOK_LINEFEED)
+                        tok = ' ';
+                    if (!check_space(tok, &spc))
                         tok_str_add2(&str, tok, &tokc);
-                    next_nomacro();
+                    next_nomacro_spc();
                 }
+                str.len -= spc;
                 tok_str_add(&str, 0);
                 sym_push2(&args, sa->v & ~SYM_FIELD, sa->type.t, (long) str.str);
                 sa = sa->next;
@@ -4565,45 +4599,38 @@ static int macro_subst_tok(TokenString *tok_str,
 static inline int *macro_twosharps(const int *macro_str)
 {
     TokenSym *ts;
-    const int *macro_ptr1, *start_macro_ptr, *ptr, *saved_macro_ptr;
+    const int *ptr, *saved_macro_ptr;
     int t;
     const char *p1, *p2;
     CValue cval;
     TokenString macro_str1;
     CString cstr;
 
-    start_macro_ptr = macro_str;
     /* we search the first '##' */
-    for (;;) {
-        macro_ptr1 = macro_str;
-        TOK_GET(t, macro_str, cval);
+    for (ptr = macro_str;;) {
+        TOK_GET(t, ptr, cval);
+        if (t == TOK_TWOSHARPS)
+            break;
         /* nothing more to do if end of string */
         if (t == 0)
             return NULL;
-        if (*macro_str == TOK_TWOSHARPS)
-            break;
     }
 
     /* we saw '##', so we need more processing to handle it */
     cstr_new(&cstr);
     tok_str_new(&macro_str1);
-    tok = t;
-    tokc = cval;
-
-    /* add all tokens seen so far */
-    for (ptr = start_macro_ptr; ptr < macro_ptr1;) {
-        TOK_GET(t, ptr, cval);
-        tok_str_add2(&macro_str1, t, &cval);
-    }
     saved_macro_ptr = macro_ptr;
     /* XXX: get rid of the use of macro_ptr here */
     macro_ptr = (int *) macro_str;
     for (;;) {
+        next_nomacro_spc();
+        if (tok == 0)
+            break;
+        if (tok == TOK_TWOSHARPS)
+            continue;
         while (*macro_ptr == TOK_TWOSHARPS) {
-            macro_ptr++;
-            macro_ptr1 = macro_ptr;
-            t = *macro_ptr;
-            if (t) {
+            t = *++macro_ptr;
+            if (t && t != TOK_TWOSHARPS) {
                 TOK_GET(t, macro_ptr, cval);
                 /* We concatenate the two tokens if we have an
                    identifier or a preprocessing number */
@@ -4687,9 +4714,6 @@ static inline int *macro_twosharps(const int *macro_str)
             }
         }
         tok_str_add2(&macro_str1, tok, &tokc);
-        next_nomacro();
-        if (tok == 0)
-            break;
     }
     macro_ptr = (int *) saved_macro_ptr;
     cstr_free(&cstr);
@@ -4708,7 +4732,7 @@ static void macro_subst(TokenString *tok_str,
     Sym *s;
     int *macro_str1;
     const int *ptr;
-    int t, ret;
+    int t, ret, spc;
     CValue cval;
     struct macro_level ml;
 
@@ -4717,6 +4741,7 @@ static void macro_subst(TokenString *tok_str,
     macro_str1 = macro_twosharps(ptr);
     if (macro_str1)
         ptr = macro_str1;
+    spc = 0;
     while (1) {
         /* NOTE: ptr == NULL can only happen if tokens are read from
            file stream due to a macro function call */
@@ -4744,7 +4769,8 @@ static void macro_subst(TokenString *tok_str,
                 goto no_subst;
         } else {
         no_subst:
-            tok_str_add2(tok_str, t, &cval);
+            if (!check_space(t, &spc))
+                tok_str_add2(tok_str, t, &cval);
         }
     }
     if (macro_str1)
@@ -4759,7 +4785,10 @@ static void next(void)
     struct macro_level *ml;
 
 redo:
-    next_nomacro();
+    if (parse_flags & PARSE_FLAG_SPACES)
+        next_nomacro_spc();
+    else
+        next_nomacro();
     if (!macro_ptr) {
         /* if not reading from macro substituted string, then try
            to substitute macros */
@@ -10335,10 +10364,9 @@ static int tcc_preprocess(TCCState *s1)
     preprocess_init(s1);
     define_start = define_stack;
     ch = file->buf_ptr[0];
-
     tok_flags = TOK_FLAG_BOL | TOK_FLAG_BOF;
-    parse_flags = PARSE_FLAG_ASM_COMMENTS | PARSE_FLAG_PREPROCESS | PARSE_FLAG_LINEFEED;
-
+    parse_flags = PARSE_FLAG_ASM_COMMENTS | PARSE_FLAG_PREPROCESS | PARSE_FLAG_LINEFEED
+                  | PARSE_FLAG_SPACES;
     token_seen = 0;
     line_ref = 0;
     file_ref = NULL;
@@ -10352,9 +10380,7 @@ static int tcc_preprocess(TCCState *s1)
                 continue;
             ++line_ref;
             token_seen = 0;
-        } else if (token_seen) {
-            fwrite(tok_spaces.data, tok_spaces.size, 1, s1->outfile);
-        } else {
+        } else if (!token_seen) {
             int d = file->line_num - line_ref;
             if (file != file_ref || d < 0 || d >= 8)
                 fprintf(s1->outfile, "# %d \"%s\"\n", file->line_num, file->filename);
@@ -10737,9 +10763,9 @@ int tcc_relocate(TCCState *s1, void *ptr)
     unsigned long offset, length, mem;
     int i;
 
-    s1->nb_errors = 0;
-
     if (0 == s1->runtime_added) {
+        s1->runtime_added = 1;
+        s1->nb_errors = 0;
 #ifdef TCC_TARGET_PE
         pe_add_runtime(s1);
         relocate_common_syms();
@@ -10750,30 +10776,22 @@ int tcc_relocate(TCCState *s1, void *ptr)
         tcc_add_linker_symbols(s1);
         build_got_entries(s1);
 #endif
-        s1->runtime_added = 1;
     }
 
-    offset = 0;
-    mem = (unsigned long) ptr;
+    offset = 0, mem = (unsigned long) ptr;
     for (i = 1; i < s1->nb_sections; i++) {
         s = s1->sections[i];
         if (0 == (s->sh_flags & SHF_ALLOC))
             continue;
         length = s->data_offset;
-        if (0 == mem) {
-            s->sh_addr = 0;
-        } else if (1 == mem) {
-            /* section are relocated in place.
-               We also alloc the bss space */
-            if (s->sh_type == SHT_NOBITS)
-                s->data = tcc_malloc(length);
-            s->sh_addr = (unsigned long) s->data;
-        } else {
-            /* sections are relocated to new memory */
-            s->sh_addr = (mem + offset + 15) & ~15;
-        }
+        s->sh_addr = mem ? (mem + offset + 15) & ~15 : 0;
         offset = (offset + length + 15) & ~15;
     }
+
+    /* relocate symbols */
+    relocate_syms(s1, 1);
+    if (s1->nb_errors)
+        return -1;
 
 #ifdef TCC_TARGET_X86_64
     s1->runtime_plt_and_got_offset = 0;
@@ -10785,11 +10803,6 @@ int tcc_relocate(TCCState *s1, void *ptr)
 
     if (0 == mem)
         return offset + 15;
-
-    /* relocate symbols */
-    relocate_syms(s1, 1);
-    if (s1->nb_errors)
-        return -1;
 
     /* relocate each section */
     for (i = 1; i < s1->nb_sections; i++) {
@@ -10807,7 +10820,7 @@ int tcc_relocate(TCCState *s1, void *ptr)
         ptr = (void *) s->sh_addr;
         if (NULL == s->data || s->sh_type == SHT_NOBITS)
             memset(ptr, 0, length);
-        else if (ptr != s->data)
+        else
             memcpy(ptr, s->data, length);
         /* mark executable sections as executable in memory */
         if (s->sh_flags & SHF_EXECINSTR)
@@ -10898,7 +10911,6 @@ static void tcc_cleanup(void)
     dynarray_reset(&sym_pools, &nb_sym_pools);
     /* string buffer */
     cstr_free(&tokcstr);
-    cstr_free(&tok_spaces);
     /* reset symbol stack */
     sym_free_first = NULL;
     /* cleanup from error/setjmp */
@@ -11041,10 +11053,6 @@ TCCState *tcc_new(void)
     /* XXX: currently the PE linker is not ready to support that */
     s->leading_underscore = 1;
 #endif
-
-#ifdef TCC_TARGET_X86_64
-    s->jmp_table = NULL;
-#endif
     return s;
 }
 
@@ -11081,9 +11089,6 @@ void tcc_delete(TCCState *s1)
     dynarray_reset(&s1->include_paths, &s1->nb_include_paths);
     dynarray_reset(&s1->sysinclude_paths, &s1->nb_sysinclude_paths);
 
-#ifdef TCC_TARGET_X86_64
-    tcc_free(s1->jmp_table);
-#endif
     tcc_free(s1);
 }
 
@@ -11431,6 +11436,12 @@ int tcc_set_flag(TCCState *s, const char *flag_name, int value)
     return set_flag(s, flag_defs, countof(flag_defs), flag_name, value);
 }
 
+/* set CONFIG_TCCDIR at runtime */
+void tcc_set_lib_path(TCCState *s, const char *path)
+{
+    tcc_lib_path = tcc_strdup(path);
+}
+
 #if !defined(LIBTCC)
 
 static int64_t getclock_us(void)
@@ -11686,7 +11697,7 @@ int parse_args(TCCState *s, int argc, char **argv)
                 break;
             case TCC_OPTION_B:
                 /* set tcc utilities path (mainly for tcc development) */
-                tcc_lib_path = optarg;
+                tcc_set_lib_path(s, optarg);
                 break;
             case TCC_OPTION_l:
                 dynarray_add((void ***) &files, &nb_files, r);
@@ -11814,6 +11825,8 @@ int main(int argc, char **argv)
     char objfilename[1024];
     int64_t start_time = 0;
 
+    s = tcc_new();
+
 #ifdef TCC_TARGET_816
     strcpy(sztmpnam, &tmpnam(NULL)[1]);   // Alekmaul 201125, create temp file name for token name
     for (i = 0; sztmpnam[i] != '\0'; i++) // Alekmaul 201212, ughly change for linux system
@@ -11827,7 +11840,7 @@ int main(int argc, char **argv)
     }
 #endif
 #ifdef _WIN32
-    tcc_lib_path = w32_tcc_lib_path();
+    tcc_set_lib_path_w32(s);
 #endif
 
     s = tcc_new();

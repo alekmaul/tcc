@@ -5,6 +5,7 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "libtcc.h"
 
@@ -43,10 +44,15 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    /* MUST BE CALLED before any compilation or file loading */
+    /* if tcclib.h and libtcc1.a are not installed, where can we find them */
+    if (argc == 2 && !memcmp(argv[1], "lib_path=", 9))
+        tcc_set_lib_path(s, argv[1] + 9);
+
+    /* MUST BE CALLED before any compilation */
     tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
 
-    tcc_compile_string(s, my_program);
+    if (tcc_compile_string(s, my_program) == -1)
+        return 1;
 
     /* as a test, we add a symbol that the compiled program can use.
        You may also open a dll with tcc_add_dll() and use symbols from that */
