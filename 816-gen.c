@@ -239,8 +239,6 @@ int restore_stack(int fc)
 // a function call
 int args_size = 0;
 
-int ll_workaround = 0;
-
 void load(int r, SValue *sv)
 {
     int fr, ft, fc;
@@ -257,10 +255,6 @@ void load(int r, SValue *sv)
     length = type_size(&sv->type, &align);
     if ((ft & VT_BTYPE) == VT_LLONG)
         length = 2; // long longs are handled word-wise
-    if (ll_workaround)
-        length = 4;
-
-    // pr("; load r 0x%x fr 0x%x ft 0x%x fc 0x%x\n",r,fr,ft,fc);
 
     int base = -1;
     v = fr & VT_VALMASK;

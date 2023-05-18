@@ -397,33 +397,18 @@ void float_to_woz(float f, unsigned char *w)
    register value (such as structures). */
 int gv(int rc)
 {
-#ifndef TCC_TARGET_816
     int r, rc2, bit_pos, bit_size, size, align, i;
-#else
-    int r, rc2, bit_pos, bit_size, size, align;
-#endif
 
     /* NOTE: get_reg can modify vstack[] */
     if (vtop->type.t & VT_BITFIELD) {
         CType type;
 #ifdef TCC_TARGET_816
         int bits = 16;
-        int usigned;
-        int cst;
 #else
         int bits = 32;
 #endif
         bit_pos = (vtop->type.t >> VT_STRUCT_SHIFT) & 0x3f;
         bit_size = (vtop->type.t >> (VT_STRUCT_SHIFT + 6)) & 0x3f;
-#ifdef TCC_TARGET_816
-        pr("; bitfielding bit_pos %d bit_size %d vtop->type.t 0x%x vtop->r 0x%x\n",
-           bit_pos,
-           bit_size,
-           vtop->type.t,
-           vtop->r);
-        usigned = vtop->type.t & VT_UNSIGNED;
-        cst = ((vtop->r & VT_VALMASK) == VT_CONST) && !(vtop->r & VT_LVAL);
-#endif
         /* remove bit field info to avoid loops */
         vtop->type.t &= ~(VT_BITFIELD | (-1 << VT_STRUCT_SHIFT));
         /* cast to int to propagate signedness in following ops */
@@ -436,15 +421,7 @@ int gv(int rc)
             type.t |= VT_UNSIGNED;
         gen_cast(&type);
         /* generate shifts */
-#ifndef TCC_TARGET_816
         vpushi(bits - (bit_pos + bit_size));
-
-#else
-        if (cst)
-            vpushi(bits - bit_size);
-        else
-            vpushi(bits - (bit_pos + bit_size));
-#endif
         gen_op(TOK_SHL);
         vpushi(bits - bit_size);
         /* NOTE: transformed to SHR if unsigned */
@@ -480,12 +457,9 @@ int gv(int rc)
                     ptr[i] = vtop->c.tab[size - 1 - i];
             else
 #endif
-#ifdef TCC_TARGET_816
-                float_to_woz(vtop->c.f, (unsigned char *) ptr);
-#else
-            for (i = 0; i < size; i++)
-                ptr[i] = vtop->c.tab[i];
-#endif
+                for (i = 0; i < size; i++)
+                    ptr[i] = vtop->c.tab[i];
+
             sym = get_sym_ref(&vtop->type, data_section, offset, size << 2);
             vtop->r |= VT_LVAL | VT_SYM;
             vtop->sym = sym;
@@ -535,22 +509,6 @@ int gv(int rc)
                     load(r, vtop);
                     vdup();
                     vtop[-1].r = r; /* save register value */
-#ifdef TCC_TARGET_816
-                    /* A bug may hide here.
-                       This shortcut did not work for 65816 until I found out
-                       that the long long compare code seems to expect the
-                       result of the comparisons to end up in the same register.
-                       I do not think this is ascertained in the other code
-                       path, it may just happen to work. */
-#if 0 /* breaks ashrdi-1.c */
-                    if((vtop->r & VT_LOCAL) /* && !(vtop->r & VT_LVAL) */) {
-                      vtop->c.ul += 2;
-                    }
-                    else
-#endif
-                    pr("; pushit type 0x%x\n", vtop->type.t);
-                    ll_workaround = 1;
-#endif
                     /* increment pointer to get second word */
                     vtop->type.t = VT_INT;
                     gaddrof();
@@ -561,10 +519,6 @@ int gv(int rc)
 #endif
                     gen_op('+');
                     vtop->r |= VT_LVAL;
-#ifdef TCC_TARGET_816
-                    ll_workaround = 0;
-                    pr("; endpush\n");
-#endif
                 } else {
                     /* move registers */
                     load(r, vtop);
