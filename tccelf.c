@@ -189,25 +189,24 @@ ElfW(Sym) * tcc_really_get_symbol(TCCState *s, unsigned long *pval, const char *
 #endif
 
 /* return elf symbol value or error */
-int tcc_get_symbol(TCCState *s, unsigned long *pval, const char *name)
+void *tcc_get_symbol(TCCState *s, const char *name)
 {
     int sym_index;
     ElfW(Sym) * sym;
-
     sym_index = find_elf_sym(symtab_section, name);
     if (!sym_index)
-        return -1;
+        return NULL;
     sym = &((ElfW(Sym) *) symtab_section->data)[sym_index];
-    *pval = sym->st_value;
-    return 0;
+    return (void *) sym->st_value;
 }
 
 void *tcc_get_symbol_err(TCCState *s, const char *name)
 {
-    unsigned long val;
-    if (tcc_get_symbol(s, &val, name) < 0)
+    void *sym;
+    sym = tcc_get_symbol(s, name);
+    if (!sym)
         error("%s not defined", name);
-    return (void *) val;
+    return sym;
 }
 
 /* add an elf symbol : check if it is already defined and patch
@@ -323,11 +322,11 @@ static void put_elf_reloc(Section *symtab, Section *s, unsigned long offset, int
 
 typedef struct
 {
-    unsigned long n_strx;  /* index into string table of name */
+    unsigned int n_strx;   /* index into string table of name */
     unsigned char n_type;  /* type of symbol */
     unsigned char n_other; /* misc info (usually empty) */
     unsigned short n_desc; /* description field */
-    unsigned long n_value; /* value of symbol */
+    unsigned int n_value;  /* value of symbol */
 } Stab_Sym;
 
 static void put_stabs(const char *str, int type, int other, int desc, unsigned long value)
@@ -352,7 +351,7 @@ static void put_stabs_r(
     put_stabs(str, type, other, desc, value);
     put_elf_reloc(symtab_section,
                   stab_section,
-                  stab_section->data_offset - sizeof(unsigned long),
+                  stab_section->data_offset - sizeof(unsigned int),
                   R_DATA_32,
                   sym_index);
 }
@@ -504,26 +503,23 @@ static void relocate_syms(TCCState *s1, int do_resolve)
 
 #ifdef TCC_TARGET_X86_64
 #define JMP_TABLE_ENTRY_SIZE 14
-#define JMP_TABLE_ENTRY_MAX_NUM 4096
 static unsigned long add_jmp_table(TCCState *s1, unsigned long val)
 {
-    char *p;
-    if (!s1->jmp_table) {
-        int size = JMP_TABLE_ENTRY_SIZE * JMP_TABLE_ENTRY_MAX_NUM;
-        s1->jmp_table_num = 0;
-        s1->jmp_table = (char *) tcc_malloc(size);
-        set_pages_executable(s1->jmp_table, size);
-    }
-    if (s1->jmp_table_num == JMP_TABLE_ENTRY_MAX_NUM) {
-        error("relocating >%d symbols are not supported", JMP_TABLE_ENTRY_MAX_NUM);
-    }
-    p = s1->jmp_table + s1->jmp_table_num * JMP_TABLE_ENTRY_SIZE;
-    s1->jmp_table_num++;
+    char *p = s1->runtime_plt_and_got + s1->runtime_plt_and_got_offset;
+    s1->runtime_plt_and_got_offset += JMP_TABLE_ENTRY_SIZE;
     /* jmp *0x0(%rip) */
     p[0] = 0xff;
     p[1] = 0x25;
     *(int *) (p + 2) = 0;
     *(unsigned long *) (p + 6) = val;
+    return (unsigned long) p;
+}
+
+static unsigned long add_got_table(TCCState *s1, unsigned long val)
+{
+    unsigned long *p = (unsigned long *) (s1->runtime_plt_and_got + s1->runtime_plt_and_got_offset);
+    s1->runtime_plt_and_got_offset += sizeof(void *);
+    *p = val;
     return (unsigned long) p;
 }
 #endif
@@ -744,7 +740,7 @@ static void relocate_section(TCCState *s1, Section *s)
                 }
             }
             long diff = val - addr;
-            if (diff < -2147483648 || diff > 2147483647) {
+            if (diff <= -2147483647 || diff > 2147483647) {
                 /* XXX: naive support for over 32bit jump */
                 if (s1->output_type == TCC_OUTPUT_MEMORY) {
                     val = add_jmp_table(s1, val);
@@ -780,7 +776,12 @@ static void relocate_section(TCCState *s1, Section *s)
             *(int *) ptr = val;
             break;
         case R_X86_64_GOTPCREL:
-            *(int *) ptr += s1->got->sh_addr - addr;
+            if (s1->output_type == TCC_OUTPUT_MEMORY) {
+                val = add_got_table(s1, val - rel->r_addend) + rel->r_addend;
+                *(int *) ptr += val - addr;
+                break;
+            }
+            *(int *) ptr += (s1->got->sh_addr - addr + s1->got_offsets[sym_index] - 4);
             break;
         case R_X86_64_GOTTPOFF:
             *(int *) ptr += val - s1->got->sh_addr;
@@ -1126,11 +1127,11 @@ static void build_got_entries(TCCState *s1)
             case R_X86_64_PLT32:
                 if (!s1->got)
                     build_got(s1);
-                if (type == R_X86_64_GOT32 || type == R_X86_64_PLT32) {
+                if (type == R_X86_64_GOT32 || type == R_X86_64_GOTPCREL || type == R_X86_64_PLT32) {
                     sym_index = ELFW(R_SYM)(rel->r_info);
                     sym = &((ElfW(Sym) *) symtab_section->data)[sym_index];
                     /* look at the symbol got offset. If none, then add one */
-                    if (type == R_X86_64_GOT32)
+                    if (type == R_X86_64_GOT32 || type == R_X86_64_GOTPCREL)
                         reloc_type = R_X86_64_GLOB_DAT;
                     else
                         reloc_type = R_X86_64_JUMP_SLOT;

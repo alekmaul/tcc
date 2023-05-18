@@ -1099,6 +1099,8 @@ void cast_test()
     char tab[10];
     unsigned b, d;
     short s;
+    char *p = NULL;
+    p -= 0x700000000042;
 
     printf("cast_test:\n");
     a = 0xfffff;
@@ -1140,6 +1142,18 @@ void cast_test()
     printf("sizeof(+(char)'a') = %d\n", sizeof(+(char) 'a'));
     printf("sizeof(-(char)'a') = %d\n", sizeof(-(char) 'a'));
     printf("sizeof(~(char)'a') = %d\n", sizeof(-(char) 'a'));
+
+    /* from pointer to integer types */
+    printf("%d %d %ld %ld %lld %lld\n",
+           (int) p,
+           (unsigned int) p,
+           (long) p,
+           (unsigned long) p,
+           (long long) p,
+           (unsigned long long) p);
+
+    /* from integers to pointers */
+    printf("%p %p %p %p\n", (void *) a, (void *) b, (void *) c, (void *) d);
 }
 
 /* initializers tests */
@@ -1386,6 +1400,11 @@ void bitfield_test(void)
 #define FLOAT_FMT "%.5f\n"
 #endif
 
+/* declare strto* functions as they are C99 */
+double strtod(const char *nptr, char **endptr);
+float strtof(const char *nptr, char **endptr);
+long double strtold(const char *nptr, char **endptr);
+
 #define FTEST(prefix, type, fmt)                                                  \
     void prefix##cmp(type a, type b)                                              \
     {                                                                             \
@@ -1401,6 +1420,8 @@ void bitfield_test(void)
         printf(fmt "\n", ++a);                                                    \
         printf(fmt "\n", a++);                                                    \
         printf(fmt "\n", a);                                                      \
+        b = 0;                                                                    \
+        printf("%d %d\n", !a, !b);                                                \
     }                                                                             \
     void prefix##fcast(type a)                                                    \
     {                                                                             \
@@ -1443,6 +1464,7 @@ void bitfield_test(void)
         printf("float: " FLOAT_FMT, prefix##retf(42.123456789));                  \
         printf("double: %f\n", prefix##retd(42.123456789));                       \
         printf("long double: %Lf\n", prefix##retld(42.123456789));                \
+        printf("strto%s: %f\n", #prefix, (double) strto##prefix("1.2", NULL));    \
     }                                                                             \
                                                                                   \
     void prefix##test(void)                                                       \
@@ -1553,6 +1575,8 @@ void lloptest(long long a, long long b)
     printf("arith2: %Ld %Ld\n", a++, b++);
     printf("arith2: %Ld %Ld\n", --a, --b);
     printf("arith2: %Ld %Ld\n", a, b);
+    b = ub = 0;
+    printf("not: %d %d %d %d\n", !a, !ua, !b, !ub);
 }
 
 void llshift(long long a, int b)
