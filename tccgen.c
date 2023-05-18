@@ -436,13 +436,14 @@ int gv(int rc)
             type.t |= VT_UNSIGNED;
         gen_cast(&type);
         /* generate shifts */
-#ifdef TCC_TARGET_816
+#ifndef TCC_TARGET_816
+        vpushi(bits - (bit_pos + bit_size));
+
+#else
         if (cst)
             vpushi(bits - bit_size);
         else
             vpushi(bits - (bit_pos + bit_size));
-#else
-        vpushi(bits - (bit_pos + bit_size))
 #endif
         gen_op(TOK_SHL);
         vpushi(bits - bit_size);
@@ -1257,7 +1258,8 @@ void gen_opic(int op)
             }
             goto general_case;
         } else if (c2 && (op == '+' || op == '-')
-                   && ((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM)
+                   && (((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM)
+                        && !(vtop[-1].sym->type.t & VT_IMPORT))
                        || (vtop[-1].r & (VT_VALMASK | VT_LVAL)) == VT_LOCAL)) {
             /* symbol + constant case */
             if (op == '-')
@@ -2515,6 +2517,9 @@ static void parse_attribute(AttributeDef *ad)
 #endif
             case TOK_DLLEXPORT:
                 FUNC_EXPORT(ad->func_attr) = 1;
+                break;
+            case TOK_DLLIMPORT:
+                FUNC_IMPORT(ad->func_attr) = 1;
                 break;
             default:
                 if (tcc_state->warn_unsupported)
@@ -4624,7 +4629,7 @@ static void init_putv(CType *type, Section *sec, unsigned long c, int v, int exp
             break;
         default:
             if (vtop->r & VT_SYM) {
-                greloc(sec, vtop->sym, c, R_DATA_32);
+                greloc(sec, vtop->sym, c, R_DATA_PTR);
             }
 #ifdef TCC_TARGET_816
             *(short *) ptr |= (vtop->c.i & bit_mask) << bit_pos;
@@ -5076,7 +5081,7 @@ static void decl_initializer_alloc(
         if (tcc_state->do_bounds_check) {
             unsigned long *bounds_ptr;
 
-            greloc(bounds_section, sym, bounds_section->data_offset, R_DATA_32);
+            greloc(bounds_section, sym, bounds_section->data_offset, R_DATA_PTR);
             /* then add global bound info */
             bounds_ptr = section_ptr_add(bounds_section, 2 * sizeof(long));
             bounds_ptr[0] = 0; /* relocated */
@@ -5219,12 +5224,16 @@ static void gen_inline_functions(void)
                 gen_function(sym);
                 macro_ptr = NULL; /* fail safe */
 
-                tok_str_free(str);
                 inline_generated = 1;
             }
         }
         if (!inline_generated)
             break;
+    }
+    for (i = 0; i < tcc_state->nb_inline_fns; ++i) {
+        fn = tcc_state->inline_fns[i];
+        str = fn->token_str;
+        tok_str_free(str);
     }
     dynarray_reset(&tcc_state->inline_fns, &tcc_state->nb_inline_fns);
 }
@@ -5394,6 +5403,10 @@ static void decl(int l)
                         /* NOTE: as GCC, uninitialized global static
                            arrays of null size are considered as
                            extern */
+#ifdef TCC_TARGET_PE
+                        if (FUNC_IMPORT(ad.func_attr))
+                            type.t |= VT_IMPORT;
+#endif
                         external_sym(v, &type, r);
                     } else {
                         type.t |= (btype.t & VT_STATIC); /* Retain "static". */

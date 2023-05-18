@@ -86,6 +86,7 @@ int reg_classes[NB_REGS] = {
 #define R_DATA_32 1  // whatever
 #define R_JMP_SLOT 2 // whatever
 #define R_COPY 3     // whatever
+#define R_DATA_PTR 4
 
 #define ELF_PAGE_SIZE 0x1000 // whatever
 #define ELF_START_ADDR 0x400 // made up
