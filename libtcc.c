@@ -1858,6 +1858,8 @@ static void tcc_cleanup(void)
 TCCState *tcc_new(void)
 {
     TCCState *s;
+    char buffer[100];
+    int a, b, c;
 
     tcc_cleanup();
 
@@ -1913,11 +1915,13 @@ TCCState *tcc_new(void)
 #endif
 #endif
     /* tiny C specific defines */
-    tcc_define_symbol(s, "__TINYC__", NULL);
+    sscanf(TCC_VERSION, "%d.%d.%d", &a, &b, &c);
+    sprintf(buffer, "%d", a * 10000 + b * 100 + c);
+    tcc_define_symbol(s, "__TINYC__", buffer);
 
     /* tiny C & gcc defines */
-    tcc_define_symbol(s, "__SIZE_TYPE__", "unsigned int");
-    tcc_define_symbol(s, "__PTRDIFF_TYPE__", "int");
+    tcc_define_symbol(s, "__SIZE_TYPE__", "unsigned long");
+    tcc_define_symbol(s, "__PTRDIFF_TYPE__", "long");
 #ifdef TCC_TARGET_PE
     tcc_define_symbol(s, "__WCHAR_TYPE__", "unsigned short");
 #else
@@ -1962,6 +1966,13 @@ TCCState *tcc_new(void)
 #if defined(TCC_TARGET_PE) && 0
     /* XXX: currently the PE linker is not ready to support that */
     s->leading_underscore = 1;
+#endif
+
+    if (s->section_align == 0)
+        s->section_align = ELF_PAGE_SIZE;
+
+#ifdef TCC_TARGET_I386
+    s->seg_size = 32;
 #endif
     return s;
 }
@@ -2181,7 +2192,6 @@ int tcc_add_library(TCCState *s, const char *libraryname)
             return 0;
 #endif
     }
-
     /* then we look for the static library */
     for (i = 0; i < s->nb_library_paths; i++) {
         snprintf(buf, sizeof(buf), "%s/lib%s.a", s->library_paths[i], libraryname);
