@@ -116,6 +116,7 @@ enum {
     TCC_OPTION_w,
     TCC_OPTION_pipe,
     TCC_OPTION_E,
+    TCC_OPTION_x,
 };
 
 static const TCCOption tcc_options[] = {
@@ -153,6 +154,7 @@ static const TCCOption tcc_options[] = {
     {"w", TCC_OPTION_w, 0},
     {"pipe", TCC_OPTION_pipe, 0},
     {"E", TCC_OPTION_E, 0},
+    {"x", TCC_OPTION_x, TCC_OPTION_HAS_ARG},
     {NULL},
 };
 
@@ -403,6 +405,8 @@ int parse_args(TCCState *s, int argc, char **argv)
             case TCC_OPTION_E:
                 output_type = TCC_OUTPUT_PREPROCESS;
                 break;
+            case TCC_OPTION_x:
+                break;
             default:
                 if (s->warn_unsupported) {
                 unsupported_option:
@@ -536,25 +540,22 @@ int main(int argc, char **argv)
     /* free all files */
     tcc_free(files);
 
-    if (ret)
-        goto the_end;
-
-    if (do_bench)
-        tcc_print_stats(s, getclock_us() - start_time);
+    if (0 == ret) {
+        if (do_bench)
+            tcc_print_stats(s, getclock_us() - start_time);
 
 #ifndef TCC_TARGET_816
-    if (s->output_type == TCC_OUTPUT_PREPROCESS) {
-        if (outfile)
-            fclose(s->outfile);
-    } else if (s->output_type == TCC_OUTPUT_MEMORY) {
-        ret = tcc_run(s, argc - optind, argv + optind);
-    } else
+        if (s->output_type == TCC_OUTPUT_PREPROCESS) {
+            if (outfile)
+                fclose(s->outfile);
+        } else if (s->output_type == TCC_OUTPUT_MEMORY)
+            ret = tcc_run(s, argc - optind, argv + optind);
+        else
 #endif
-        ret = tcc_output_file(s, outfile) ? 1 : 0;
-the_end:
-    /* XXX: cannot do it with bound checking because of the malloc hooks */
-    if (!s->do_bounds_check)
-        tcc_delete(s);
+            ret = tcc_output_file(s, outfile) ? 1 : 0;
+    }
+
+    tcc_delete(s);
 
 #ifdef MEM_DEBUG
     if (do_bench) {

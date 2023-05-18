@@ -298,8 +298,12 @@ tar:
 	rm -rf /tmp/$(TCC-VERSION)
 
 # in tests subdir
-test clean :
+test clean:
 	$(MAKE) -C tests $@
+
+config.mak:
+	@echo Running configure ...
+	@./configure
 
 # clean
 clean: local_clean

@@ -419,6 +419,11 @@ void __bound_init(void)
     }
 }
 
+void __bound_exit(void)
+{
+    restore_malloc_hooks();
+}
+
 static inline void add_region(BoundEntry *e, unsigned long start, unsigned long size)
 {
     BoundEntry *e1;

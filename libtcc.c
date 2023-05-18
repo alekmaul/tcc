@@ -119,9 +119,8 @@ static int tcc_ext = 1;
 /* max number of callers shown if error */
 #ifdef CONFIG_TCC_BACKTRACE
 int num_callers = 6;
-#ifndef TCC_TARGET_816
 const char **rt_bound_error_msg;
-#endif
+unsigned long rt_prog_main;
 #endif
 
 /* XXX: get rid of this ASAP */
@@ -230,12 +229,9 @@ static int tcc_add_file_internal(TCCState *s, const char *filename, int flags);
 int tcc_output_coff(TCCState *s1, FILE *f);
 
 /* tccpe.c */
-void *resolve_sym(TCCState *s1, const char *sym, int type);
 int pe_load_def_file(struct TCCState *s1, int fd);
 int pe_test_res_file(void *v, int size);
 int pe_load_res_file(struct TCCState *s1, int fd);
-void pe_add_runtime(struct TCCState *s1);
-void pe_guess_outfile(char *objfilename, int output_type);
 int pe_output_file(struct TCCState *s1, const char *filename);
 
 /* tccasm.c */
@@ -251,7 +247,76 @@ static void asm_instr(void);
 static void asm_global_instr(void);
 
 /********************************************************/
-/* global variables */
+/* libtcc.c */
+
+static Sym *__sym_malloc(void);
+static inline Sym *sym_malloc(void);
+static inline void sym_free(Sym *sym);
+Section *new_section(TCCState *s1, const char *name, int sh_type, int sh_flags);
+static void free_section(Section *s);
+static void section_realloc(Section *sec, unsigned long new_size);
+static void *section_ptr_add(Section *sec, unsigned long size);
+Section *find_section(TCCState *s1, const char *name);
+static void put_extern_sym2(
+    Sym *sym, Section *section, unsigned long value, unsigned long size, int can_add_underscore);
+static void put_extern_sym(Sym *sym, Section *section, unsigned long value, unsigned long size);
+static void greloc(Section *s, Sym *sym, unsigned long offset, int type);
+
+static void strcat_vprintf(char *buf, int buf_size, const char *fmt, va_list ap);
+static void strcat_printf(char *buf, int buf_size, const char *fmt, ...);
+
+/* CString handling */
+static void cstr_realloc(CString *cstr, int new_size);
+static inline void cstr_ccat(CString *cstr, int ch);
+static void cstr_cat(CString *cstr, const char *str);
+static void cstr_wccat(CString *cstr, int ch);
+static void cstr_new(CString *cstr);
+static void cstr_free(CString *cstr);
+#define cstr_reset(cstr) cstr_free(cstr)
+static void add_char(CString *cstr, int c);
+
+static Sym *sym_push2(Sym **ps, int v, int t, long c);
+static Sym *sym_find2(Sym *s, int v);
+static inline Sym *struct_find(int v);
+static inline Sym *sym_find(int v);
+static Sym *sym_push(int v, CType *type, int r, int c);
+static Sym *global_identifier_push(int v, int t, int c);
+static void sym_pop(Sym **ptop, Sym *b);
+
+BufferedFile *tcc_open(TCCState *s1, const char *filename);
+void tcc_close(BufferedFile *bf);
+static int tcc_compile(TCCState *s1);
+
+void expect(const char *msg);
+void skip(int c);
+static void test_lvalue(void);
+
+static inline int isid(int c)
+{
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+}
+
+static inline int isnum(int c)
+{
+    return c >= '0' && c <= '9';
+}
+
+static inline int isoct(int c)
+{
+    return c >= '0' && c <= '7';
+}
+
+static inline int toup(int c)
+{
+    if (c >= 'a' && c <= 'z')
+        return c - 'a' + 'A';
+    else
+        return c;
+}
+
+void *resolve_sym(TCCState *s1, const char *sym);
+
+/********************************************************/
 
 #ifdef TCC_TARGET_I386
 #include "i386-gen.c"
@@ -273,6 +338,36 @@ static void asm_global_instr(void);
 #include "816-gen.c"
 #endif
 
+#include "tccpp.c"
+#include "tccgen.c"
+
+#ifdef CONFIG_TCC_ASM
+#ifdef TCC_TARGET_I386
+#include "i386-asm.c"
+#endif
+#include "tccasm.c"
+#else
+static void asm_instr(void)
+{
+    error("inline asm() not supported");
+}
+static void asm_global_instr(void)
+{
+    error("inline asm() not supported");
+}
+#endif
+
+#include "tccelf.c"
+
+#ifdef TCC_TARGET_COFF
+#include "tcccoff.c"
+#endif
+
+#ifdef TCC_TARGET_PE
+#include "tccpe.c"
+#endif
+
+/********************************************************/
 #ifdef CONFIG_TCC_STATIC
 
 #define RTLD_LAZY 0x001
@@ -329,7 +424,7 @@ void *resolve_sym(TCCState *s1, const char *symbol, int type)
 
 #include <dlfcn.h>
 
-void *resolve_sym(TCCState *s1, const char *sym, int type)
+void *resolve_sym(TCCState *s1, const char *sym)
 {
     return dlsym(RTLD_DEFAULT, sym);
 }
@@ -770,29 +865,6 @@ static void greloc(Section *s, Sym *sym, unsigned long offset, int type)
     put_elf_reloc(symtab_section, s, offset, type, sym->c);
 }
 
-static inline int isid(int c)
-{
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
-}
-
-static inline int isnum(int c)
-{
-    return c >= '0' && c <= '9';
-}
-
-static inline int isoct(int c)
-{
-    return c >= '0' && c <= '7';
-}
-
-static inline int toup(int c)
-{
-    if (c >= 'a' && c <= 'z')
-        return c - 'a' + 'A';
-    else
-        return c;
-}
-
 static void strcat_vprintf(char *buf, int buf_size, const char *fmt, va_list ap)
 {
     int len;
@@ -831,6 +903,8 @@ void error1(TCCState *s1, int is_warning, const char *fmt, va_list ap)
     }
     if (is_warning)
         strcat_printf(buf, sizeof(buf), "warning: ");
+    else
+        strcat_printf(buf, sizeof(buf), "error: ");
     strcat_vprintf(buf, sizeof(buf), fmt, ap);
 
     if (!s1->error_func) {
@@ -1011,6 +1085,9 @@ static Sym *sym_push2(Sym **ps, int v, int t, long c)
     s = sym_malloc();
     s->v = v;
     s->type.t = t;
+#ifdef _WIN64
+    s->d = NULL;
+#endif
     s->c = c;
     s->next = NULL;
     /* add in stack */
@@ -1163,9 +1240,6 @@ void tcc_close(BufferedFile *bf)
     close(bf->fd);
     tcc_free(bf);
 }
-
-#include "tccpp.c"
-#include "tccgen.c"
 
 /* compile the C file opened in 'file'. Return non zero if errors. */
 static int tcc_compile(TCCState *s1)
@@ -1349,39 +1423,11 @@ void tcc_undefine_symbol(TCCState *s1, const char *sym)
         define_undef(s);
 }
 
-#ifdef CONFIG_TCC_ASM
-
-#ifdef TCC_TARGET_I386
-#include "i386-asm.c"
-#endif
-#include "tccasm.c"
-
-#else
-static void asm_instr(void)
-{
-    error("inline asm() not supported");
-}
-static void asm_global_instr(void)
-{
-    error("inline asm() not supported");
-}
-#endif
-
-#include "tccelf.c"
-
-#ifdef TCC_TARGET_COFF
-#include "tcccoff.c"
-#endif
-
-#ifdef TCC_TARGET_PE
-#include "tccpe.c"
-#endif
-
 #ifndef TCC_TARGET_816
 #ifdef CONFIG_TCC_BACKTRACE
 /* print the position in the source file of PC value 'pc' by reading
    the stabs debug information */
-static void rt_printline(unsigned long wanted_pc)
+static unsigned long rt_printline(unsigned long wanted_pc)
 {
     Stab_Sym *sym, *sym_end;
     char func_name[128], last_func_name[128];
@@ -1477,6 +1523,7 @@ static void rt_printline(unsigned long wanted_pc)
                     pstrcpy(last_func_name,
                             sizeof(last_func_name),
                             strtab_section->data + sym->st_name);
+                    func_addr = sym->st_value;
                     goto found;
                 }
             }
@@ -1484,7 +1531,7 @@ static void rt_printline(unsigned long wanted_pc)
     }
     /* did not find any info: */
     fprintf(stderr, " ???\n");
-    return;
+    return 0;
 found:
     if (last_func_name[0] != '\0') {
         fprintf(stderr, " %s()", last_func_name);
@@ -1496,6 +1543,7 @@ found:
         fprintf(stderr, ")");
     }
     fprintf(stderr, "\n");
+    return func_addr;
 }
 
 #ifdef __i386__
@@ -1587,7 +1635,9 @@ void rt_error(ucontext_t *uc, const char *fmt, ...)
             fprintf(stderr, "at ");
         else
             fprintf(stderr, "by ");
-        rt_printline(pc);
+        pc = rt_printline(pc);
+        if (pc == rt_prog_main && pc)
+            break;
     }
     exit(255);
     va_end(ap);
@@ -1645,15 +1695,15 @@ int tcc_relocate(TCCState *s1, void *ptr)
         s1->runtime_added = 1;
         s1->nb_errors = 0;
 #ifdef TCC_TARGET_PE
-        pe_add_runtime(s1);
-        relocate_common_syms();
-        tcc_add_linker_symbols(s1);
+        pe_output_file(s1, NULL);
 #else
         tcc_add_runtime(s1);
         relocate_common_syms();
         tcc_add_linker_symbols(s1);
         build_got_entries(s1);
 #endif
+        if (s1->nb_errors)
+            return -1;
     }
 
     offset = 0, mem = (unsigned long) ptr;
@@ -1746,16 +1796,19 @@ int tcc_run(TCCState *s1, int argc, char **argv)
 #ifdef CONFIG_TCC_BCHECK
     if (s1->do_bounds_check) {
         void (*bound_init)(void);
-
+        void (*bound_exit)(void);
         /* set error function */
         rt_bound_error_msg = tcc_get_symbol_err(s1, "__bound_error_msg");
-
+        rt_prog_main = (unsigned long) prog_main;
         /* XXX: use .init section so that it also work in binary ? */
-        bound_init = (void *) tcc_get_symbol_err(s1, "__bound_init");
+        bound_init = tcc_get_symbol_err(s1, "__bound_init");
+        bound_exit = tcc_get_symbol_err(s1, "__bound_exit");
         bound_init();
-    }
+        ret = (*prog_main)(argc, argv);
+        bound_exit();
+    } else
 #endif
-    ret = (*prog_main)(argc, argv);
+        ret = (*prog_main)(argc, argv);
     tcc_free(ptr);
     return ret;
 }

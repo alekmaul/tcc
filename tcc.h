@@ -46,6 +46,7 @@
 #include <direct.h> /* getcwd */
 #define inline __inline
 #define inp next_inp
+#define dlclose FreeLibrary
 #endif
 
 #ifndef _WIN32
@@ -204,9 +205,12 @@ typedef struct SValue
 /* symbol management */
 typedef struct Sym
 {
-    int v;                /* symbol token */
-    long r;               /* associated register */
-    long c;               /* associated number */
+    int v;  /* symbol token */
+    long r; /* associated register */
+    union {
+        long c; /* associated number */
+        int *d; /* define token stream */
+    };
     CType type;           /* associated type */
     struct Sym *next;     /* next related symbol */
     struct Sym *prev;     /* prev symbol in stack */
@@ -271,7 +275,6 @@ typedef struct
 #define FUNC_CALL(r) (((func_attr_t *) &(r))->func_call)
 #define FUNC_EXPORT(r) (((func_attr_t *) &(r))->func_export)
 #define FUNC_ARGS(r) (((func_attr_t *) &(r))->func_args)
-#define INLINE_DEF(r) (*(int **) &(r))
 /* -------------------------------------------------- */
 
 #define SYM_STRUCT 0x40000000     /* struct/union/enum symbol space */
@@ -343,6 +346,14 @@ typedef struct TokenString
     int last_line_num;
 } TokenString;
 
+/* inline functions */
+typedef struct InlineFunc
+{
+    int *token_str;
+    Sym *sym;
+    char filename[1];
+} InlineFunc;
+
 /* include file cache, used to find files faster and also to eliminate
    inclusion if the include file is protected by #ifndef ... #endif */
 typedef struct CachedInclude
@@ -377,7 +388,6 @@ typedef struct ASMOperand
     int is_memory;    /* true if memory operand */
     int is_rw;        /* for '+' modifier */
 } ASMOperand;
-
 #endif
 
 struct TCCState
@@ -494,6 +504,9 @@ struct TCCState
 
     /* for tcc_relocate */
     int runtime_added;
+
+    struct InlineFunc **inline_fns;
+    int nb_inline_fns;
 
 #ifdef TCC_TARGET_X86_64
     /* write PLT and GOT here */
