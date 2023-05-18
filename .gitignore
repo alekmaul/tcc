@@ -1,0 +1,9 @@
+# tcc files generated with ./configure command or binary
+config.h
+config.mak
+config.texi
+tcc-doc.html
+816-tcc
+816-tcc.exe
+tcc.1
+tcc.pod
