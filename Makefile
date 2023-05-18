@@ -49,6 +49,10 @@ PROGS=816-tcc$(EXESUF)
 
 all: $(PROGS) $(LIBTCC1) $(BCHECK_O) tcc-doc.html tcc.1
 
+ifndef CONFIG_USE_LIBGCC
+LIBTCC1=libtcc1.a
+endif
+
 TCC_CORE_FILES = tcc.c tccelf.c tccasm.c tcctok.h libtcc.h config.h
 
 
