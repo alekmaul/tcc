@@ -101,8 +101,8 @@
 #define TCC_TARGET_I386
 #endif
 
-#if !defined(_WIN32) && !defined(TCC_UCLIBC) && !defined(TCC_TARGET_ARM) \
-    && !defined(TCC_TARGET_C67) && !defined(TCC_TARGET_X86_64) && !defined(TCC_TARGET_816)
+#if !defined(TCC_UCLIBC) && !defined(TCC_TARGET_ARM) && !defined(TCC_TARGET_C67) \
+    && !defined(TCC_TARGET_X86_64) && !defined(TCC_TARGET_816)
 #define CONFIG_TCC_BCHECK /* enable bound checking code */
 #endif
 
@@ -111,8 +111,7 @@
 #endif
 
 /* define it to include assembler support */
-#if !defined(TCC_TARGET_ARM) && !defined(TCC_TARGET_C67) && !defined(TCC_TARGET_X86_64) \
-    && !defined(TCC_TARGET_816)
+#if !defined(TCC_TARGET_ARM) && !defined(TCC_TARGET_C67) && !defined(TCC_TARGET_816)
 #define CONFIG_TCC_ASM
 #endif
 
@@ -121,7 +120,7 @@
 #define TCC_TARGET_COFF
 #endif
 
-#if !defined(_WIN32) && !defined(CONFIG_TCCBOOT) && !defined(TCC_TARGET_816)
+#if !defined(CONFIG_TCCBOOT) && !defined(TCC_TARGET_816)
 #define CONFIG_TCC_BACKTRACE
 #endif
 
@@ -481,8 +480,10 @@ struct TCCState
     int verbose;
     /* compile with debug symbol (and use them if error during execution) */
     int do_debug;
+#ifdef CONFIG_TCC_BCHECK
     /* compile with built-in memory and bounds checker */
     int do_bounds_check;
+#endif
     /* give the path of the tcc libraries */
     char *tcc_lib_path;
 
@@ -514,6 +515,7 @@ struct TCCState
 
     /* for tcc_relocate */
     int runtime_added;
+    void *runtime_mem;
 
     struct InlineFunc **inline_fns;
     int nb_inline_fns;
@@ -827,11 +829,6 @@ char *pstrcpy(char *buf, int buf_size, const char *s);
 char *pstrcat(char *buf, int buf_size, const char *s);
 void dynarray_add(void ***ptab, int *nb_ptr, void *data);
 void dynarray_reset(void *pp, int *n);
-
-#ifdef CONFIG_TCC_BACKTRACE
-extern int num_callers;
-extern const char **rt_bound_error_msg;
-#endif
 
 /* true if float/double/long double type */
 static inline int is_float(int t)
