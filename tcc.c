@@ -10852,8 +10852,9 @@ int parse_args(TCCState *s, int argc, char **argv)
     const char *optarg, *p1, *r1;
     char *r;
 
+#ifdef TCC_TARGET_816
     s->output_format = TCC_OUTPUT_FORMAT_BINARY;
-
+#endif
     optind = 0;
     while (1) {
         if (optind >= argc) {
@@ -11030,9 +11031,6 @@ int parse_args(TCCState *s, int argc, char **argv)
                     error("unsupported linker option '%s'", optarg);
                 }
             } break;
-            case TCC_OPTION_O:
-                s->optimize = 1;
-                break;
             default:
                 if (s->warn_unsupported) {
                 unsupported_option:
@@ -11182,22 +11180,18 @@ int main(int argc, char **argv)
                total_bytes / total_time / 1000000.0);
     }
 
+#ifndef TCC_TARGET_816
+    if (s->output_type == TCC_OUTPUT_MEMORY) {
+        ret = tcc_run(s, argc - optind, argv + optind);
+    } else
+#ifdef TCC_TARGET_PE
+        if (s->output_type != TCC_OUTPUT_OBJ) {
+        ret = tcc_output_pe(s, outfile);
+    } else
+#endif
+#endif
     {
-        if (s->optimize) {
-            char *outfile_pre = tcc_malloc(strlen(outfile) + 4 + 1);
-            sprintf(outfile_pre, "%s.pre", outfile);
-            tcc_output_file(s, outfile_pre);
-            char *cmd = tcc_malloc(strlen(outfile_pre) + strlen(outfile) + 100);
-            sprintf(cmd, CONFIG_TCCDIR "/bin/816-opt %s >%s", outfile_pre, outfile);
-            if (system(cmd)) {
-                error("optimizer failed");
-            }
-            unlink(outfile_pre);
-            tcc_free(outfile_pre);
-            tcc_free(cmd);
-        } else {
-            tcc_output_file(s, outfile);
-        }
+        tcc_output_file(s, outfile);
         ret = 0;
     }
 the_end:
