@@ -120,6 +120,16 @@ struct labels_816
 struct labels_816 label[1000];
 int labels = 0;
 
+char line[256];
+#define pr(x...)          \
+    do {                  \
+        sprintf(line, x); \
+        s(line);          \
+    } while (0)
+
+int jump[20000][2]; // update from mic_ to have more space
+int jumps = 0;
+
 char *get_sym_str(Sym *sym)
 {
     static char name[256];
@@ -161,16 +171,6 @@ void s(char *str)
     for (; *str; str++)
         g(*str);
 }
-
-char line[256];
-#define pr(x...)          \
-    do {                  \
-        sprintf(line, x); \
-        s(line);          \
-    } while (0)
-
-int jump[20000][2]; // update from mic_ to have more space
-int jumps = 0;
 
 void gsym_addr(int t, int a)
 {
