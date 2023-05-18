@@ -5198,18 +5198,10 @@ void lexpand_nr(void)
     v = vtop[-1].r & (VT_VALMASK | VT_LVAL);
     if (v == VT_CONST) {
         vtop[-1].c.ui = vtop->c.ull;
-#ifdef TCC_TARGET_816
-        vtop->c.ui = vtop->c.ull >> 16;
-#else
         vtop->c.ui = vtop->c.ull >> 32;
-#endif
         vtop->r = VT_CONST;
     } else if (v == (VT_LVAL | VT_CONST) || v == (VT_LVAL | VT_LOCAL)) {
-#ifdef TCC_TARGET_816
-        vtop->c.ui += 2;
-#else
         vtop->c.ui += 4;
-#endif
         vtop->r = vtop[-1].r;
     } else if (v > VT_CONST) {
         vtop--;
@@ -5590,13 +5582,6 @@ void gen_opl(int op)
         break;
     }
 }
-
-#ifdef TCC_TARGET_816
-#define UNSIGNED unsigned short
-#define SIGNED short
-#define UNSIGNEDLL unsigned int
-#define SIGNEDLL int
-#endif
 
 /* handle integer constant optimizations and various machine
    independent opt */
@@ -6114,7 +6099,6 @@ static void gen_cast(CType *type)
 {
     int sbt, dbt, sf, df, c;
 
-    // fprintf(stderr,"### casting type 0x%x (r 0x%x) to 0x%x\n", vtop->type.t, vtop->r, type->t);
     /* special delayed cast for char/short */
     /* XXX: in some cases (multiple cascaded casts), it may still
        be incorrect */
@@ -6290,7 +6274,6 @@ static void gen_cast(CType *type)
                 vpushi(0);
                 gen_op(TOK_NE);
             }
-            // asm("int $3");
         } else if ((dbt & VT_BTYPE) == VT_BYTE || (dbt & VT_BTYPE) == VT_SHORT) {
             force_charshort_cast(dbt);
         } else if ((dbt & VT_BTYPE) == VT_INT) {
@@ -6619,7 +6602,6 @@ static void gen_assign_cast(CType *dt)
             warning("assignment makes integer from pointer without a cast");
         }
         /* XXX: more tests */
-        // fprintf(stderr,"### source type %d dest type %d\n", sbt, dbt);
         break;
     case VT_STRUCT:
         tmp_type1 = *dt;
@@ -6647,7 +6629,6 @@ void vstore(void)
     ft = vtop[-1].type.t;
     sbt = vtop->type.t & VT_BTYPE;
     dbt = ft & VT_BTYPE;
-    // fprintf(stderr,"vstore sbt 0x%x dbt 0x%x\n",sbt,dbt);
     if (((sbt == VT_INT || sbt == VT_SHORT) && dbt == VT_BYTE)
         || (sbt == VT_INT && dbt == VT_SHORT)) {
         /* optimize char/short casts */
@@ -6668,8 +6649,6 @@ void vstore(void)
         /* XXX: optimize if small size */
         if (!nocode_wanted) {
             size = type_size(&vtop->type, &align);
-            // if(size == 2) asm("int $3");
-            // fprintf(stderr,"vtop type 0x%x size %d\n", vtop->type.t, size);
 
             vpush_global_sym(&func_old_type, TOK_memcpy);
 
@@ -6698,7 +6677,6 @@ void vstore(void)
         bit_size = (ft >> (VT_STRUCT_SHIFT + 6)) & 0x3f;
         /* remove bit field info to avoid loops */
         vtop[-1].type.t = ft & ~(VT_BITFIELD | (-1 << VT_STRUCT_SHIFT));
-        // fprintf(stderr,"vtop[-1].type.t 0x%x\n",vtop[-1].type.t);
 
         gen_assign_cast(&vtop[-1].type);
         nocast
@@ -7524,7 +7502,6 @@ static void gfunc_param_typed(Sym *func, Sym *arg)
     } else {
         type = arg->type;
         type.t &= ~VT_CONSTANT; /* need to do that to avoid false warning */
-        // fprintf(stderr,"### assign cast vtop->type.t 0x%x type 0x%x\n", vtop->type.t, type.t);
         gen_assign_cast(&type);
     }
 }
@@ -7873,9 +7850,7 @@ tok_next:
             vpushi(s->c);
             gen_op('+');
             /* change type to field type, and set to lvalue */
-            // fprintf(stderr,"ft 0x%x r 0x%x\n", vtop->type.t,vtop->r);
             vtop->type = s->type;
-            // fprintf(stderr,"ft 0x%x r 0x%x\n", vtop->type.t,vtop->r);
             /* an array is never an lvalue */
             if (!(vtop->type.t & VT_ARRAY)) {
                 vtop->r |= lvalue_type(vtop->type.t);
@@ -7883,7 +7858,6 @@ tok_next:
                 if (do_bounds_check)
                     vtop->r |= VT_MUSTBOUND;
             }
-            // fprintf(stderr,"ft 0x%x r 0x%x\n", vtop->type.t,vtop->r);
             next();
         } else if (tok == '[') {
             next();
@@ -7924,7 +7898,6 @@ tok_next:
                 ret.r = VT_LOCAL | VT_LVAL;
                 /* pass it as 'int' to avoid structure arg passing
                    problems */
-                // vseti(VT_LOCAL, loc); // asdf
                 vset(&ptr_type, VT_LOCAL, loc);
                 ret.c = vtop->c;
                 nb_args++;
@@ -8748,12 +8721,10 @@ static void decl_designator(
             f = *cur_field;
             if (!f)
                 error("too many field init");
-            // fprintf(stderr,"design type before 0x%x ftype 0x%x\n", type->t,f->type.t);
             /* XXX: fix this mess by using explicit storage field */
             type1 = f->type;
             type1.t |= (type->t & ~VT_TYPE);
             type = &type1;
-            // fprintf(stderr,"design type after 0x%x\n", type->t);
             c += f->c;
         }
     }
@@ -8837,7 +8808,6 @@ static void init_putv(CType *type, Section *sec, unsigned long c, int v, int exp
             bit_size = (vtop->type.t >> (VT_STRUCT_SHIFT + 6)) & 0x3f;
             bit_mask = (1LL << bit_size) - 1;
         }
-        // fprintf(stderr,"@@@ alrighty, we have bit_pos %d bit_size %d bit_mask %lld\n", bit_pos, bit_size, bit_mask);
         if ((vtop->r & VT_SYM)
             && (bt == VT_BYTE || bt == VT_SHORT || bt == VT_DOUBLE || bt == VT_LDOUBLE
                 || bt == VT_LLONG || (bt == VT_INT && bit_size != 32)))
@@ -8864,14 +8834,13 @@ static void init_putv(CType *type, Section *sec, unsigned long c, int v, int exp
 #ifdef TCC_TARGET_816
             *(int *)
 #else
-            *(long long *)
+            *(long long *) ptr |= (vtop->c.ll & bit_mask) << bit_pos;
 #endif
                 ptr
                 |= (vtop->c.ll & bit_mask) << bit_pos;
             break;
         default:
             if (vtop->r & VT_SYM) {
-                // fprintf(stderr,"@@@ alrighty, reloccing to section %s, c %ld\n", sec->name, c);
                 greloc(sec, vtop->sym, c, R_DATA_32);
             }
 #ifdef TCC_TARGET_816
@@ -8899,7 +8868,6 @@ static void init_putz(CType *t, Section *sec, unsigned long c, int size)
         /* nothing to do because globals are already set to zero */
     } else {
         vpush_global_sym(&func_old_type, TOK_memset);
-        // vseti(VT_LOCAL, c);
         vset(&ptr_type, VT_LOCAL, c);
         vpushi(0);
         vpushi(size);
@@ -8957,8 +8925,6 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
                        string in global variable, we handle it
                        specifically */
                     if (sec && tok == TOK_STR && size1 == 1) {
-                        // fprintf(stderr,"c %d array_length %d\n", c, array_length);
-                        // section_realloc(sec, c + array_length + nb);
                         memcpy(sec->data + c + array_length, cstr->data, nb);
                     } else {
                         for (i = 0; i < nb; i++) {
@@ -9012,11 +8978,8 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
             init_putz(t1, sec, c + array_length * size1, (n - array_length) * size1);
         }
         /* patch type size if needed */
-        if (n < 0) {
-            // fprintf(stderr,"patching length from %d to %d in %p (prev %p)\n", s->c, array_length,s,s->prev);
-            // asm("int $3");
+        if (n < 0)
             s->c = array_length;
-        }
     } else if ((type->t & VT_BTYPE) == VT_STRUCT && (sec || !first || tok == '{')) {
         int par_count;
 
@@ -9064,10 +9027,8 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
             init_putz(type, sec, c, n);
         }
         while (tok != '}') {
-            // asm("int $3");
             decl_designator(type, sec, c, NULL, &f, size_only);
             index = f->c;
-            // printf("n %d index %d array_length %d\n",n,index,array_length);
             if (!size_only && array_length < index) {
                 // printf("; init_putz 1\n");
                 // init_putz(type, sec, c + array_length,
@@ -9265,7 +9226,6 @@ static void decl_initializer_alloc(
             else if (tcc_state->nocommon)
                 sec = bss_section;
         }
-        // fprintf(stderr,"SECS %s\n",sec==data_section?"data":sec==bss_section?"bss":sec==rodata_section?"rodata":"unknown");
         if (sec) {
             data_offset = sec->data_offset;
             data_offset = (data_offset + align - 1) & -align;
@@ -9517,7 +9477,7 @@ static void decl(int l)
 #if 0
             {
                 char buf[500];
-                type_to_str(buf, sizeof(buf), &type, get_tok_str(v, NULL));
+                type_to_str(buf, sizeof(buf), t, get_tok_str(v, NULL));
                 printf("type = '%s'\n", buf);
             }
 #endif
@@ -9856,6 +9816,338 @@ static void asm_global_instr(void)
 
 #include "tccelf.c"
 
+#ifdef TCC_TARGET_COFF
+#include "tcccoff.c"
+#endif
+
+#ifdef TCC_TARGET_PE
+#include "tccpe.c"
+#endif
+
+#ifndef TCC_TARGET_816
+/* print the position in the source file of PC value 'pc' by reading
+   the stabs debug information */
+static void rt_printline(unsigned long wanted_pc)
+{
+    Stab_Sym *sym, *sym_end;
+    char func_name[128], last_func_name[128];
+    unsigned long func_addr, last_pc, pc;
+    const char *incl_files[INCLUDE_STACK_SIZE];
+    int incl_index, len, last_line_num, i;
+    const char *str, *p;
+
+    fprintf(stderr, "0x%08lx:", wanted_pc);
+
+    func_name[0] = '\0';
+    func_addr = 0;
+    incl_index = 0;
+    last_func_name[0] = '\0';
+    last_pc = 0xffffffff;
+    last_line_num = 1;
+    sym = (Stab_Sym *) stab_section->data + 1;
+    sym_end = (Stab_Sym *) (stab_section->data + stab_section->data_offset);
+    while (sym < sym_end) {
+        switch (sym->n_type) {
+            /* function start or end */
+        case N_FUN:
+            if (sym->n_strx == 0) {
+                /* we test if between last line and end of function */
+                pc = sym->n_value + func_addr;
+                if (wanted_pc >= last_pc && wanted_pc < pc)
+                    goto found;
+                func_name[0] = '\0';
+                func_addr = 0;
+            } else {
+                str = stabstr_section->data + sym->n_strx;
+                p = strchr(str, ':');
+                if (!p) {
+                    pstrcpy(func_name, sizeof(func_name), str);
+                } else {
+                    len = p - str;
+                    if (len > sizeof(func_name) - 1)
+                        len = sizeof(func_name) - 1;
+                    memcpy(func_name, str, len);
+                    func_name[len] = '\0';
+                }
+                func_addr = sym->n_value;
+            }
+            break;
+            /* line number info */
+        case N_SLINE:
+            pc = sym->n_value + func_addr;
+            if (wanted_pc >= last_pc && wanted_pc < pc)
+                goto found;
+            last_pc = pc;
+            last_line_num = sym->n_desc;
+            /* XXX: slow! */
+            strcpy(last_func_name, func_name);
+            break;
+            /* include files */
+        case N_BINCL:
+            str = stabstr_section->data + sym->n_strx;
+        add_incl:
+            if (incl_index < INCLUDE_STACK_SIZE) {
+                incl_files[incl_index++] = str;
+            }
+            break;
+        case N_EINCL:
+            if (incl_index > 1)
+                incl_index--;
+            break;
+        case N_SO:
+            if (sym->n_strx == 0) {
+                incl_index = 0; /* end of translation unit */
+            } else {
+                str = stabstr_section->data + sym->n_strx;
+                /* do not add path */
+                len = strlen(str);
+                if (len > 0 && str[len - 1] != '/')
+                    goto add_incl;
+            }
+            break;
+        }
+        sym++;
+    }
+
+    /* second pass: we try symtab symbols (no line number info) */
+    incl_index = 0;
+    {
+        Elf32_Sym *sym, *sym_end;
+        int type;
+
+        sym_end = (Elf32_Sym *) (symtab_section->data + symtab_section->data_offset);
+        for (sym = (Elf32_Sym *) symtab_section->data + 1; sym < sym_end; sym++) {
+            type = ELF32_ST_TYPE(sym->st_info);
+            if (type == STT_FUNC) {
+                if (wanted_pc >= sym->st_value && wanted_pc < sym->st_value + sym->st_size) {
+                    pstrcpy(last_func_name,
+                            sizeof(last_func_name),
+                            strtab_section->data + sym->st_name);
+                    goto found;
+                }
+            }
+        }
+    }
+    /* did not find any info: */
+    fprintf(stderr, " ???\n");
+    return;
+found:
+    if (last_func_name[0] != '\0') {
+        fprintf(stderr, " %s()", last_func_name);
+    }
+    if (incl_index > 0) {
+        fprintf(stderr, " (%s:%d", incl_files[incl_index - 1], last_line_num);
+        for (i = incl_index - 2; i >= 0; i--)
+            fprintf(stderr, ", included from %s", incl_files[i]);
+        fprintf(stderr, ")");
+    }
+    fprintf(stderr, "\n");
+}
+
+#if !defined(WIN32) && !defined(CONFIG_TCCBOOT)
+
+#ifdef __i386__
+
+/* fix for glibc 2.1 */
+#ifndef REG_EIP
+#define REG_EIP EIP
+#define REG_EBP EBP
+#endif
+
+/* return the PC at frame level 'level'. Return non zero if not found */
+static int rt_get_caller_pc(unsigned long *paddr, ucontext_t *uc, int level)
+{
+    unsigned long fp;
+    int i;
+
+    if (level == 0) {
+#if defined(__FreeBSD__)
+        *paddr = uc->uc_mcontext.mc_eip;
+#elif defined(__dietlibc__)
+        *paddr = uc->uc_mcontext.eip;
+#else
+        *paddr = uc->uc_mcontext.gregs[REG_EIP];
+#endif
+        return 0;
+    } else {
+#if defined(__FreeBSD__)
+        fp = uc->uc_mcontext.mc_ebp;
+#elif defined(__dietlibc__)
+        fp = uc->uc_mcontext.ebp;
+#else
+        fp = uc->uc_mcontext.gregs[REG_EBP];
+#endif
+        for (i = 1; i < level; i++) {
+            /* XXX: check address validity with program info */
+            if (fp <= 0x1000 || fp >= 0xc0000000)
+                return -1;
+            fp = ((unsigned long *) fp)[0];
+        }
+        *paddr = ((unsigned long *) fp)[1];
+        return 0;
+    }
+}
+#else
+
+#warning add arch specific rt_get_caller_pc()
+
+static int rt_get_caller_pc(unsigned long *paddr, ucontext_t *uc, int level)
+{
+    return -1;
+}
+#endif
+
+/* emit a run time error at position 'pc' */
+void rt_error(ucontext_t *uc, const char *fmt, ...)
+{
+    va_list ap;
+    unsigned long pc;
+    int i;
+
+    va_start(ap, fmt);
+    fprintf(stderr, "Runtime error: ");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    for (i = 0; i < num_callers; i++) {
+        if (rt_get_caller_pc(&pc, uc, i) < 0)
+            break;
+        if (i == 0)
+            fprintf(stderr, "at ");
+        else
+            fprintf(stderr, "by ");
+        rt_printline(pc);
+    }
+    exit(255);
+    va_end(ap);
+}
+
+/* signal handler for fatal errors */
+static void sig_error(int signum, siginfo_t *siginf, void *puc)
+{
+    ucontext_t *uc = puc;
+
+    switch (signum) {
+    case SIGFPE:
+        switch (siginf->si_code) {
+        case FPE_INTDIV:
+        case FPE_FLTDIV:
+            rt_error(uc, "division by zero");
+            break;
+        default:
+            rt_error(uc, "floating point exception");
+            break;
+        }
+        break;
+    case SIGBUS:
+    case SIGSEGV:
+        if (rt_bound_error_msg && *rt_bound_error_msg)
+            rt_error(uc, *rt_bound_error_msg);
+        else
+            rt_error(uc, "dereferencing invalid pointer");
+        break;
+    case SIGILL:
+        rt_error(uc, "illegal instruction");
+        break;
+    case SIGABRT:
+        rt_error(uc, "abort() called");
+        break;
+    default:
+        rt_error(uc, "caught signal %d", signum);
+        break;
+    }
+    exit(255);
+}
+#endif
+
+/* do all relocations (needed before using tcc_get_symbol()) */
+int tcc_relocate(TCCState *s1)
+{
+    Section *s;
+    int i;
+
+    s1->nb_errors = 0;
+
+#ifdef TCC_TARGET_PE
+    pe_add_runtime(s1);
+#else
+    tcc_add_runtime(s1);
+#endif
+
+    relocate_common_syms();
+
+    tcc_add_linker_symbols(s1);
+
+    build_got_entries(s1);
+
+    /* compute relocation address : section are relocated in place. We
+       also alloc the bss space */
+    for (i = 1; i < s1->nb_sections; i++) {
+        s = s1->sections[i];
+        if (s->sh_flags & SHF_ALLOC) {
+            if (s->sh_type == SHT_NOBITS)
+                s->data = tcc_mallocz(s->data_offset);
+            s->sh_addr = (unsigned long) s->data;
+        }
+    }
+
+    relocate_syms(s1, 1);
+
+    if (s1->nb_errors != 0)
+        return -1;
+
+    /* relocate each section */
+    for (i = 1; i < s1->nb_sections; i++) {
+        s = s1->sections[i];
+        if (s->reloc)
+            relocate_section(s1, s);
+    }
+    return 0;
+}
+
+/* launch the compiled program with the given arguments */
+int tcc_run(TCCState *s1, int argc, char **argv)
+{
+    int (*prog_main)(int, char **);
+
+    if (tcc_relocate(s1) < 0)
+        return -1;
+
+    prog_main = tcc_get_symbol_err(s1, "main");
+
+    if (do_debug) {
+#if defined(WIN32) || defined(CONFIG_TCCBOOT)
+        error("debug mode currently not available for Windows");
+#else
+        struct sigaction sigact;
+        /* install TCC signal handlers to print debug info on fatal
+           runtime errors */
+        sigact.sa_flags = SA_SIGINFO | SA_RESETHAND;
+        sigact.sa_sigaction = sig_error;
+        sigemptyset(&sigact.sa_mask);
+        sigaction(SIGFPE, &sigact, NULL);
+        sigaction(SIGILL, &sigact, NULL);
+        sigaction(SIGSEGV, &sigact, NULL);
+        sigaction(SIGBUS, &sigact, NULL);
+        sigaction(SIGABRT, &sigact, NULL);
+#endif
+    }
+
+#ifdef CONFIG_TCC_BCHECK
+    if (do_bounds_check) {
+        void (*bound_init)(void);
+
+        /* set error function */
+        rt_bound_error_msg = (void *) tcc_get_symbol_err(s1, "__bound_error_msg");
+
+        /* XXX: use .init section so that it also work in binary ? */
+        bound_init = (void *) tcc_get_symbol_err(s1, "__bound_init");
+        bound_init();
+    }
+#endif
+    return (*prog_main)(argc, argv);
+}
+#endif
+
 TCCState *tcc_new(void)
 {
     const char *p, *r;
@@ -9926,7 +10218,7 @@ TCCState *tcc_new(void)
     tcc_define_symbol(s, "__SIZE_TYPE__", "unsigned int");
     tcc_define_symbol(s, "__PTRDIFF_TYPE__", "int");
     tcc_define_symbol(s, "__WCHAR_TYPE__", "int");
-    tcc_define_symbol(s, "__CHAR_BIT__", "8");
+    //tcc_define_symbol(s, "__CHAR_BIT__", "8");
 #ifdef TCC_TARGET_816
     tcc_define_symbol(s, "__INT_MAX__", "32767");
     tcc_define_symbol(s, "__LONG_MAX__", "32767");
@@ -9959,7 +10251,9 @@ TCCState *tcc_new(void)
     /* create standard sections */
     text_section = new_section(s, ".text", SHT_PROGBITS, SHF_ALLOC | SHF_EXECINSTR);
     data_section = new_section(s, ".data", SHT_PROGBITS, SHF_ALLOC | SHF_WRITE);
+#ifdef TCC_TARGET_816
     rodata_section = new_section(s, ".rodata", SHT_PROGBITS, SHF_ALLOC);
+#endif
     bss_section = new_section(s, ".bss", SHT_NOBITS, SHF_ALLOC | SHF_WRITE);
 
     /* symbols are always generated for linking stage */
@@ -10058,7 +10352,12 @@ int tcc_add_sysinclude_path(TCCState *s1, const char *pathname)
 static int tcc_add_file_internal(TCCState *s1, const char *filename, int flags)
 {
     const char *ext, *filename1;
+#ifdef TCC_TARGET_816
     int ret;
+#else
+    Elf32_Ehdr ehdr;
+    int fd, ret;
+#endif
     BufferedFile *saved_file;
 
     /* find source file type with extension */
@@ -10085,7 +10384,22 @@ static int tcc_add_file_internal(TCCState *s1, const char *filename, int flags)
     if (!ext || !strcmp(ext, "c")) {
         /* C file assumed */
         ret = tcc_compile(s1);
-    } else {
+    } else
+#ifdef CONFIG_TCC_ASM
+        if (!strcmp(ext, "S")) {
+        /* preprocessed assembler */
+        ret = tcc_assemble(s1, 1);
+    } else if (!strcmp(ext, "s")) {
+        /* non preprocessed assembler */
+        ret = tcc_assemble(s1, 0);
+    } else
+#endif
+#ifdef TCC_TARGET_PE
+        if (!strcmp(ext, "def")) {
+        ret = pe_load_def_file(s1, fdopen(file->fd, "rb"));
+    } else
+#endif
+    {
         error_noabort("unrecognized file type");
         goto fail;
     }
