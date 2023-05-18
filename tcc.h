@@ -101,7 +101,7 @@
 #define TCC_TARGET_I386
 #endif
 
-#if !defined(WIN32) && !defined(TCC_UCLIBC) && !defined(TCC_TARGET_ARM) \
+#if !defined(_WIN32) && !defined(TCC_UCLIBC) && !defined(TCC_TARGET_ARM) \
     && !defined(TCC_TARGET_C67) && !defined(TCC_TARGET_X86_64) && !defined(TCC_TARGET_816)
 #define CONFIG_TCC_BCHECK /* enable bound checking code */
 #endif
@@ -603,11 +603,7 @@ struct TCCState
 
 /* type mask (except storage) */
 #define VT_STORAGE (VT_EXTERN | VT_STATIC | VT_TYPEDEF | VT_INLINE | VT_IMPORT | VT_EXPORT)
-#ifdef TCC_TARGET_816
-#define VT_TYPE (~(VT_STORAGE) & ~(VT_IMPORT))
-#else
 #define VT_TYPE (~(VT_STORAGE))
-#endif
 
 /* token values */
 

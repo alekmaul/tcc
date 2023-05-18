@@ -247,6 +247,7 @@ void load(int r, SValue *sv)
     int v, sign, t;
     SValue v1;
     pr("; load %d\n", r);
+    printf("CECI EST UN MESSAGE: extra 0x%x\n", sv->type.extra);
     pr("; type %d reg 0x%x extra 0x%x\n", sv->type.t, sv->r, sv->type.extra);
     fr = sv->r;
     ft = sv->type.t;
@@ -1479,10 +1480,10 @@ void gen_cvt_itof(int t)
     pr("; itof tcc__r%d, f0\n", r);
     if ((vtop->type.t & VT_BTYPE) == VT_LLONG) {
         pr("pei (tcc__r%d)\npei (tcc__r%d)\n", r2, r);
-        if (it & VT_UNSIGNED)
+        /*         if (it & VT_UNSIGNED)
             error("jsr.l tcc__ulltof\n"); // this is probably dead code
-        else
-            pr("jsr.l tcc__lltof\n");
+        else */
+        pr("jsr.l tcc__lltof\n");
         pr("pla\npla\n");
     } else {
         get_reg(RC_F0); // result will go to f0

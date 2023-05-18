@@ -477,19 +477,6 @@ int main(int argc, char **argv)
 
     s = tcc_new();
 
-#ifdef TCC_TARGET_816
-    // Create temp file name for token name
-    strcpy(sztmpnam, &tmpnam(NULL)[1]);
-    // Ughly change for linux system
-    for (i = 0; sztmpnam[i] != '\0'; i++) {
-        if (sztmpnam[i] == '/') {
-            sztmpnam[i] = 'x';
-        }
-        if (sztmpnam[i] == '.') {
-            sztmpnam[i] = 'x';
-        }
-    }
-#endif
     output_type = TCC_OUTPUT_EXE;
     outfile = NULL;
     multiple_files = 1;

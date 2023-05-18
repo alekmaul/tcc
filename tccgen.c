@@ -2174,9 +2174,6 @@ type_ok:
 void vstore(void)
 {
     int sbt, dbt, ft, r, t, size, align, bit_size, bit_pos, rc, delayed_cast;
-#ifdef TCC_TARGET_816
-    static int nocast = 0;
-#endif
 
     ft = vtop[-1].type.t;
     sbt = vtop->type.t & VT_BTYPE;
@@ -2192,7 +2189,7 @@ void vstore(void)
     } else {
         delayed_cast = 0;
 #ifdef TCC_TARGET_816
-        if (!(ft & VT_BITFIELD) && !nocast)
+        if (!(ft & VT_BITFIELD))
 #else
         if (!(ft & VT_BITFIELD))
 #endif
@@ -2236,7 +2233,7 @@ void vstore(void)
         /* leave source on stack */
     }
 #ifdef TCC_TARGET_816
-    else if (ft & VT_BITFIELD && !nocast)
+    else if (ft & VT_BITFIELD)
 #else
     else if (ft & VT_BITFIELD)
 #endif
@@ -2363,9 +2360,6 @@ void vstore(void)
         vtop--; /* NOT vpop() because on x86 it would flush the fp stack */
         vtop->r |= delayed_cast;
     }
-#ifdef TCC_TARGET_816
-    nocast = 0;
-#endif
 }
 
 /* post defines POST/PRE add. c is the token ++ or -- */
@@ -4696,6 +4690,15 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
             }
         } else {
             index = 0;
+#ifdef TCC_TARGET_816
+            if (!size_only && n != -1) {
+                /* zeroing the entire struct before filling in the values ensures
+                   that decl_designator() won't forget filling in holes in structs inside
+                   this one, and is probably more efficient anyway than filling each hole
+                   with its own memset() call. */
+                init_putz(type, sec, c, n);
+            }
+#endif
             while (tok != '}') {
                 decl_designator(type, sec, c, &index, NULL, size_only);
                 if (n >= 0 && index >= n)
