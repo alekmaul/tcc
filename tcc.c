@@ -6201,10 +6201,11 @@ static void gen_cast(CType *type)
                         break;
                     }
                     break;
-                case VT_BOOL:
+#ifdef TCC_TARGET_816
                 case VT_BOOL | VT_UNSIGNED:
                     vtop->c.ui = vtop->c.d != 0 ? 1 : 0;
                     break;
+#endif
                 default:
                     /* int case */
                     switch (sbt) {
@@ -6258,21 +6259,28 @@ static void gen_cast(CType *type)
                     vpop();
                 }
             }
-        } else if ((dbt & VT_BTYPE) == VT_BOOL) {
+        }
+#ifdef TCC_TARGET_816
+        else if ((dbt & VT_BTYPE) == VT_BOOL) {
             if (c) {
-                // printf("const samma\n");
                 vtop->c.ui = vtop->c.ui ? 1 : 0;
             } else {
-                // printf("bool samma scho\n");
                 /* scalar to bool */
                 vpushi(0);
                 gen_op(TOK_NE);
             }
-        } else if ((dbt & VT_BTYPE) == VT_BYTE || (dbt & VT_BTYPE) == VT_SHORT) {
+        }
+#else
+        else if (dbt == VT_BOOL) {
+            /* scalar to bool */
+            vpushi(0);
+            gen_op(TOK_NE);
+        }
+#endif
+        else if ((dbt & VT_BTYPE) == VT_BYTE || (dbt & VT_BTYPE) == VT_SHORT) {
             force_charshort_cast(dbt);
         } else if ((dbt & VT_BTYPE) == VT_INT) {
             /* scalar to int */
-
 #ifdef TCC_TARGET_816
             /* fixes 960801-1.c */
             /* this is important if the value is cast back to a larger type
@@ -6618,7 +6626,9 @@ type_ok:
 void vstore(void)
 {
     int sbt, dbt, ft, r, t, size, align, bit_size, bit_pos, rc, delayed_cast;
+#ifdef TCC_TARGET_816
     static int nocast = 0;
+#endif
 
     ft = vtop[-1].type.t;
     sbt = vtop->type.t & VT_BTYPE;
@@ -6633,7 +6643,11 @@ void vstore(void)
             warning("assignment of read-only location");
     } else {
         delayed_cast = 0;
+#ifdef TCC_TARGET_816
         if (!(ft & VT_BITFIELD) && !nocast)
+#else
+        if (!(ft & VT_BITFIELD))
+#endif
             gen_assign_cast(&vtop[-1].type);
     }
 
@@ -6648,11 +6662,19 @@ void vstore(void)
 
             /* destination */
             vpushv(vtop - 2);
+#ifdef TCC_TARGET_816
             vtop->type.t = VT_PTR;
+#else
+            vtop->type.t = VT_INT;
+#endif
             gaddrof();
             /* source */
             vpushv(vtop - 2);
+#ifdef TCC_TARGET_816
             vtop->type.t = VT_PTR;
+#else
+            vtop->type.t = VT_INT;
+#endif
             gaddrof();
             /* type size */
             vpushi(size);
@@ -6665,16 +6687,23 @@ void vstore(void)
             vpop();
         }
         /* leave source on stack */
-    } else if (ft & VT_BITFIELD && !nocast) {
+    }
+#ifdef TCC_TARGET_816
+    else if (ft & VT_BITFIELD && !nocast)
+#else
+    else if (ft & VT_BITFIELD)
+#endif
+    {
         /* bitfield store handling */
         bit_pos = (ft >> VT_STRUCT_SHIFT) & 0x3f;
         bit_size = (ft >> (VT_STRUCT_SHIFT + 6)) & 0x3f;
         /* remove bit field info to avoid loops */
         vtop[-1].type.t = ft & ~(VT_BITFIELD | (-1 << VT_STRUCT_SHIFT));
-
+#ifdef TCC_TARGET_816
         gen_assign_cast(&vtop[-1].type);
         nocast
             = 1; // make sure our hard-earned bitfield value is not cast to bits again (e.g. to bool)
+#endif
 
         /* duplicate destination */
         vdup();
@@ -6687,12 +6716,15 @@ void vstore(void)
         gen_op(TOK_SHL);
         /* load destination, mask and or with source */
         vswap();
+#ifdef TCC_TARGET_816
         vtop->r |= VT_LVAL; /* 20000113-1.c, bf-sign-1.c */
+#endif
         vpushi(~(((1 << bit_size) - 1) << bit_pos));
         gen_op('&');
         gen_op('|');
         /* store result */
         vstore();
+#ifdef TCC_TARGET_816
         /* This value may be used further down, so it has to be sign- or
            zero-extended */
         if (ft & VT_UNSIGNED) {
@@ -6706,6 +6738,7 @@ void vstore(void)
             vpushi(16 - bit_size);
             gen_op(TOK_SAR);
         }
+#endif
     } else {
 #ifdef CONFIG_TCC_BCHECK
         /* bound check case */
@@ -6724,7 +6757,11 @@ void vstore(void)
             if ((vtop[-1].r & VT_VALMASK) == VT_LLOCAL) {
                 SValue sv;
                 t = get_reg(RC_INT);
+#ifdef TCC_TARGET_816
                 sv.type.t = VT_PTR; /* 20030313-1.c */
+#else
+                sv.type.t = VT_INT;
+#endif
                 sv.r = VT_LOCAL | VT_LVAL;
                 sv.c.ul = vtop[-1].c.ul;
                 load(t, &sv);
@@ -6885,7 +6922,7 @@ static void parse_attribute(AttributeDef *ad)
 /* enum/struct/union declaration. u is either VT_ENUM or VT_STRUCT */
 static void struct_decl(CType *type, int u)
 {
-    int a, v, size = 0, align, maxalign, c, offset;
+    int a, v, size, align, maxalign, c, offset;
     int bit_size, bit_pos, bsize, bt, lbit_pos;
     Sym *s, *ss, **ps;
     AttributeDef ad;
@@ -6902,7 +6939,7 @@ static void struct_decl(CType *type, int u)
         s = struct_find(v);
         if (s) {
             if (s->type.t != a)
-                error("invalid struct type");
+                error("invalid type");
             goto do_decl;
         }
     } else {
