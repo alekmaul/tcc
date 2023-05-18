@@ -145,7 +145,9 @@ typedef struct CType
 {
     int t;
     struct Sym *ref;
+#ifdef TCC_TARGET_816
     int extra;
+#endif
 } CType;
 
 /* constant value */
@@ -335,10 +337,14 @@ static int parse_flags;
                                           returned at eof */
 #define PARSE_FLAG_ASM_COMMENTS 0x0008 /* '#' can be used for line comment */
 
+#ifdef TCC_TARGET_816
 static Section *text_section, *data_section, *rodata_section,
-    *bss_section;                 /* predefined sections */
+    *bss_section; /* predefined sections */
+#else
+static Section *text_section, *data_section, *bss_section; /* predefined sections */
+#endif
 static Section *cur_text_section; /* current section where function code is
-                                                                        generated */
+                                                       generated */
 #ifdef CONFIG_TCC_ASM
 static Section *last_text_section; /* to handle .previous asm directive */
 #endif
@@ -380,7 +386,11 @@ static Sym *sym_free_first;
 
 static SValue vstack[VSTACK_SIZE], *vtop;
 /* some predefined types */
+#ifdef TCC_TARGET_816
 static CType char_pointer_type, func_old_type, int_type, ptr_type;
+#else
+static CType char_pointer_type, func_old_type, int_type;
+#endif
 /* true if isid(c) || isnum(c) */
 static unsigned char isidnum_table[256];
 
@@ -405,6 +415,9 @@ static int tcc_ext = 1;
 
 /* max number of callers shown if error */
 static int num_callers = 6;
+#ifndef TCC_TARGET_816
+static const char **rt_bound_error_msg;
+#endif
 
 /* XXX: get rid of this ASAP */
 static struct TCCState *tcc_state;
@@ -506,8 +519,9 @@ struct TCCState
     /* pack stack */
     int pack_stack[PACK_STACK_SIZE];
     int *pack_stack_ptr;
-
+#ifdef TCC_TARGET_816
     int optimize;
+#endif
 };
 
 /* The current value can be: */
@@ -566,14 +580,19 @@ struct TCCState
 #define VT_STATIC 0x00000100  /* static variable */
 #define VT_TYPEDEF 0x00000200 /* typedef definition */
 #define VT_INLINE 0x00000400  /* inline definition */
+#ifdef TCC_TARGET_816
 #define VT_STATICLOCAL 0x00004000
+#endif
 
 #define VT_STRUCT_SHIFT 16 /* shift for bitfield shift values */
 
 /* type mask (except storage) */
 #define VT_STORAGE (VT_EXTERN | VT_STATIC | VT_TYPEDEF | VT_INLINE)
+#ifdef TCC_TARGET_816
 #define VT_TYPE (~(VT_STORAGE) & ~(VT_STATICLOCAL))
-
+#else
+#define VT_TYPE (~(VT_STORAGE))
+#endif
 /* token values */
 
 /* warning: the following compare tokens depend on i386 asm code */
@@ -1255,16 +1274,16 @@ static void put_extern_sym2(
             pstrcpy(buf1 + 1, sizeof(buf1) - 1, name);
             name = buf1;
         }
-        if (sym->type.t & VT_STATIC /* && name[0] != 'L' && name[1] != '.' */) {
-            // fprintf(stderr,"verstaticung von %s (current_fn %s)\n", name,current_fn);
-            if ((sym->type.t & VT_STATICLOCAL)
-                && current_fn[0] != 0 /*&& !((sym->type.t & VT_BTYPE) == VT_FUNC)*/)
+#ifdef TCC_TARGET_816
+        if (sym->type.t & VT_STATIC) {
+            if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0)
                 sprintf(buf1, "%s_FUNC_%s_", static_prefix, current_fn);
             else
                 strcpy(buf1, static_prefix);
             strcat(buf1, name);
             name = buf1;
         }
+#endif
         info = ELF32_ST_INFO(sym_bind, sym_type);
         sym->c = add_elf_sym(symtab_section, value, size, info, 0, sh_num, name);
     } else {
@@ -1283,7 +1302,6 @@ static void put_extern_sym(Sym *sym, Section *section, unsigned long value, unsi
 /* add a new relocation entry to symbol 'sym' in section 's' */
 static void greloc(Section *s, Sym *sym, unsigned long offset, int type)
 {
-    // fprintf(stderr,"greloc section %p offset %d type %d name %s const %d\n",s,offset,type,get_tok_str(sym->v, NULL),sym->c);
     if (!sym->c)
         put_extern_sym(sym, NULL, 0, 0);
     /* now we can add ELF relocation info */
@@ -1392,10 +1410,13 @@ void error(const char *fmt, ...)
     va_start(ap, fmt);
     error1(s1, 0, fmt, ap);
     va_end(ap);
-
     /* better than nothing: in some cases, we accept to handle errors */
     if (s1->error_set_jmp_enabled) {
+#ifdef TCC_TARGET_816
         exit(1); // Alek 201125 hangs on winxp longjmp(s1->error_jmp_buf, 1);
+#else
+        longjmp(s1->error_jmp_buf, 1);
+#endif
     } else {
         /* XXX: eliminate this someday */
         exit(1);
@@ -1670,11 +1691,14 @@ char *get_tok_str(int v, CValue *cv)
             return table_ident[v - TOK_IDENT]->str;
         } else if (v >= SYM_FIRST_ANOM) {
             /* special name for anonymous symbol */
-            // sprintf(p, "L.%s%d",&tmpnam(NULL)[1] , v - SYM_FIRST_ANOM);
+#ifdef TCC_TARGET_816
             sprintf(p,
                     "L.%s%d",
                     sztmpnam,
                     v - SYM_FIRST_ANOM); // Alekmaul 201125, add temp file name to token name
+#else
+            sprintf(p, "L.%u", v - SYM_FIRST_ANOM);
+#endif
         } else {
             /* should never happen */
             return NULL;
@@ -1746,8 +1770,7 @@ static Sym *sym_push(int v, CType *type, int r, int c)
     /* XXX: simplify */
     if (!(v & SYM_FIELD) && (v & ~SYM_STRUCT) < SYM_FIRST_ANOM) {
         /* record symbol in token array */
-        // fprintf(stderr,"table_ident index 0x%x\n",(v & ~(SYM_STRUCT)) - TOK_IDENT);
-        ts = table_ident[(v & ~(SYM_STRUCT)) - TOK_IDENT];
+        ts = table_ident[(v & ~SYM_STRUCT) - TOK_IDENT];
         if (v & SYM_STRUCT)
             ps = &ts->sym_struct;
         else
@@ -1765,7 +1788,6 @@ static Sym *global_identifier_push(int v, int t, int c)
     s = sym_push2(&global_stack, v, t, c);
     /* don't record anonymous symbol */
     if (v < SYM_FIRST_ANOM) {
-        // fprintf(stderr,"table_ident index 0x%x\n",v - TOK_IDENT);
         ps = &table_ident[v - TOK_IDENT]->sym_identifier;
         /* modify the top most local identifier, so that
            sym_identifier will point to 's' when popped */
@@ -2263,11 +2285,7 @@ static inline int tok_ext_size(int t)
     case TOK_CUINT:
     case TOK_CCHAR:
     case TOK_LCHAR:
-    case TOK_CFLOAT: // FIXME: is that correct?
-#ifdef TCC_TARGET_816
-    case TOK_CDOUBLE:
-    case TOK_CLDOUBLE:
-#endif
+    case TOK_CFLOAT:
     case TOK_LINENUM:
         return 1;
     case TOK_STR:
@@ -2275,14 +2293,16 @@ static inline int tok_ext_size(int t)
     case TOK_PPNUM:
         error("unsupported token");
         return 1;
-#ifndef TCC_TARGET_816
-    case TOK_CLDOUBLE:
-        return LDOUBLE_SIZE / 4;
     case TOK_CDOUBLE:
-#endif
     case TOK_CLLONG:
     case TOK_CULLONG:
         return 2;
+#ifdef TCC_TARGET_816
+    case TOK_CLDOUBLE:
+#else
+    case TOK_CLDOUBLE:
+        return LDOUBLE_SIZE / 4;
+#endif
     default:
         return 0;
     }
