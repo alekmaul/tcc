@@ -2433,7 +2433,6 @@ int tcc_output_file(TCCState *s, const char *filename)
     return ret;
 }
 
-#ifndef TCC_TARGET_816
 static void *load_data(int fd, unsigned long file_offset, unsigned long size)
 {
     void *data;
@@ -3146,5 +3145,4 @@ static int tcc_load_ldscript(TCCState *s1)
     }
     return 0;
 }
-#endif
 #endif

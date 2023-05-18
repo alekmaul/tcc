@@ -334,9 +334,15 @@ static inline int toup(int c)
 #include "tccgen.c"
 
 #ifdef CONFIG_TCC_ASM
+
 #ifdef TCC_TARGET_I386
 #include "i386-asm.c"
 #endif
+
+#ifdef TCC_TARGET_X86_64
+#include "x86_64-asm.c"
+#endif
+
 #include "tccasm.c"
 #else
 static void asm_instr(void)
@@ -951,12 +957,7 @@ void error(const char *fmt, ...)
     va_end(ap);
     /* better than nothing: in some cases, we accept to handle errors */
     if (s1->error_set_jmp_enabled) {
-#ifdef TCC_TARGET_816
-        // Alek 201125 hangs on winxp longjmp(s1->error_jmp_buf, 1);
-        exit(1);
-#else
         longjmp(s1->error_jmp_buf, 1);
-#endif
     } else {
         /* XXX: eliminate this someday */
         exit(1);
@@ -1348,15 +1349,12 @@ static int tcc_compile(TCCState *s1)
 
     gen_inline_functions();
 
-#ifndef TCC_TARGET_816
     sym_pop(&global_stack, NULL);
     sym_pop(&local_stack, NULL);
-#endif
 
     return s1->nb_errors != 0 ? -1 : 0;
 }
 
-#ifdef LIBTCC
 int tcc_compile_string(TCCState *s, const char *str)
 {
     BufferedFile bf1, *bf = &bf1;
@@ -1384,7 +1382,6 @@ int tcc_compile_string(TCCState *s, const char *str)
     /* currently, no need to close */
     return ret;
 }
-#endif
 
 /* define a preprocessor symbol. A value can also be provided with the '=' operator */
 void tcc_define_symbol(TCCState *s1, const char *sym, const char *value)
@@ -1926,17 +1923,6 @@ TCCState *tcc_new(void)
 #else
     tcc_define_symbol(s, "__WCHAR_TYPE__", "int");
 #endif
-#ifdef TCC_TARGET_816
-    tcc_define_symbol(s, "__INT_MAX__", "32767");
-    tcc_define_symbol(s, "__LONG_MAX__", "32767");
-    tcc_define_symbol(s, "__LONG_LONG_MAX__", "2147483647LL");
-    tcc_define_symbol(s, "__FLT_MIN__", "0x0.1p-127");
-    tcc_define_symbol(s, "__FLT_MAX__", "0x1.fffffep127");
-    tcc_define_symbol(s, "__DBL_MIN__", "0x0.1p-127");
-    tcc_define_symbol(s, "__DBL_MAX__", "0x1.fffffep127");
-    tcc_define_symbol(s, "__LDBL_MIN__", "0x0.1p-127");
-    tcc_define_symbol(s, "__LDBL_MAX__", "0x1.fffffep127");
-#endif
 
 #ifndef TCC_TARGET_PE
     /* default library paths */
@@ -2038,12 +2024,8 @@ int tcc_add_sysinclude_path(TCCState *s1, const char *pathname)
 static int tcc_add_file_internal(TCCState *s1, const char *filename, int flags)
 {
     const char *ext;
-#ifdef TCC_TARGET_816
-    int ret;
-#else
     ElfW(Ehdr) ehdr;
-    int fd, ret;
-#endif
+    int fd, ret, size;
     BufferedFile *saved_file;
 
     ret = -1;
@@ -2086,11 +2068,6 @@ static int tcc_add_file_internal(TCCState *s1, const char *filename, int flags)
         goto the_end;
     }
 #endif
-
-#ifdef TCC_TARGET_816
-    error_noabort("unrecognized file type");
-    goto the_end;
-#else
 
     fd = file->fd;
     /* assume executable format: auto guess file type */
@@ -2147,7 +2124,7 @@ static int tcc_add_file_internal(TCCState *s1, const char *filename, int flags)
 #endif
     if (ret < 0)
         error_noabort("unrecognized file type");
-#endif
+
 the_end:
     if (file)
         tcc_close(file);
