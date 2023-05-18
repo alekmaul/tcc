@@ -914,7 +914,7 @@ void bool_test()
 static int tab_reinit[];
 static int tab_reinit[10];
 
-//int cinit1; /* a global variable can be defined several times without error ! */
+// int cinit1; /* a global variable can be defined several times without error ! */
 int cinit1;
 int cinit1;
 int cinit1 = 0;
