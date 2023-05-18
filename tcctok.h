@@ -101,6 +101,9 @@ DEF(TOK_CDECL3, "__cdecl__")
 DEF(TOK_STDCALL1, "stdcall")
 DEF(TOK_STDCALL2, "__stdcall")
 DEF(TOK_STDCALL3, "__stdcall__")
+DEF(TOK_FASTCALL1, "fastcall")
+DEF(TOK_FASTCALL2, "__fastcall")
+DEF(TOK_FASTCALL3, "__fastcall__")
 DEF(TOK_DLLEXPORT, "dllexport")
 DEF(TOK_NORETURN1, "noreturn")
 DEF(TOK_NORETURN2, "__noreturn__")
@@ -118,9 +121,15 @@ DEF(TOK_ASM_pop, "pop")
 #endif
 
 /* builtin functions or variables */
+#ifdef TCC_ARM_EABI
+DEF(TOK_memcpy, "__aeabi_memcpy")
+DEF(TOK_memcpy4, "__aeabi_memcpy4")
+DEF(TOK_memcpy8, "__aeabi_memcpy8")
+DEF(TOK_memset, "__aeabi_memset")
+#else
 DEF(TOK_memcpy, "memcpy")
 DEF(TOK_memset, "memset")
-DEF(TOK_alloca, "alloca")
+#endif
 #if defined(TCC_TARGET_816)
 DEF(TOK___divdi3, "tcc__divdi3")
 DEF(TOK___moddi3, "tcc__moddi3")
@@ -133,10 +142,22 @@ DEF(TOK___udivdi3, "__udivdi3")
 DEF(TOK___umoddi3, "__umoddi3")
 #endif
 #if defined(TCC_TARGET_ARM)
-DEF(TOK___divsi3, "__divsi3")
 DEF(TOK___modsi3, "__modsi3")
-DEF(TOK___udivsi3, "__udivsi3")
 DEF(TOK___umodsi3, "__umodsi3")
+#ifdef TCC_ARM_EABI
+DEF(TOK___divsi3, "__aeabi_idiv")
+DEF(TOK___udivsi3, "__aeabi_uidiv")
+DEF(TOK___sardi3, "__aeabi_lasr")
+DEF(TOK___shrdi3, "__aeabi_llsr")
+DEF(TOK___shldi3, "__aeabi_llsl")
+DEF(TOK___slltof, "__aeabi_l2f")
+DEF(TOK___slltold, "__aeabi_l2d")
+DEF(TOK___fixsfdi, "__aeabi_f2lz")
+DEF(TOK___fixdfdi, "__aeabi_d2lz")
+DEF(TOK___fixxfdi, "__aeabi_d2lz")
+#else
+DEF(TOK___divsi3, "__divsi3")
+DEF(TOK___udivsi3, "__udivsi3")
 DEF(TOK___sardi3, "__ashrdi3")
 DEF(TOK___shrdi3, "__lshrdi3")
 DEF(TOK___shldi3, "__ashldi3")
@@ -147,6 +168,7 @@ DEF(TOK___fixunsxfsi, "__fixunsxfsi")
 DEF(TOK___fixsfdi, "__fixsfdi")
 DEF(TOK___fixdfdi, "__fixdfdi")
 DEF(TOK___fixxfdi, "__fixxfdi")
+#endif
 #elif defined(TCC_TARGET_C67)
 DEF(TOK__divi, "_divi")
 DEF(TOK__divu, "_divu")
@@ -169,13 +191,13 @@ DEF(TOK___shldi3, "__shldi3")
 #endif
 DEF(TOK___tcc_int_fpu_control, "__tcc_int_fpu_control")
 DEF(TOK___tcc_fpu_control, "__tcc_fpu_control")
-#ifdef TCC_TARGET_816
-DEF(TOK___ulltof, "tcc__ulltof")
-DEF(TOK___ulltod, "tcc__ulltod")
-DEF(TOK___ulltold, "tcc__ulltold")
-DEF(TOK___fixunssfdi, "tcc__fixunssfdi")
-DEF(TOK___fixunsdfdi, "tcc__fixunsdfdi")
-DEF(TOK___fixunsxfdi, "tcc__fixunsxfdi")
+#ifdef TCC_ARM_EABI
+DEF(TOK___ulltof, "__aeabi_ul2f")
+DEF(TOK___ulltod, "__aeabi_ul2d")
+DEF(TOK___ulltold, "__aeabi_ul2d")
+DEF(TOK___fixunssfdi, "__aeabi_f2ulz")
+DEF(TOK___fixunsdfdi, "__aeabi_d2ulz")
+DEF(TOK___fixunsxfdi, "__aeabi_d2ulz")
 #else
 DEF(TOK___ulltof, "__ulltof")
 DEF(TOK___ulltod, "__ulltod")
@@ -205,6 +227,7 @@ DEF(TOK_calloc, "calloc")
 DEF(TOK_memmove, "memmove")
 DEF(TOK_strlen, "strlen")
 DEF(TOK_strcpy, "strcpy")
+DEF(TOK__alloca, "_alloca")
 #endif
 
 /* Tiny Assembler */
