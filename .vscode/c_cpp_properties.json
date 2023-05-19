@@ -1,0 +1,36 @@
+{
+    "version": 4,
+    "env": {
+        "tcc": [
+            "${workspaceFolder}/**"
+        ]
+    },
+    "configurations": [
+        {
+            "name": "tcc",
+            "compilerArgs": [
+                "-O2",
+                "-g",
+                "-Wall",
+                "-fno-strict-aliasing",
+                "-Wno-pointer-sign",
+                "-Wno-sign-compare",
+                "-D_FORTIFY_SOURCE=0",
+                "-DTCC_TARGET_816",
+                "-lm",
+                "-ldl"
+            ],
+            "includePath": [
+                "${tcc}"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": "",
+                "path": [
+                    "${tcc}"
+                ]
+            },
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ]
+}

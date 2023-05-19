@@ -1,0 +1,17 @@
+{
+    "files.trimTrailingWhitespace": true,
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true,
+    "[makefile]": {
+        "editor.insertSpaces": false,
+        "editor.detectIndentation": false,
+    },
+    "[c]": {
+        "editor.semanticHighlighting.enabled": true,
+    },
+    "files.associations": {
+        "*.1": "c"
+    },
+    "C_Cpp.dimInactiveRegions": true,
+    "C_Cpp.clang_format_style": "file"
+}
