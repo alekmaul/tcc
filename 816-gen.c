@@ -1452,21 +1452,14 @@ void float_to_woz(float f, unsigned char *w)
 /* generate a floating point operation */
 void gen_opf(int op)
 {
-    // Not used int r, fr, ft;
-    // Not used float fcf;
     int length, align;
     int ir;
 
     length = type_size(&vtop[0].type, &align);
-    // Not used r = vtop[-1].r;
-    // Not used fr = vtop[0].r;
-    // Not used fcf = vtop[0].c.f;
 
     // get the actual values
     gv2(RC_F1, RC_F0);
-    // Not used r = vtop[-1].r;
-    // Not used fr = vtop[0].r;
-    // Not used ft = vtop[0].type.t;
+
     vtop--;
 
     pr("; gen_opf len %d op 0x%x ('%c')\n", length, op, op);
@@ -1543,18 +1536,20 @@ void gen_opf(int op)
     vtop->r = TREG_F0;
 }
 
-void convert_type_helper(int it, const char* unsigned_fn, const char* signed_fn) {
+void convert_type_helper(int it, const char *unsigned_fn, const char *signed_fn)
+{
     if (it & VT_UNSIGNED)
         pr(unsigned_fn);
     else
         pr(signed_fn);
 }
 
-void gen_cvt_itof(int t) {
+void gen_cvt_itof(int t)
+{
     int r, r2, it;
-    gv(RC_INT); // load integer to convert
-    r = vtop->r; // register with int
-    r2 = vtop->r2; // register with high word (for long longs)
+    gv(RC_INT);        // load integer to convert
+    r = vtop->r;       // register with int
+    r2 = vtop->r2;     // register with high word (for long longs)
     it = vtop->type.t; // type of int
     pr("; itof tcc__r%d, f0\n", r);
     if ((vtop->type.t & VT_BTYPE) == VT_LLONG) {
