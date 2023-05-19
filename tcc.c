@@ -25,8 +25,21 @@ void help(void)
     printf("tcc version " TCC_VERSION
            " - Tiny C Compiler - Copyright (C) 2001-2006 Fabrice Bellard\n"
 #ifdef TCC_TARGET_816
-           "Modified for PVSneslib by Alekmaul in 2021\n"
-#endif
+           "\nWDC 65816 ASM code generator for Tiny C Compiler - Copyright (C) 2007 Ulrich Hecht\n"
+           "  * Customized (wla-dx) for PVSneslib by Alekmaul in 2021\n"
+           "  * Updated by Kobenairb in 2022\n\n"
+           "usage: tcc [-v] [-c] [-o outfile] [-Idir] [-Wwarn] [infile1 infile2...]\n"
+           "\n"
+           "General options:\n"
+           "  -v          display current version, increase verbosity\n"
+           "  -c          compile only - generate an object file\n"
+           "  -o outfile  set output filename\n"
+           "  -Wwarning   set or reset (with 'no-' prefix) 'warning' (see man page)\n"
+           "  -w          disable all warnings\n"
+           "Preprocessor options:\n"
+           "  -E          preprocess only\n"
+           "  -Idir       add include path 'dir'\n"
+#else
            "usage: tcc [-v] [-c] [-o outfile] [-Bdir] [-bench] [-Idir] [-Dsym[=val]] [-Usym]\n"
            "           [-Wwarn] [-g] [-b] [-bt N] [-Ldir] [-llib] [-shared] [-soname name]\n"
            "           [-static] [infile1 infile2...] [-run infile args...]\n"
@@ -61,6 +74,7 @@ void help(void)
 #endif
 #ifdef CONFIG_TCC_BACKTRACE
            "  -bt N       show N callers in stack traces\n"
+#endif
 #endif
     );
 }
