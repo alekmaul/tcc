@@ -96,13 +96,17 @@ int reg_classes[NB_REGS] = {
 
 #define LOCAL_LABEL "__local_%d"
 
-char current_fn[256] = "";
+#define MAXLEN 512
+
+char current_fn[MAXLEN] = "";
 
 // Variable relocate a given section
 char **relocptrs = NULL;
 
 // Define random string maximum size (token usage)
 #define RS_MAX_SIZE 10
+
+char random_token[RS_MAX_SIZE + 1];
 
 void generate_token(char *str, size_t max_size)
 {
@@ -126,7 +130,6 @@ void generate_token(char *str, size_t max_size)
     str[max_size] = '\0';
 }
 
-char random_token[RS_MAX_SIZE + 1];
 /* yet another terrible workaround
    WLA does not have file-local symbols, only section-local and global.
    thus, everything that is file-local must be made global and given a
@@ -141,21 +144,22 @@ char random_token[RS_MAX_SIZE + 1];
 char *static_prefix = "tccs_";
 
 char *label_workaround = NULL;
+
+#define MAX_LABELS 1000
+
 struct labels_816
 {
     char *name;
     int pos;
 };
-struct labels_816 label[1000];
+struct labels_816 label[MAX_LABELS];
 int labels = 0;
 
+/* Returns a string representation of the symbol.*/
 char *get_sym_str(Sym *sym)
 {
-    static char name[256];
-    char *symname;
-
-    symname = get_tok_str(sym->v, NULL);
-
+    static char name[MAXLEN];
+    char *symname = get_tok_str(sym->v, NULL);
     name[0] = 0;
     /* if static, add prefix */
     if (sym->type.t & VT_STATIC) {
@@ -174,33 +178,48 @@ char *get_sym_str(Sym *sym)
     return name;
 }
 
-/* XXX: make it faster ? */
+/* This function appends a character to the current text section. */
 void g(int c)
 {
-    int ind1;
-    ind1 = ind + 1;
-    if (ind1 > cur_text_section->data_allocated)
-        section_realloc(cur_text_section, ind1);
-    cur_text_section->data[ind] = c;
-    ind = ind1;
+    // If there isn't enough space allocated in the current text section,
+    // reallocate the section with additional space.
+    if (ind >= cur_text_section->data_allocated) {
+        section_realloc(cur_text_section, ind + 1);
+    }
+
+    // Copy the character into the current text section at the current index.
+    memcpy(&cur_text_section->data[ind], &c, 1);
+
+    // Increment the index to point to the next free position in the text section.
+    ind++;
 }
 
 void s(char *str)
 {
-    for (; *str; str++)
-        g(*str);
+    // Loop while the current character in the input string is not a null character.
+    // The null character indicates the end of the string.
+    while (*str) {
+        // Call the g function with the current character in the input string
+        // and then increment the input string pointer to the next character.
+        g(*str++);
+    }
 }
 
-char line[256];
-#define pr(x...)          \
-    do {                  \
-        sprintf(line, x); \
-        s(line);          \
-    } while (0)
+char line[MAXLEN];
 
-int jump[20000][2]; // update from mic_ to have more space
-int jumps = 0;
+void pr(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    vsnprintf(line, sizeof(line), format, args);
+    va_end(args);
+    s(line);
+}
 
+// update from mic_to have more space
+int jump[20000][2], jumps = 0;
+
+/* output a symbol and patch all calls to it */
 void gsym_addr(int t, int a)
 {
     /* code at t wants to jump to a */
@@ -216,11 +235,13 @@ void gsym_addr(int t, int a)
         labels++;
         label_workaround = NULL;
     }
-    int i;
+
     // pair up the jump with the target address
     // the tcc_output_... function will add a
     // label __local_<i> at a when writing the output
     int found = 0;
+    int i;
+
     for (i = 0; i < jumps; i++) {
         if (jump[i][0] == t)
             jump[i][1] = a;
@@ -238,22 +259,26 @@ void gsym(int t)
 int stack_back = 0;
 int adjust_stack(int fc, int disp)
 {
-    pr("; stack adjust: fc + disp - loc %d\n", fc + disp - loc);
-    if (fc + disp - loc < 256) {
-        stack_back = 0;
+    int stack_adj = fc + disp - loc - 256;
+
+    pr("; stack adjust: fc + disp - loc - 256 %d\n", stack_adj);
+
+    if (stack_adj < 0)
         return fc;
-    }
-    stack_back = -loc + fc;
+
+    stack_back = -loc + fc + stack_adj;
     pr("tsc\nclc\nadc.w #%d\ntcs\n", stack_back);
     return fc - stack_back;
 }
 
 int restore_stack(int fc)
 {
-    if (!stack_back)
-        return fc;
-    pr("tsc\nsec\nsbc.w #%d\ntcs\n", stack_back);
-    return fc + stack_back;
+    if (stack_back != 0) {
+        pr("tsc\nsec\nsbc.w #%d\ntcs\n", stack_back);
+        fc += stack_back;
+        stack_back = 0;
+    }
+    return fc;
 }
 
 // this used to be local to gfunc_call, but we need it to get the correct
@@ -263,6 +288,7 @@ int args_size = 0;
 
 int ll_workaround = 0;
 
+/* load 'r' from value 'sv' */
 void load(int r, SValue *sv)
 {
     int fr, ft, fc;
@@ -555,6 +581,7 @@ void load(int r, SValue *sv)
     error("load unimplemented");
 }
 
+/* store register 'r' in lvalue 'v' */
 void store(int r, SValue *sv)
 {
     int v, ft, fc, fr, sign;
@@ -737,6 +764,7 @@ void store(int r, SValue *sv)
     error("store unimplemented");
 }
 
+/* generate function call */
 void gfunc_call(int nb_args)
 {
     int align, r, i, func_call;
@@ -894,6 +922,7 @@ void gfunc_call(int nb_args)
     vtop--;
 }
 
+/* generate a jump to a label */
 int gjmp(int t)
 {
     int r;
@@ -914,11 +943,13 @@ int gjmp(int t)
     return r;
 }
 
+/* generate a jump to a fixed address */
 void gjmp_addr(int a)
 {
     gjmp(a);
 }
 
+/* generate a test. set 'inv' to invert test. Stack entry is popped */
 int gtst(int inv, int t)
 {
     int v, r;
@@ -988,9 +1019,7 @@ int gtst(int inv, int t)
     return t;
 }
 
-void warning(const char *fmt, ...);
-
-// generate an integer operation
+/* generate an integer binary operation */
 void gen_opi(int op)
 {
     int r, fr, fc, c, r5; // only set, remove it ,ft;
@@ -1236,8 +1265,8 @@ void gen_opi(int op)
             pr("bne +\n");
         pr("dex\n+\nstx.b tcc__r%d\n", r5); // long long code does some wild branching and fucks up
                                             // if the results of the compares it generates do not
-            // end up in the same register; unlikely to be a performance
-            // impediment: TCC does not usually use this register anyway
+        // end up in the same register; unlikely to be a performance
+        // impediment: TCC does not usually use this register anyway
         vtop->r = r5;
         break;
 
@@ -1401,25 +1430,44 @@ void gen_opi(int op)
     }
 }
 
-void float_to_woz(float, unsigned char *);
+/* convert floats to Woz format */
+void float_to_woz(float f, unsigned char *w)
+{
+    unsigned int i;
+    unsigned char exp = 0x8e + 16; // 0x8e is the exp for 16-bit integers; we have 32-bit ints here
 
+    i = *((unsigned int *) &f);
+    if (i & 0x80000000UL) // check sign bit
+    {
+        w[0] = 0x80 | exp; // set sign bit and exp
+        i = ~i + 1;        // 2's complement
+    } else {
+        w[0] = exp;
+    }
+
+    w[1] = (i >> 24) & 0xff;
+    w[2] = (i >> 16) & 0xff;
+    w[3] = (i >> 8) & 0xff;
+}
+
+/* generate a floating point operation */
 void gen_opf(int op)
 {
-    // Alek 20/11/25 not used int r, fr, ft;
-    // Alek 20/11/25 not used float fcf;
+    // Not used int r, fr, ft;
+    // Not used float fcf;
     int length, align;
     int ir;
 
     length = type_size(&vtop[0].type, &align);
-    // Alek 20/11/25 not used r = vtop[-1].r;
-    // Alek 20/11/25 not used fr = vtop[0].r;
-    // Alek 20/11/25 not used fcf = vtop[0].c.f;
+    // Not used r = vtop[-1].r;
+    // Not used fr = vtop[0].r;
+    // Not used fcf = vtop[0].c.f;
 
     // get the actual values
     gv2(RC_F1, RC_F0);
-    // Alek 20/11/25 not used r = vtop[-1].r;
-    // Alek 20/11/25 not used fr = vtop[0].r;
-    // Alek 20/11/25 not used ft = vtop[0].type.t;
+    // Not used r = vtop[-1].r;
+    // Not used fr = vtop[0].r;
+    // Not used ft = vtop[0].type.t;
     vtop--;
 
     pr("; gen_opf len %d op 0x%x ('%c')\n", length, op, op);
@@ -1496,6 +1544,8 @@ void gen_opf(int op)
     vtop->r = TREG_F0;
 }
 
+/* convert integers to fp 't' type. Must handle 'int', 'unsigned int'
+   and 'long long' cases. */
 void gen_cvt_itof(int t)
 {
     int r, r2, it;
@@ -1553,11 +1603,13 @@ void gen_cvt_ftoi(int t)
     vtop->r = r;
 }
 
+/* convert from one floating point type to another */
 void gen_cvt_ftof(int t)
 {
     error("gen_cvt_ftof 0x%x\n", t);
 }
 
+/* computed goto support */
 void ggoto(void)
 {
     int r = gv(RC_INT);
@@ -1570,16 +1622,16 @@ void ggoto(void)
     pr("jml.l tcc__r9\n");
 }
 
-int section_count = 0;
 int ind_before_section = 0;
 int section_closed = 1;
+int section_count = 0;
 
+/* generate function prolog of type 't' */
 void gfunc_prolog(CType *func_type)
 {
-    Sym *sym; //, *sym2;
+    Sym *sym;
     Sym *symf;
     int n, addr, size, align;
-    // fprintf(stderr,"gfunc_prolog t %d sym %p\n",func_type->t,func_type->ref);
 
     sym = func_type->ref;
     func_vt = sym->type;
@@ -1624,10 +1676,12 @@ void gfunc_prolog(CType *func_type)
     loc = 0; // huh squared?
 }
 
-char locals[1000][256]; // update from mic_ 80->256
-int localnos[1000];
+#define MAX_LOCALS 1000
+char locals[MAX_LOCALS][MAXLEN];
+int localnos[MAX_LOCALS];
 int localno = 0;
 
+/* generate function epilog */
 void gfunc_epilog(void)
 {
     pr("; add sp, #__%s_locals\n", current_fn);
@@ -1637,15 +1691,22 @@ void gfunc_epilog(void)
     pr(".ENDS\n");
     section_closed = 1;
 
-    if (-loc > 0x1f00)
+    if (-loc > 0x1f00) {
         error("stack overflow");
+    }
+
     /* simply putting a ".define __<current_fn>_locals -<loc>" after the
        function does not work in some cases for unknown reasons (wla-dx
        complains about unresolved symbols); putting them before the reference
        works, but this has to be done by the output code, so we have to save
        the various locals sizes somewhere */
-    strcpy(locals[localno], current_fn);
-    localnos[localno] = -loc;
-    localno++;
-    current_fn[0] = 0;
+    if (localno < MAX_LOCALS) {
+        strcpy(locals[localno], current_fn);
+        localnos[localno] = -loc;
+        localno++;
+    } else {
+        error("maximum number of local variables exceeded");
+    }
+
+    current_fn[0] = '\0';
 }
