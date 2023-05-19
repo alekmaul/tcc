@@ -163,7 +163,6 @@ char *get_sym_str(Sym *sym)
     name[0] = 0;
     /* if static, add prefix */
     if (sym->type.t & VT_STATIC) {
-        // fprintf(stderr,"sym %s type 0x%x current_fn %s token %d\n",symname,sym->type.t,current_fn,sym->v);
         if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0
             && !((sym->type.t & VT_BTYPE) == VT_FUNC))
             sprintf(name, "%s_FUNC_%s_", static_prefix, current_fn);
@@ -174,7 +173,6 @@ char *get_sym_str(Sym *sym)
     /* add symbol name */
     strcat(name, symname);
 
-    // fprintf(stderr,"symbol %s type 0x%x\n", name, sym->type.t);
     return name;
 }
 
@@ -925,21 +923,22 @@ void gfunc_call(int nb_args)
 /* generate a jump to a label */
 int gjmp(int t)
 {
-    int r;
-    int i;
-    // remember this jump so we can insert a label before the destination later
+    int r = ind;
+
     pr("; gjmp_addr %d at %d\n", t, ind);
     pr("jmp.w " LOCAL_LABEL "\n", jumps);
-    r = ind;
+
     jump[jumps][0] = r;
-    for (i = 0; i < jumps; i++) {
-        if (jump[i][0]
-            == t) { // the jump target is a jump itself; make it go to same place as this one
+
+    for (int i = 0; i < jumps; i++) {
+        if (jump[i][0] == t) {
             jump[i][0] = r;
         }
     }
+
     jumps++;
     gsym_addr(r, t);
+
     return r;
 }
 
@@ -1436,7 +1435,7 @@ void float_to_woz(float f, unsigned char *w)
     unsigned int i;
     unsigned char exp = 0x8e + 16; // 0x8e is the exp for 16-bit integers; we have 32-bit ints here
 
-    i = *((unsigned int *) &f);
+    memcpy(&i, &f, sizeof(f));
     if (i & 0x80000000UL) // check sign bit
     {
         w[0] = 0x80 | exp; // set sign bit and exp
@@ -1544,32 +1543,29 @@ void gen_opf(int op)
     vtop->r = TREG_F0;
 }
 
-/* convert integers to fp 't' type. Must handle 'int', 'unsigned int'
-   and 'long long' cases. */
-void gen_cvt_itof(int t)
-{
-    int r, r2, it;
-    gv(RC_INT);        // load integer to convert
-    r = vtop->r;       // register with int
-    r2 = vtop->r2;     // register with high word (for long longs)
-    it = vtop->type.t; // type of int
+void convert_type_helper(int it, const char* unsigned_fn, const char* signed_fn) {
+    if (it & VT_UNSIGNED)
+        pr(unsigned_fn);
+    else
+        pr(signed_fn);
+}
 
+void gen_cvt_itof(int t) {
+    int r, r2, it;
+    gv(RC_INT); // load integer to convert
+    r = vtop->r; // register with int
+    r2 = vtop->r2; // register with high word (for long longs)
+    it = vtop->type.t; // type of int
     pr("; itof tcc__r%d, f0\n", r);
     if ((vtop->type.t & VT_BTYPE) == VT_LLONG) {
         pr("pei (tcc__r%d)\npei (tcc__r%d)\n", r2, r);
-        if (it & VT_UNSIGNED)
-            error("jsr.l tcc__ulltof\n"); // this is probably dead code
-        else
-            pr("jsr.l tcc__lltof\n");
+        convert_type_helper(it, "jsr.l tcc__ulltof\n", "jsr.l tcc__lltof\n");
         pr("pla\npla\n");
     } else {
         get_reg(RC_F0); // result will go to f0
         pr("lda.b tcc__r%d\n", r);
         pr("xba\nsta.b tcc__f0 + 1\n"); // convert to big-endian and load to upper 2 bytes of mantissa
-        if (it & VT_UNSIGNED)
-            pr("jsr.l tcc__ufloat\n");
-        else
-            pr("jsr.l tcc__float\n");
+        convert_type_helper(it, "jsr.l tcc__ufloat\n", "jsr.l tcc__float\n");
     }
     vtop->r = TREG_F0; // tell TCC that the result is in f0
 }
@@ -1578,29 +1574,26 @@ void gen_cvt_ftoi(int t)
 {
     int r = 0;
     gv(RC_F0);
-    if ((t & VT_BTYPE) == VT_LLONG) {
+    int is_llong = (t & VT_BTYPE) == VT_LLONG;
+    if (is_llong) {
         get_reg(RC_R0);
         get_reg(RC_R1);
-    } else
+    } else {
         r = get_reg(RC_INT);
-    pr("; ftoi tcc__f0, tcc__r%d(type 0x%x)\n", r, t);
-    if (t & VT_UNSIGNED)
-        pr("lda #0\nsta.b tcc__r9\n");
-    else
-        pr("lda #1\nsta.b tcc__r9\n");
+    }
 
-    // use llfix for any unsigned type to avoid overflow
-    if ((t & VT_BTYPE) == VT_LLONG || (t & VT_UNSIGNED)) {
+    pr("; ftoi tcc__f0, tcc__r%d(type 0x%x)\n", r, t);
+    pr("lda #%d\nsta.b tcc__r9\n", (t & VT_UNSIGNED) ? 0 : 1);
+
+    if (is_llong || (t & VT_UNSIGNED)) {
         pr("jsr.l tcc__llfix\n");
         vtop->r2 = TREG_R1;
         vtop->r = TREG_R0;
-        return;
     } else {
         pr("jsr.l tcc__fix\n");
         pr("lda.b tcc__f0 + 1\nxba\nsta.b tcc__r%d\n", r);
+        vtop->r = r;
     }
-
-    vtop->r = r;
 }
 
 /* convert from one floating point type to another */
@@ -1630,7 +1623,6 @@ int section_count = 0;
 void gfunc_prolog(CType *func_type)
 {
     Sym *sym;
-    Sym *symf;
     int n, addr, size, align;
 
     sym = func_type->ref;
@@ -1646,8 +1638,7 @@ void gfunc_prolog(CType *func_type)
     }
 
     /* super-dirty hack to get the function name */
-    symf = (Sym *) (((void *) func_type) - offsetof(Sym, type));
-    strcpy(current_fn, get_sym_str(symf));
+    strcpy(current_fn, get_sym_str((Sym *) (((void *) func_type) - offsetof(Sym, type))));
 
     /* wlalink does not cut up sections, so it is desirable to have a section
        for each function to keep the amount of unused memory in the ROM banks
@@ -1663,11 +1654,9 @@ void gfunc_prolog(CType *func_type)
     pr("\n%s:\n", current_fn);
 
     while ((sym = sym->next)) {
-        CType *type;
-        type = &sym->type;
+        CType *type = &sym->type;
         sym_push(sym->v & ~SYM_FIELD, type, VT_LOCAL | VT_LVAL, addr);
         size = type_size(type, &align);
-        // fprintf(stderr,"pushed sym type 0x%x size %d addr 0x%x\n",type->t,size,addr);
         addr += size;
         n += size;
     }
