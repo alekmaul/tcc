@@ -20,60 +20,69 @@
 
 #include "libtcc.c"
 
+/**
+ * @brief Display help information.
+ *
+ * The `help` function is responsible for displaying help information.
+ * It provides guidance, instructions, or explanations about the usage and features of the program.
+ *
+ * This function does not take any parameters or return a value.
+ * It typically prints the help text to the standard output or displays it in some user interface.
+ */
 void help(void)
 {
-    printf("tcc version " TCC_VERSION
-           " - Tiny C Compiler - Copyright (C) 2001-2006 Fabrice Bellard\n"
+    printf(
+        "tcc version " TCC_VERSION " - Tiny C Compiler - Copyright (C) 2001-2006 Fabrice Bellard\n"
 #ifdef TCC_TARGET_816
-           "\nWDC 65816 ASM code generator for Tiny C Compiler - Copyright (C) 2007 Ulrich Hecht\n"
-           "  * Customized (wla-dx) for PVSneslib by Alekmaul in 2021\n"
-           "  * Updated by Kobenairb in 2022\n\n"
-           "usage: tcc [-v] [-c] [-o outfile] [-Idir] [-Wwarn] [infile1 infile2...]\n"
-           "\n"
-           "General options:\n"
-           "  -v          display current version, increase verbosity\n"
-           "  -c          compile only - generate an object file\n"
-           "  -o outfile  set output filename\n"
-           "  -Wwarning   set or reset (with 'no-' prefix) 'warning' (see man page)\n"
-           "  -w          disable all warnings\n"
-           "Preprocessor options:\n"
-           "  -E          preprocess only\n"
-           "  -Idir       add include path 'dir'\n"
+        "\n- WDC 65816 ASM code generator for Tiny C Compiler - Copyright (C) 2007 Ulrich Hecht\n"
+        "- Modified for PVSneslib by Alekmaul in 2021\n"
+        "- Updated by Kobenairb in 2022\n\n"
+        "usage: 816-tcc [-v] [-c] [-o outfile] [-Idir] [-Wwarn] [infile1 infile2...]\n"
+        "\n"
+        "General options:\n"
+        "  -v          display current version, increase verbosity\n"
+        "  -c          compile only - generate an object file\n"
+        "  -o outfile  set output filename\n"
+        "  -Wwarning   set or reset (with 'no-' prefix) 'warning' (see man page)\n"
+        "  -w          disable all warnings\n"
+        "Preprocessor options:\n"
+        "  -E          preprocess only\n"
+        "  -Idir       add include path 'dir'\n"
 #else
-           "usage: tcc [-v] [-c] [-o outfile] [-Bdir] [-bench] [-Idir] [-Dsym[=val]] [-Usym]\n"
-           "           [-Wwarn] [-g] [-b] [-bt N] [-Ldir] [-llib] [-shared] [-soname name]\n"
-           "           [-static] [infile1 infile2...] [-run infile args...]\n"
-           "\n"
-           "General options:\n"
-           "  -v          display current version, increase verbosity\n"
-           "  -c          compile only - generate an object file\n"
-           "  -o outfile  set output filename\n"
-           "  -Bdir       set tcc internal library path\n"
-           "  -bench      output compilation statistics\n"
-           "  -run        run compiled source\n"
-           "  -fflag      set or reset (with 'no-' prefix) 'flag' (see man page)\n"
-           "  -Wwarning   set or reset (with 'no-' prefix) 'warning' (see man page)\n"
-           "  -w          disable all warnings\n"
-           "Preprocessor options:\n"
-           "  -E          preprocess only\n"
-           "  -Idir       add include path 'dir'\n"
-           "  -Dsym[=val] define 'sym' with value 'val'\n"
-           "  -Usym       undefine 'sym'\n"
-           "Linker options:\n"
-           "  -Ldir       add library path 'dir'\n"
-           "  -llib       link with dynamic or static library 'lib'\n"
-           "  -shared     generate a shared library\n"
-           "  -soname     set name for shared library to be used at runtime\n"
-           "  -static     static linking\n"
-           "  -rdynamic   export all global symbols to dynamic linker\n"
-           "  -r          generate (relocatable) object file\n"
-           "Debugger options:\n"
-           "  -g          generate runtime debug info\n"
+        "usage: tcc [-v] [-c] [-o outfile] [-Bdir] [-bench] [-Idir] [-Dsym[=val]] [-Usym]\n"
+        "           [-Wwarn] [-g] [-b] [-bt N] [-Ldir] [-llib] [-shared] [-soname name]\n"
+        "           [-static] [infile1 infile2...] [-run infile args...]\n"
+        "\n"
+        "General options:\n"
+        "  -v          display current version, increase verbosity\n"
+        "  -c          compile only - generate an object file\n"
+        "  -o outfile  set output filename\n"
+        "  -Bdir       set tcc internal library path\n"
+        "  -bench      output compilation statistics\n"
+        "  -run        run compiled source\n"
+        "  -fflag      set or reset (with 'no-' prefix) 'flag' (see man page)\n"
+        "  -Wwarning   set or reset (with 'no-' prefix) 'warning' (see man page)\n"
+        "  -w          disable all warnings\n"
+        "Preprocessor options:\n"
+        "  -E          preprocess only\n"
+        "  -Idir       add include path 'dir'\n"
+        "  -Dsym[=val] define 'sym' with value 'val'\n"
+        "  -Usym       undefine 'sym'\n"
+        "Linker options:\n"
+        "  -Ldir       add library path 'dir'\n"
+        "  -llib       link with dynamic or static library 'lib'\n"
+        "  -shared     generate a shared library\n"
+        "  -soname     set name for shared library to be used at runtime\n"
+        "  -static     static linking\n"
+        "  -rdynamic   export all global symbols to dynamic linker\n"
+        "  -r          generate (relocatable) object file\n"
+        "Debugger options:\n"
+        "  -g          generate runtime debug info\n"
 #ifdef CONFIG_TCC_BCHECK
-           "  -b          compile with built-in memory and bounds checker (implies -g)\n"
+        "  -b          compile with built-in memory and bounds checker (implies -g)\n"
 #endif
 #ifdef CONFIG_TCC_BACKTRACE
-           "  -bt N       show N callers in stack traces\n"
+        "  -bt N       show N callers in stack traces\n"
 #endif
 #endif
     );
@@ -91,13 +100,20 @@ static int do_bench = 0;
 #define TCC_OPTION_HAS_ARG 0x0001
 #define TCC_OPTION_NOSEP 0x0002 /* cannot have space before option and arg */
 
+/**
+ * @struct TCCOption
+ * @brief Structure representing a TCC option.
+ */
 typedef struct TCCOption
 {
-    const char *name;
-    uint16_t index;
-    uint16_t flags;
+    const char *name; /**< Option name */
+    uint16_t index;   /**< Option index */
+    uint16_t flags;   /**< Option flags */
 } TCCOption;
 
+/* The above code is defining an enumeration in the C programming language. The enumeration consists of
+various options that can be used with a program or library built with the Tiny C Compiler (TCC).
+Each option is assigned a unique integer value starting from 0. */
 enum {
     TCC_OPTION_HELP,
     TCC_OPTION_I,
@@ -133,45 +149,52 @@ enum {
     TCC_OPTION_x,
 };
 
+/**
+ * @brief Array of TCC options.
+ */
 static const TCCOption tcc_options[] = {
-    {"h", TCC_OPTION_HELP, 0},
-    {"?", TCC_OPTION_HELP, 0},
-    {"I", TCC_OPTION_I, TCC_OPTION_HAS_ARG},
-    {"D", TCC_OPTION_D, TCC_OPTION_HAS_ARG},
-    {"U", TCC_OPTION_U, TCC_OPTION_HAS_ARG},
-    {"L", TCC_OPTION_L, TCC_OPTION_HAS_ARG},
-    {"B", TCC_OPTION_B, TCC_OPTION_HAS_ARG},
-    {"l", TCC_OPTION_l, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP},
-    {"bench", TCC_OPTION_bench, 0},
-    {"bt", TCC_OPTION_bt, TCC_OPTION_HAS_ARG},
+    {"h", TCC_OPTION_HELP, 0},                                  /**< Print help message */
+    {"?", TCC_OPTION_HELP, 0},                                  /**< Print help message */
+    {"I", TCC_OPTION_I, TCC_OPTION_HAS_ARG},                    /**< Include directory */
+    {"D", TCC_OPTION_D, TCC_OPTION_HAS_ARG},                    /**< Define macro */
+    {"U", TCC_OPTION_U, TCC_OPTION_HAS_ARG},                    /**< Undefine macro */
+    {"L", TCC_OPTION_L, TCC_OPTION_HAS_ARG},                    /**< Library directory */
+    {"B", TCC_OPTION_B, TCC_OPTION_HAS_ARG},                    /**< Linker option */
+    {"l", TCC_OPTION_l, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP}, /**< Link library */
+    {"bench", TCC_OPTION_bench, 0},                             /**< Run benchmark */
+    {"bt", TCC_OPTION_bt, TCC_OPTION_HAS_ARG},                  /**< Set traceback level */
 #ifdef CONFIG_TCC_BCHECK
-    {"b", TCC_OPTION_b, 0},
+    {"b", TCC_OPTION_b, 0}, /**< Perform bounds checking */
 #endif
-    {"g", TCC_OPTION_g, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP},
-    {"c", TCC_OPTION_c, 0},
-    {"static", TCC_OPTION_static, 0},
-    {"shared", TCC_OPTION_shared, 0},
-    {"soname", TCC_OPTION_soname, TCC_OPTION_HAS_ARG},
-    {"o", TCC_OPTION_o, TCC_OPTION_HAS_ARG},
-    {"run", TCC_OPTION_run, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP},
-    {"rdynamic", TCC_OPTION_rdynamic, 0},
-    {"r", TCC_OPTION_r, 0},
-    {"Wl,", TCC_OPTION_Wl, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP},
-    {"W", TCC_OPTION_W, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP},
-    {"O", TCC_OPTION_O, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP},
-    {"m", TCC_OPTION_m, TCC_OPTION_HAS_ARG},
-    {"f", TCC_OPTION_f, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP},
-    {"nostdinc", TCC_OPTION_nostdinc, 0},
-    {"nostdlib", TCC_OPTION_nostdlib, 0},
-    {"print-search-dirs", TCC_OPTION_print_search_dirs, 0},
-    {"v", TCC_OPTION_v, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP},
-    {"w", TCC_OPTION_w, 0},
-    {"pipe", TCC_OPTION_pipe, 0},
-    {"E", TCC_OPTION_E, 0},
-    {"x", TCC_OPTION_x, TCC_OPTION_HAS_ARG},
-    {NULL},
+    {"g", TCC_OPTION_g, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP},     /**< Generate debug info */
+    {"c", TCC_OPTION_c, 0},                                         /**< Compile only */
+    {"static", TCC_OPTION_static, 0},                               /**< Generate static library */
+    {"shared", TCC_OPTION_shared, 0},                               /**< Generate shared library */
+    {"soname", TCC_OPTION_soname, TCC_OPTION_HAS_ARG},              /**< Set shared library name */
+    {"o", TCC_OPTION_o, TCC_OPTION_HAS_ARG},                        /**< Output file */
+    {"run", TCC_OPTION_run, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP}, /**< Run the compiled code */
+    {"rdynamic", TCC_OPTION_rdynamic, 0}, /**< Export symbols to the dynamic symbol table */
+    {"r", TCC_OPTION_r, 0},               /**< Generate relocatable output */
+    {"Wl,", TCC_OPTION_Wl, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP}, /**< Pass option to linker */
+    {"W", TCC_OPTION_W, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP},    /**< Warning level */
+    {"O", TCC_OPTION_O, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP},    /**< Optimization level */
+    {"m", TCC_OPTION_m, TCC_OPTION_HAS_ARG}, /**< Set architecture-specific options */
+    {"f", TCC_OPTION_f, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP}, /**< Compiler flag */
+    {"nostdinc", TCC_OPTION_nostdinc, 0}, /**< Do not search standard include directories */
+    {"nostdlib", TCC_OPTION_nostdlib, 0}, /**< Do not use standard system libraries */
+    {"print-search-dirs", TCC_OPTION_print_search_dirs, 0},     /**< Print search directories */
+    {"v", TCC_OPTION_v, TCC_OPTION_HAS_ARG | TCC_OPTION_NOSEP}, /**< Verbose output */
+    {"w", TCC_OPTION_w, 0},                                     /**< Suppress warning messages */
+    {"pipe", TCC_OPTION_pipe, 0},            /**< Use pipes for intermediate output */
+    {"E", TCC_OPTION_E, 0},                  /**< Preprocess only */
+    {"x", TCC_OPTION_x, TCC_OPTION_HAS_ARG}, /**< Specify input language */
+    {NULL},                                  /**< Null-terminated option */
 };
 
+/**
+ * @brief Get the current time in microseconds.
+ * @return The current time in microseconds.
+ */
 static int64_t getclock_us(void)
 {
 #ifdef _WIN32
@@ -185,6 +208,20 @@ static int64_t getclock_us(void)
 #endif
 }
 
+/**
+ * @brief Check if a string starts with a given value.
+ *
+ * This function checks if the string pointed to by @p str starts with the
+ * value pointed to by @p val. If the @p ptr parameter is not NULL, it can be
+ * used to store a pointer to the character in @p str that follows the matched
+ * value.
+ *
+ * @param str The string to check.
+ * @param val The value to compare.
+ * @param ptr Pointer to store the character after the matched value.
+ *
+ * @return 1 if the string starts with the value, 0 otherwise.
+ */
 static int strstart(const char *str, const char *val, const char **ptr)
 {
     const char *p, *q;
@@ -201,7 +238,19 @@ static int strstart(const char *str, const char *val, const char **ptr)
     return 1;
 }
 
-/* convert 'str' into an array of space separated strings */
+/**
+ * @brief Expand command-line arguments from a string.
+ *
+ * This function expands command-line arguments from a string by splitting it
+ * into individual arguments based on whitespace. The expanded arguments are
+ * stored in the dynamically allocated array `argv`, and the number of arguments
+ * is returned as `argc`.
+ *
+ * @param pargv Pointer to store the expanded arguments.
+ * @param str The input string containing the command-line arguments.
+ *
+ * @return The number of expanded arguments.
+ */
 static int expand_args(char ***pargv, const char *str)
 {
     const char *s1;
@@ -228,6 +277,18 @@ static int expand_args(char ***pargv, const char *str)
     return argc;
 }
 
+/**
+ * @brief The function parses command line arguments and sets various options and flags accordingly.
+ *
+ * @param s A pointer to a TCCState struct, which contains the state of the Tiny C Compiler.
+ * @param argc The number of command line arguments passed to the program, including the name of the
+ * program itself.
+ * @param argv `argv` is a pointer to an array of strings, where each string represents a command line
+ * argument passed to the program.
+ *
+ * @return an integer value, which is the index of the next argument after the last one processed by
+ * the function.
+ */
 int parse_args(TCCState *s, int argc, char **argv)
 {
     int optind;
@@ -433,6 +494,18 @@ int parse_args(TCCState *s, int argc, char **argv)
     return optind + 1;
 }
 
+/**
+ * @brief The entry point of the program.
+ *
+ * This function is the entry point of the program. It parses the command-line arguments,
+ * sets up the TCC state, processes the input files, and generates the output based on
+ * the specified options.
+ *
+ * @param argc The number of command-line arguments.
+ * @param argv An array of command-line arguments.
+ *
+ * @return The exit status of the program.
+ */
 int main(int argc, char **argv)
 {
     int i;

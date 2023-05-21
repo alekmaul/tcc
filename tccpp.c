@@ -32,10 +32,16 @@ static const unsigned char tok_two_chars[]
 /* true if isid(c) || isnum(c) */
 static unsigned char isidnum_table[256 - CH_EOF];
 
+/**
+ * @brief Represents a level in the macro expansion stack.
+ *
+ * The `macro_level` struct represents a level in the macro expansion stack. It
+ * keeps track of the previous level and a pointer to an integer value (`p`).
+ */
 struct macro_level
 {
-    struct macro_level *prev;
-    int *p;
+    struct macro_level *prev; /**< Pointer to the previous macro level. */
+    int *p;                   /**< Pointer to an integer value. */
 };
 
 static void next_nomacro(void);
@@ -45,7 +51,19 @@ static void macro_subst(TokenString *tok_str,
                         const int *macro_str,
                         struct macro_level **can_read_stream);
 
-/* allocate a new token */
+/**
+ * @brief Allocate a new TokenSym structure and add it to the token table.
+ *
+ * The `tok_alloc_new` function allocates a new `TokenSym` structure with the
+ * specified string `str` and length `len`. It then adds the structure to the
+ * token table and returns a pointer to it.
+ *
+ * @param pts Pointer to the pointer to the token symbol table.
+ * @param str The string value of the token.
+ * @param len The length of the token string.
+ * @return Pointer to the newly allocated TokenSym structure.
+ * @throw Error message if memory allocation fails.
+ */
 static TokenSym *tok_alloc_new(TokenSym **pts, const char *str, int len)
 {
     TokenSym *ts, **ptable;
@@ -81,7 +99,20 @@ static TokenSym *tok_alloc_new(TokenSym **pts, const char *str, int len)
 #define TOK_HASH_INIT 1
 #define TOK_HASH_FUNC(h, c) ((h) *263 + (c))
 
-/* find a token and add it if not found */
+/**
+ * @brief Allocate a new TokenSym structure or retrieve an existing one from the token table.
+ *
+ * The `tok_alloc` function calculates the hash value for the given string `str`
+ * and length `len` to determine the bucket in the token table. It then searches
+ * the bucket for an existing `TokenSym` structure with the same string. If found,
+ * the existing structure is returned. Otherwise, a new `TokenSym` structure is
+ * allocated, added to the token table, and returned.
+ *
+ * @param str The string value of the token.
+ * @param len The length of the token string.
+ * @return Pointer to the allocated or existing TokenSym structure.
+ * @throw Error message if memory allocation fails.
+ */
 static TokenSym *tok_alloc(const char *str, int len)
 {
     TokenSym *ts, **pts;
@@ -105,8 +136,18 @@ static TokenSym *tok_alloc(const char *str, int len)
     return tok_alloc_new(pts, str, len);
 }
 
-/* XXX: buffer overflow */
-/* XXX: float tokens */
+/**
+ * @brief Get the string representation of a token.
+ *
+ * The `get_tok_str` function returns the string representation of the token
+ * with the specified value `v` and associated `CValue` `cv`. The resulting
+ * string is stored in a static buffer.
+ *
+ * @param v The token value.
+ * @param cv The associated CValue.
+ * @return Pointer to the string representation of the token.
+ * @note The returned pointer is valid until the next call to `get_tok_str`.
+ */
 char *get_tok_str(int v, CValue *cv)
 {
     static char buf[STRING_MAX_SIZE + 1];
@@ -248,14 +289,25 @@ static int tcc_peekc_slow(BufferedFile *bf)
     }
 }
 
-/* return the current character, handling end of block if necessary
-   (but not stray) */
+/**
+ * @brief Return the current character, handling end of block if necessary.
+ *
+ * The `handle_eob` function returns the current character in the input file.
+ * It handles the end of block if necessary, but not stray characters.
+ *
+ * @return The current character.
+ */
 static int handle_eob(void)
 {
     return tcc_peekc_slow(file);
 }
 
-/* read next char from current input file and handle end of input buffer */
+/**
+ * @brief Read the next character from the current input file and handle the end of the input buffer.
+ *
+ * The `inp` function reads the next character from the current input file and updates the `ch` variable.
+ * It also handles the end of the input buffer, invoking the `handle_eob` function if necessary.
+ */
 static inline void inp(void)
 {
     ch = *(++(file->buf_ptr));
@@ -264,7 +316,14 @@ static inline void inp(void)
         ch = handle_eob();
 }
 
-/* handle '\[\r]\n' */
+/**
+ * @brief Handle the stray '\\' characters without reporting an error.
+ *
+ * The `handle_stray_noerror` function handles the stray '\\' characters in the input file.
+ * It skips over the escaped newlines ('\n' and '\r\n') without reporting an error.
+ *
+ * @return 0 if no error occurred, 1 if an incorrect character follows the stray.
+ */
 static int handle_stray_noerror(void)
 {
     while (ch == '\\') {
@@ -286,14 +345,27 @@ static int handle_stray_noerror(void)
     return 0;
 }
 
+/**
+ * @brief Handle the stray '\\' characters in the input file.
+ *
+ * The `handle_stray` function handles the stray '\\' characters in the input file.
+ * If an incorrect character follows the stray, it reports an error using the `error` function.
+ */
 static void handle_stray(void)
 {
     if (handle_stray_noerror())
         error("stray '\\' in program");
 }
 
-/* skip the stray and handle the \\n case. Output an error if
-   incorrect char after the stray */
+/**
+ * @brief Skip the stray '\\' characters and handle the '\\n' case.
+ *
+ * The `handle_stray1` function skips over the stray '\\' characters in the input file and handles the '\\n' case.
+ * If an incorrect character follows the stray, it reports an error using the `error` function.
+ *
+ * @param p The current position in the input buffer.
+ * @return The next character after skipping the stray.
+ */
 static int handle_stray1(uint8_t *p)
 {
     int c;
@@ -315,7 +387,15 @@ static int handle_stray1(uint8_t *p)
     return c;
 }
 
-/* handle just the EOB case, but not stray */
+/**
+ * @brief Peek the next character from the input buffer, handling only the end of buffer (EOB) case.
+ *
+ * The `PEEKC_EOB` macro peeks the next character (`c`) from the input buffer at position `p`.
+ * If the character is '\\', it updates the buffer pointer (`file->buf_ptr`) and invokes the `handle_eob` function.
+ *
+ * @param c The character to store the result.
+ * @param p The current position in the input buffer.
+ */
 #define PEEKC_EOB(c, p)        \
     {                          \
         p++;                   \
@@ -327,7 +407,15 @@ static int handle_stray1(uint8_t *p)
         }                      \
     }
 
-/* handle the complicated stray case */
+/**
+ * @brief Peek the next character from the input buffer, handling the complicated stray case.
+ *
+ * The `PEEKC` macro peeks the next character (`c`) from the input buffer at position `p`.
+ * If the character is '\\', it invokes the `handle_stray1` function to handle the stray case.
+ *
+ * @param c The character to store the result.
+ * @param p The current position in the input buffer.
+ */
 #define PEEKC(c, p)               \
     {                             \
         p++;                      \
@@ -338,9 +426,13 @@ static int handle_stray1(uint8_t *p)
         }                         \
     }
 
-/* input with '\[\r]\n' handling. Note that this function cannot
-   handle other characters after '\', so you cannot call it inside
-   strings or comments */
+/**
+ * @brief Read the next character from the current input file and handle the '\\\[\r]\n' case.
+ *
+ * The `minp` function reads the next character (`ch`) from the current input file and handles the case where the character is '\\'.
+ * If the next character is '\\', it invokes the `handle_stray` function to handle the stray case.
+ * This function should not be called inside strings or comments as it cannot handle other characters after '\\'.
+ */
 static void minp(void)
 {
     inp();
@@ -348,7 +440,16 @@ static void minp(void)
         handle_stray();
 }
 
-/* single line C++ comments */
+/**
+ * @brief Parse a single line C++ comment.
+ *
+ * The `parse_line_comment` function parses a single line C++ comment starting at position `p` in the input buffer.
+ * It scans the input until it encounters a newline character ('\n') or the end of file (CH_EOF).
+ * The function handles the '\\\[\r]\n' case where stray '\\' characters and newline characters are processed correctly.
+ *
+ * @param p The current position in the input buffer.
+ * @return A pointer to the next position in the input buffer after the comment.
+ */
 static uint8_t *parse_line_comment(uint8_t *p)
 {
     int c;
@@ -385,7 +486,16 @@ static uint8_t *parse_line_comment(uint8_t *p)
     return p;
 }
 
-/* C comments */
+/**
+ * @brief Parse a C-style comment.
+ *
+ * The `parse_comment` function parses a C-style comment starting at position `p` in the input buffer.
+ * It scans the input until it reaches the end of the comment.
+ * The function handles various cases, including handling stray characters, newline characters, and the '\\\[\r]\n' case within the comment.
+ *
+ * @param p The current position in the input buffer.
+ * @return A pointer to the next position in the input buffer after the comment.
+ */
 static uint8_t *parse_comment(uint8_t *p)
 {
     int c;
@@ -461,12 +571,29 @@ end_of_comment:
 
 #define cinp minp
 
+/**
+ * @brief Skip consecutive space characters.
+ *
+ * The `skip_spaces` function skips over consecutive space characters in the input stream.
+ */
 static inline void skip_spaces(void)
 {
     while (is_space(ch))
         cinp();
 }
 
+/**
+ * @brief Check if a character is a space character.
+ *
+ * The `check_space` function checks if a character `t` is a space character.
+ * It maintains the state of space detection using the `spc` parameter.
+ * If `t` is a space character and the `spc` flag is not set, it sets the flag and returns 1.
+ * Otherwise, it clears the flag and returns 0.
+ *
+ * @param t The character to check.
+ * @param spc A pointer to the space detection flag.
+ * @return 1 if `t` is a space character and the `spc` flag was not set, 0 otherwise.
+ */
 static inline int check_space(int t, int *spc)
 {
     if (is_space(t)) {
@@ -478,7 +605,20 @@ static inline int check_space(int t, int *spc)
     return 0;
 }
 
-/* parse a string without interpreting escapes */
+/**
+ * @brief Parse a string without interpreting escapes.
+ *
+ * The `parse_pp_string` function parses a string without interpreting escapes starting at position `p` in the input buffer.
+ * The `sep` parameter specifies the string delimiter character.
+ * The function scans the input until it reaches the closing delimiter character.
+ * It handles various cases, including escapes, newline characters, and the '\\\[\r]\n' case within the string.
+ * The parsed string is stored in the `str` buffer if provided.
+ *
+ * @param p The current position in the input buffer.
+ * @param sep The string delimiter character.
+ * @param str A pointer to the `CString` buffer to store the parsed string (or NULL if not needed).
+ * @return A pointer to the next position in the input buffer after the string.
+ */
 static uint8_t *parse_pp_string(uint8_t *p, int sep, CString *str)
 {
     int c;
@@ -540,8 +680,13 @@ static uint8_t *parse_pp_string(uint8_t *p, int sep, CString *str)
     return p;
 }
 
-/* skip block of text until #else, #elif or #endif. skip also pairs of
-   #if/#endif */
+/**
+ * @brief Skip a block of text until #else, #elif, or #endif.
+ *
+ * The `preprocess_skip` function is used to skip a block of text in the input until it reaches an `#else`, `#elif`, or `#endif` directive.
+ * It also skips pairs of `#if` and `#endif` directives.
+ * This function is typically called during preprocessing when evaluating conditional compilation directives.
+ */
 void preprocess_skip(void)
 {
     int a, start_of_line, c, in_warn_or_error;
@@ -626,13 +771,15 @@ the_end:;
     file->buf_ptr = p;
 }
 
-/* ParseState handling */
-
-/* XXX: currently, no include file info is stored. Thus, we cannot display
-   accurate messages if the function or data definition spans multiple
-   files */
-
-/* save current parse state in 's' */
+/**
+ * @brief Save the current parse state.
+ *
+ * The `save_parse_state` function is used to save the current parse state in the given `ParseState` structure.
+ * It saves information such as the current line number, macro pointer, token, and token character.
+ * This function is typically used to preserve the parse state before performing certain operations or error handling.
+ *
+ * @param s The `ParseState` structure to save the parse state into.
+ */
 void save_parse_state(ParseState *s)
 {
     s->line_num = file->line_num;
@@ -641,7 +788,15 @@ void save_parse_state(ParseState *s)
     s->tokc = tokc;
 }
 
-/* restore parse state from 's' */
+/**
+ * @brief Restore the parse state from the given `ParseState` structure.
+ *
+ * The `restore_parse_state` function restores the parse state from the provided `ParseState` structure.
+ * It sets the line number, macro pointer, token, and token character to their respective values stored in the structure.
+ * This function is typically used after a `save_parse_state` operation to revert back to a previous parse state.
+ *
+ * @param s The `ParseState` structure containing the parse state to restore.
+ */
 void restore_parse_state(ParseState *s)
 {
     file->line_num = s->line_num;
@@ -650,8 +805,15 @@ void restore_parse_state(ParseState *s)
     tokc = s->tokc;
 }
 
-/* return the number of additional 'ints' necessary to store the
-   token */
+/**
+ * @brief Return the number of additional `int`s necessary to store the token.
+ *
+ * The `tok_ext_size` function returns the number of additional `int` values required to store the specified token.
+ * It is used to determine the size of the array needed to store token information.
+ *
+ * @param t The token value.
+ * @return The number of additional `int`s necessary to store the token.
+ */
 static inline int tok_ext_size(int t)
 {
     switch (t) {
@@ -683,8 +845,15 @@ static inline int tok_ext_size(int t)
     }
 }
 
-/* token string handling */
-
+/**
+ * @brief Initialize a `TokenString` structure.
+ *
+ * The `tok_str_new` function initializes a `TokenString` structure.
+ * It sets the `str` pointer to `NULL`, the `len` to `0`, the `allocated_len` to `0`, and the `last_line_num` to `-1`.
+ * This function is typically used before appending tokens to a token string.
+ *
+ * @param s The `TokenString` structure to initialize.
+ */
 static inline void tok_str_new(TokenString *s)
 {
     s->str = NULL;
@@ -693,11 +862,31 @@ static inline void tok_str_new(TokenString *s)
     s->last_line_num = -1;
 }
 
+/**
+ * @brief Free the memory allocated for a token string.
+ *
+ * The `tok_str_free` function frees the memory allocated for a token string.
+ * It takes the address of the token string as an argument and releases the memory using `tcc_free`.
+ * This function should be called when the token string is no longer needed to avoid memory leaks.
+ *
+ * @param str The address of the token string to free.
+ */
 static void tok_str_free(int *str)
 {
     tcc_free(str);
 }
 
+/**
+ * @brief Reallocate memory for a token string.
+ *
+ * The `tok_str_realloc` function reallocates memory for a token string.
+ * It takes a `TokenString` structure as an argument and doubles the allocated length of the token string's `str` array.
+ * If the allocation fails, an error message is displayed.
+ * This function is used when appending tokens to a token string and the current memory allocation is insufficient.
+ *
+ * @param s The `TokenString` structure to reallocate memory for.
+ * @return The pointer to the reallocated `str` array.
+ */
 static int *tok_str_realloc(TokenString *s)
 {
     int *str, len;
@@ -715,6 +904,17 @@ static int *tok_str_realloc(TokenString *s)
     return str;
 }
 
+/**
+ * @brief Add a token to the token string.
+ *
+ * The `tok_str_add` function adds a token to the token string.
+ * It takes a `TokenString` structure and a token value as arguments.
+ * If the length of the token string exceeds the allocated length, it reallocates memory to accommodate the additional token.
+ * The token is appended to the end of the token string.
+ *
+ * @param s The `TokenString` structure representing the token string.
+ * @param t The token value to add.
+ */
 static void tok_str_add(TokenString *s, int t)
 {
     int len, *str;
@@ -727,6 +927,18 @@ static void tok_str_add(TokenString *s, int t)
     s->len = len;
 }
 
+/**
+ * @brief Add a token and its associated value to the token string.
+ *
+ * The `tok_str_add2` function adds a token and its associated value to the token string.
+ * It takes a `TokenString` structure, a token value, and a `CValue` structure as arguments.
+ * If the length of the token string plus the size of the token value exceeds the allocated length, it reallocates memory to accommodate the additional data.
+ * Both the token and its associated value are appended to the end of the token string.
+ *
+ * @param s The `TokenString` structure representing the token string.
+ * @param t The token value to add.
+ * @param cv The `CValue` structure representing the associated value of the token.
+ */
 static void tok_str_add2(TokenString *s, int t, CValue *cv)
 {
     int len, *str;
@@ -799,7 +1011,15 @@ static void tok_str_add2(TokenString *s, int t, CValue *cv)
     s->len = len;
 }
 
-/* add the current parse token in token string 's' */
+/**
+ * @brief Add the current parse token to the token string.
+ *
+ * The `tok_str_add_tok` function adds the current parse token to the token string.
+ * It saves the line number information and appends the token and its associated value to the token string.
+ * This function is typically used during parsing to add tokens to the token string for further processing or analysis.
+ *
+ * @param s The `TokenString` structure representing the token string.
+ */
 static void tok_str_add_tok(TokenString *s)
 {
     CValue cval;
