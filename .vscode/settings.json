@@ -9,9 +9,13 @@
     "[c]": {
         "editor.semanticHighlighting.enabled": true,
     },
+    "[assembly]": {
+        "editor.detectIndentation": false,
+    },
     "files.associations": {
         "*.1": "c"
     },
     "C_Cpp.dimInactiveRegions": true,
+    // Use .clang-format file instead of the vscode extension (c_cpp)
     "C_Cpp.clang_format_style": "file"
 }

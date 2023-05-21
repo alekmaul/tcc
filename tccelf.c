@@ -33,6 +33,17 @@
 /* XXX: DLL with PLT would only work with x86-64 for now */
 //#define TCC_OUTPUT_DLL_WITH_PLT
 
+/**
+ * @brief Write a string to an ELF section.
+ *
+ * This function writes a null-terminated string `sym` to the ELF section `s`.
+ * It returns the offset in the section where the string is written.
+ *
+ * @param s The ELF section to write the string to.
+ * @param sym The null-terminated string to write.
+ *
+ * @return The offset in the section where the string is written.
+ */
 static int put_elf_str(Section *s, const char *sym)
 {
     int offset, len;
@@ -45,7 +56,17 @@ static int put_elf_str(Section *s, const char *sym)
     return offset;
 }
 
-/* elf symbol hashing function */
+/**
+ * @brief Compute the ELF hash value for a given name.
+ *
+ * This function computes the ELF hash value for the given null-terminated string `name`.
+ * It iterates over each character of the string, performing bitwise operations to update
+ * the hash value. The computed hash value is returned.
+ *
+ * @param name The null-terminated string for which to compute the ELF hash.
+ *
+ * @return The computed ELF hash value.
+ */
 static unsigned long elf_hash(const unsigned char *name)
 {
     unsigned long h = 0, g;
@@ -60,8 +81,17 @@ static unsigned long elf_hash(const unsigned char *name)
     return h;
 }
 
-/* rebuild hash table of section s */
-/* NOTE: we do factorize the hash table code to go faster */
+/**
+ * @brief Rebuild the hash table for a section.
+ *
+ * This function rebuilds the hash table for the given section `s` with the specified
+ * number of buckets `nb_buckets`. It updates the hash table data, bucket counts, and
+ * symbol indices based on the section's data and string table. The rebuilt hash table
+ * is stored in the section's `hash` member.
+ *
+ * @param s The section for which to rebuild the hash table.
+ * @param nb_buckets The number of buckets in the hash table.
+ */
 static void rebuild_hash(Section *s, unsigned int nb_buckets)
 {
     ElfW(Sym) * sym;
@@ -94,7 +124,24 @@ static void rebuild_hash(Section *s, unsigned int nb_buckets)
     }
 }
 
-/* return the symbol number */
+/**
+ * @brief Write an ELF symbol entry to a section.
+ *
+ * This function writes an ELF symbol entry to the given section `s` with the specified
+ * `value`, `size`, `info`, `other`, `shndx`, and `name`. It computes the offset for the
+ * symbol's name and sets the values of the ELF symbol structure accordingly. The function
+ * also updates the corresponding hash table entry if the section has a hash table.
+ *
+ * @param s The section to write the ELF symbol entry to.
+ * @param value The value of the symbol.
+ * @param size The size of the symbol.
+ * @param info The symbol information.
+ * @param other The symbol visibility and other attributes.
+ * @param shndx The section index of the symbol.
+ * @param name The name of the symbol.
+ *
+ * @return The index of the written symbol in the section's data.
+ */
 static int put_elf_sym(Section *s,
                        unsigned long value,
                        unsigned long size,
@@ -147,8 +194,20 @@ static int put_elf_sym(Section *s,
     return sym_index;
 }
 
-/* find global ELF symbol 'name' and return its index. Return 0 if not
-   found. */
+/**
+ * @brief Find an ELF symbol index by name in a section.
+ *
+ * This function searches for an ELF symbol with the given `name` in the section `s`.
+ * If the section has a hash table, it uses the ELF hash algorithm to determine the
+ * symbol's hash bucket and iterates through the linked list of symbols in that bucket
+ * to find a matching symbol by name. The function returns the index of the matching
+ * symbol in the section's data, or 0 if no match is found.
+ *
+ * @param s The section to search for the symbol.
+ * @param name The name of the symbol to find.
+ *
+ * @return The index of the matching symbol, or 0 if not found.
+ */
 static int find_elf_sym(Section *s, const char *name)
 {
     ElfW(Sym) * sym;
@@ -173,7 +232,20 @@ static int find_elf_sym(Section *s, const char *name)
 }
 
 #ifdef TCC_TARGET_816
-/* return elf symbol value or error */
+/**
+ * @brief Get an ELF symbol by name and update its value.
+ *
+ * This function searches for an ELF symbol with the given `name` in the symbol table
+ * section `symtab_section` and updates the value pointed to by `pval` with the symbol's
+ * value. If the symbol is found, a pointer to the symbol structure is returned. If the
+ * symbol is not found, NULL is returned.
+ *
+ * @param s The TCC state.
+ * @param pval Pointer to store the symbol's value.
+ * @param name The name of the symbol to find.
+ *
+ * @return Pointer to the ELF symbol structure if found, or NULL if not found.
+ */
 ElfW(Sym) * tcc_really_get_symbol(TCCState *s, unsigned long *pval, const char *name)
 {
     int sym_index;
@@ -188,7 +260,18 @@ ElfW(Sym) * tcc_really_get_symbol(TCCState *s, unsigned long *pval, const char *
 }
 #endif
 
-/* return elf symbol value or error */
+/**
+ * @brief Get the value of an ELF symbol by name.
+ *
+ * This function searches for an ELF symbol with the given `name` in the symbol table
+ * section `symtab_section`. If the symbol is found, it returns a void pointer to the
+ * symbol's value. If the symbol is not found, NULL is returned.
+ *
+ * @param s The TCC state.
+ * @param name The name of the symbol to find.
+ *
+ * @return Void pointer to the symbol's value if found, or NULL if not found.
+ */
 void *tcc_get_symbol(TCCState *s, const char *name)
 {
     int sym_index;
@@ -200,6 +283,19 @@ void *tcc_get_symbol(TCCState *s, const char *name)
     return (void *) (uplong) sym->st_value;
 }
 
+/**
+ * @brief Get the value of an ELF symbol by name with error handling.
+ *
+ * This function retrieves the value of an ELF symbol with the given `name` using
+ * the `tcc_get_symbol` function. If the symbol is found, it returns a void pointer
+ * to the symbol's value. If the symbol is not found, an error message is generated
+ * using the `error` function and NULL is returned.
+ *
+ * @param s The TCC state.
+ * @param name The name of the symbol to find.
+ *
+ * @return Void pointer to the symbol's value if found, or NULL if not found.
+ */
 void *tcc_get_symbol_err(TCCState *s, const char *name)
 {
     void *sym;
@@ -209,8 +305,24 @@ void *tcc_get_symbol_err(TCCState *s, const char *name)
     return sym;
 }
 
-/* add an elf symbol : check if it is already defined and patch
-   it. Return symbol index. NOTE that sh_num can be SHN_UNDEF. */
+/**
+ * @brief Add an ELF symbol to a section.
+ *
+ * This function adds an ELF symbol to the given section `s` with the specified `value`,
+ * `size`, `info`, `other`, `sh_num`, and `name`. It performs symbol lookup and resolution
+ * to handle cases where a symbol is already defined. The function returns the index of the
+ * added or patched symbol in the section's data.
+ *
+ * @param s The section to add the ELF symbol to.
+ * @param value The value of the symbol.
+ * @param size The size of the symbol.
+ * @param info The symbol information.
+ * @param other The symbol visibility and other attributes.
+ * @param sh_num The section index of the symbol.
+ * @param name The name of the symbol.
+ *
+ * @return The index of the added or patched symbol in the section's data.
+ */
 static int add_elf_sym(
     Section *s, uplong value, unsigned long size, int info, int other, int sh_num, const char *name)
 {
@@ -287,7 +399,20 @@ static int add_elf_sym(
     return sym_index;
 }
 
-/* put relocation */
+/**
+ * @brief Add an ELF relocation entry to a relocation section.
+ *
+ * This function adds an ELF relocation entry to the given relocation section `symtab`
+ * based on the provided `s` section, `offset`, `type`, and `symbol`. If the relocation
+ * section does not exist, it is created. The function computes the relocation entry
+ * values and adds the entry to the relocation section.
+ *
+ * @param symtab The symbol table section.
+ * @param s The section associated with the relocation entry.
+ * @param offset The offset within the section where the relocation applies.
+ * @param type The relocation type.
+ * @param symbol The symbol index to apply the relocation.
+ */
 static void put_elf_reloc(Section *symtab, Section *s, unsigned long offset, int type, int symbol)
 {
     char buf[256];
@@ -314,17 +439,35 @@ static void put_elf_reloc(Section *symtab, Section *s, unsigned long offset, int
 #endif
 }
 
-/* put stab debug information */
-
+/**
+ * @brief Debugging symbol entry for the Symbol Table (Stab) format.
+ *
+ * The `Stab_Sym` structure represents a debugging symbol entry in the Symbol Table
+ * (Stab) format.
+ */
 typedef struct
 {
-    unsigned int n_strx;   /* index into string table of name */
-    unsigned char n_type;  /* type of symbol */
-    unsigned char n_other; /* misc info (usually empty) */
-    unsigned short n_desc; /* description field */
-    unsigned int n_value;  /* value of symbol */
+    unsigned int n_strx;   /**< Index into the string table of the symbol's name. */
+    unsigned char n_type;  /**< Type of the symbol. */
+    unsigned char n_other; /**< Miscellaneous information about the symbol (usually empty). */
+    unsigned short n_desc; /**< Description field for additional details about the symbol. */
+    unsigned int n_value;  /**< Value associated with the symbol. */
 } Stab_Sym;
 
+/**
+ * @brief Add a debugging symbol entry to the STABS section.
+ *
+ * This function adds a debugging symbol entry to the STABS section. It creates a new
+ * `Stab_Sym` structure and sets its fields based on the provided parameters: `str`
+ * (symbol name), `type` (symbol type), `other` (miscellaneous information), `desc`
+ * (description), and `value` (symbol value).
+ *
+ * @param str The name of the symbol (string).
+ * @param type The type of the symbol.
+ * @param other Miscellaneous information about the symbol.
+ * @param desc The description field for additional details about the symbol.
+ * @param value The value associated with the symbol.
+ */
 static void put_stabs(const char *str, int type, int other, int desc, unsigned long value)
 {
     Stab_Sym *sym;
@@ -341,6 +484,24 @@ static void put_stabs(const char *str, int type, int other, int desc, unsigned l
     sym->n_value = value;
 }
 
+/**
+ * @brief Add a debugging symbol entry to the STABS section with relocation information.
+ *
+ * This function adds a debugging symbol entry to the STABS section and also adds a
+ * relocation entry to the symbol table section. It creates a new `Stab_Sym` structure
+ * based on the provided parameters: `str` (symbol name), `type` (symbol type), `other`
+ * (miscellaneous information), `desc` (description), and `value` (symbol value). The
+ * function also adds a relocation entry to associate the symbol with the specified
+ * `sym_index` in the symbol table section.
+ *
+ * @param str The name of the symbol (string).
+ * @param type The type of the symbol.
+ * @param other Miscellaneous information about the symbol.
+ * @param desc The description field for additional details about the symbol.
+ * @param value The value associated with the symbol.
+ * @param sec The section associated with the relocation entry.
+ * @param sym_index The index of the symbol in the symbol table section.
+ */
 static void put_stabs_r(
     const char *str, int type, int other, int desc, unsigned long value, Section *sec, int sym_index)
 {
@@ -352,21 +513,55 @@ static void put_stabs_r(
                   sym_index);
 }
 
+/**
+ * @brief Add a debugging symbol entry to the STABS section with a numeric value.
+ *
+ * This function adds a debugging symbol entry to the STABS section with a numeric value.
+ * It creates a new `Stab_Sym` structure based on the provided parameters: `type`
+ * (symbol type), `other` (miscellaneous information), `desc` (description), and `value`
+ * (numeric value). The symbol name is set to `NULL` in this case.
+ *
+ * @param type The type of the symbol.
+ * @param other Miscellaneous information about the symbol.
+ * @param desc The description field for additional details about the symbol.
+ * @param value The numeric value associated with the symbol.
+ */
 static void put_stabn(int type, int other, int desc, int value)
 {
     put_stabs(NULL, type, other, desc, value);
 }
 
+/**
+ * @brief Add a debugging symbol entry to the STABS section with no associated value.
+ *
+ * This function adds a debugging symbol entry to the STABS section with no associated
+ * value. It creates a new `Stab_Sym` structure based on the provided parameters: `type`
+ * (symbol type), `other` (miscellaneous information), and `desc` (description). The
+ * symbol name is set to `NULL` and the value is set to 0 in this case.
+ *
+ * @param type The type of the symbol.
+ * @param other Miscellaneous information about the symbol.
+ * @param desc The description field for additional details about the symbol.
+ */
 static void put_stabd(int type, int other, int desc)
 {
     put_stabs(NULL, type, other, desc, 0);
 }
 
 #ifndef TCC_TARGET_816
-/* In an ELF file symbol table, the local symbols must appear below
-   the global and weak ones. Since TCC cannot sort it while generating
-   the code, we must do it after. All the relocation tables are also
-   modified to take into account the symbol table sorting */
+/**
+ * @brief Sort symbols in a section and update relocations accordingly.
+ *
+ * This function sorts symbols in a section and updates the relocations accordingly.
+ * It performs two passes: first for local symbols and second for non-local symbols.
+ * The function creates new symbol arrays and maps the old symbol indices to the new
+ * ones. It then copies the new symbols to the original section data. Finally, it
+ * modifies all the relocations associated with the section to reflect the updated
+ * symbol indices.
+ *
+ * @param s1 The TCCState object representing the TCC compiler state.
+ * @param s The section containing the symbols to be sorted.
+ */
 static void sort_syms(TCCState *s1, Section *s)
 {
     int *old_to_new_syms;
@@ -425,7 +620,16 @@ static void sort_syms(TCCState *s1, Section *s)
     tcc_free(old_to_new_syms);
 }
 
-/* relocate common symbols in the .bss section */
+/**
+ * @brief Relocate common symbols to the BSS section.
+ *
+ * This function relocates common symbols to the BSS (Block Started by Symbol) section.
+ * It iterates over the symbol table section and identifies symbols with section index
+ * set to SHN_COMMON. For each common symbol, it aligns the symbol value according to
+ * its alignment requirement and updates the section index to point to the BSS section.
+ * It also updates the data offset of the BSS section to accommodate the relocated
+ * symbols.
+ */
 static void relocate_common_syms(void)
 {
     ElfW(Sym) * sym, *sym_end;
@@ -446,8 +650,22 @@ static void relocate_common_syms(void)
     }
 }
 
-/* relocate symbol table, resolve undefined symbols if do_resolve is
-   true and output error if undefined symbol. */
+/**
+ * @brief Relocate symbols in the symbol table.
+ *
+ * This function performs symbol relocation in the symbol table. It iterates over
+ * the symbol table section and processes each symbol. If a symbol has a section
+ * index set to SHN_UNDEF (indicating an undefined symbol), it either resolves the
+ * symbol's address or sets the value to zero depending on the value of `do_resolve`.
+ * If dynamic symbols exist, the function checks if the symbol is present in the
+ * dynamic symbol table and retrieves its value from there. For symbols with a
+ * valid section index, the function adds the section base address to the symbol's
+ * value.
+ *
+ * @param s1 The TCCState object representing the TCC compiler state.
+ * @param do_resolve Flag indicating whether symbol resolution should be performed
+ *                   for undefined symbols.
+ */
 static void relocate_syms(TCCState *s1, int do_resolve)
 {
     ElfW(Sym) * sym, *esym, *sym_end;
@@ -502,6 +720,17 @@ static void relocate_syms(TCCState *s1, int do_resolve)
 #ifndef TCC_TARGET_PE
 #ifdef TCC_TARGET_X86_64
 #define JMP_TABLE_ENTRY_SIZE 14
+/**
+ * @brief Add a jump table entry to the runtime PLT and GOT.
+ *
+ * This function adds a jump table entry to the runtime Procedure Linkage Table (PLT)
+ * and Global Offset Table (GOT). It appends the entry to the runtime PLT and GOT,
+ * updates the offset, and initializes the entry with the required instructions.
+ *
+ * @param s1 The TCCState object representing the TCC compiler state.
+ * @param val The value to be stored in the jump table entry.
+ * @return The address of the added jump table entry.
+ */
 static unsigned long add_jmp_table(TCCState *s1, unsigned long val)
 {
     char *p = s1->runtime_plt_and_got + s1->runtime_plt_and_got_offset;
@@ -514,6 +743,17 @@ static unsigned long add_jmp_table(TCCState *s1, unsigned long val)
     return (unsigned long) p;
 }
 
+/**
+ * @brief Add a Global Offset Table (GOT) entry to the runtime PLT and GOT.
+ *
+ * This function adds a Global Offset Table (GOT) entry to the runtime Procedure Linkage Table (PLT)
+ * and Global Offset Table (GOT). It appends the entry to the runtime PLT and GOT,
+ * updates the offset, and initializes the entry with the given value.
+ *
+ * @param s1 The TCCState object representing the TCC compiler state.
+ * @param val The value to be stored in the GOT entry.
+ * @return The address of the added GOT entry.
+ */
 static unsigned long add_got_table(TCCState *s1, unsigned long val)
 {
     unsigned long *p = (unsigned long *) (s1->runtime_plt_and_got + s1->runtime_plt_and_got_offset);
@@ -524,7 +764,16 @@ static unsigned long add_got_table(TCCState *s1, unsigned long val)
 #endif
 #endif
 
-/* relocate a given section (CPU dependent) */
+/**
+ * @brief Relocate a given section (CPU dependent).
+ *
+ * This function performs relocation for a given section based on the specific
+ * CPU architecture. It applies the necessary relocations to adjust symbol
+ * addresses and resolve references.
+ *
+ * @param s1 The TCCState object representing the TCC compiler state.
+ * @param s The Section object to be relocated.
+ */
 static void relocate_section(TCCState *s1, Section *s)
 {
     Section *sr;
@@ -776,7 +1025,16 @@ static void relocate_section(TCCState *s1, Section *s)
 }
 
 #ifndef TCC_TARGET_816
-/* relocate relocation table in 'sr' */
+/**
+ * @brief Relocate the relocation table in a given section.
+ *
+ * This function performs relocation of the relocation table in a given section.
+ * It adjusts the r_offset field of each relocation entry by adding the sh_addr
+ * of the associated section to the original value.
+ *
+ * @param s1 The TCCState object representing the TCC compiler state.
+ * @param sr The Section object representing the relocation table section.
+ */
 static void relocate_rel(TCCState *s1, Section *sr)
 {
     Section *s;
@@ -789,8 +1047,17 @@ static void relocate_rel(TCCState *s1, Section *sr)
     }
 }
 
-/* count the number of dynamic relocations so that we can reserve
-   their space */
+/**
+ * @brief Count the number of dynamic relocations in a relocation table section.
+ *
+ * This function counts the number of dynamic relocations in a given relocation table section.
+ * It iterates over each relocation entry and examines the type field to determine if it
+ * represents a dynamic relocation. The count of dynamic relocations is returned.
+ *
+ * @param s1 The TCCState object representing the TCC compiler state.
+ * @param sr The Section object representing the relocation table section.
+ * @return The number of dynamic relocations in the section.
+ */
 static int prepare_dynamic_rel(TCCState *s1, Section *sr)
 {
     ElfW_Rel *rel, *rel_end;
@@ -832,6 +1099,17 @@ static int prepare_dynamic_rel(TCCState *s1, Section *sr)
     return count;
 }
 
+/**
+ * @brief Set the Global Offset Table (GOT) offset value.
+ *
+ * This function sets the value of a specific index in the Global Offset Table (GOT).
+ * It takes an index and a value, and stores the value in the corresponding position
+ * in the GOT offsets array.
+ *
+ * @param s1 The TCCState object representing the TCC compiler state.
+ * @param index The index of the GOT offset.
+ * @param val The value to be stored in the GOT offset.
+ */
 static void put_got_offset(TCCState *s1, int index, unsigned long val)
 {
     int n;
@@ -854,7 +1132,16 @@ static void put_got_offset(TCCState *s1, int index, unsigned long val)
     s1->got_offsets[index] = val;
 }
 
-/* XXX: suppress that */
+/**
+ * @brief Write a 32-bit value to memory in little-endian format.
+ *
+ * This function writes a 32-bit value to a memory location specified by the given pointer.
+ * The value is written in little-endian format, with the least significant byte placed
+ * at the lowest memory address.
+ *
+ * @param p A pointer to the memory location where the value will be written.
+ * @param val The 32-bit value to be written.
+ */
 static void put32(unsigned char *p, uint32_t val)
 {
     p[0] = val;
@@ -864,12 +1151,31 @@ static void put32(unsigned char *p, uint32_t val)
 }
 
 #if defined(TCC_TARGET_I386) || defined(TCC_TARGET_ARM) || defined(TCC_TARGET_X86_64)
+/**
+ * @brief Read a 32-bit value from memory in little-endian format.
+ *
+ * This function reads a 32-bit value from a memory location specified by the given pointer.
+ * The value is assumed to be stored in little-endian format, with the least significant byte
+ * located at the lowest memory address.
+ *
+ * @param p A pointer to the memory location from which the value will be read.
+ * @return The 32-bit value read from memory.
+ */
 static uint32_t get32(unsigned char *p)
 {
     return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
 }
 #endif
 
+/**
+ * @brief Build the Global Offset Table (GOT) section.
+ *
+ * This function creates the Global Offset Table (GOT) section if it doesn't already exist.
+ * The GOT is a data structure used for storing global symbol addresses in position-independent code.
+ * It is used for resolving global symbols at runtime.
+ *
+ * @param s1 The TCC state structure.
+ */
 static void build_got(TCCState *s1)
 {
     unsigned char *ptr;
@@ -903,8 +1209,19 @@ static void build_got(TCCState *s1)
 #endif
 }
 
-/* put a got entry corresponding to a symbol in symtab_section. 'size'
-   and 'info' can be modifed if more precise info comes from the DLL */
+/**
+ * @brief Put a Global Offset Table (GOT) entry corresponding to a symbol in `symtab_section`.
+ *
+ * This function adds a GOT entry for the specified symbol in the symbol table section (`symtab_section`).
+ * The `reloc_type`, `size`, `info`, and `sym_index` parameters provide additional information about the symbol.
+ * If a GOT entry already exists for the symbol, no new entry is added.
+ *
+ * @param s1          The TCC state structure.
+ * @param reloc_type  The relocation type associated with the symbol.
+ * @param size        The size of the symbol.
+ * @param info        Additional symbol information, can be modifed if more precise info comes from the DLL.
+ * @param sym_index   The index of the symbol in the symbol table.
+ */
 static void put_got_entry(TCCState *s1, int reloc_type, unsigned long size, int info, int sym_index)
 {
     int index;
@@ -1021,7 +1338,15 @@ static void put_got_entry(TCCState *s1, int reloc_type, unsigned long size, int 
     *ptr = 0;
 }
 
-/* build GOT and PLT entries */
+/**
+ * @brief Build Global Offset Table (GOT) and Procedure Linkage Table (PLT) entries.
+ *
+ * This function iterates over the relocation sections and handles the creation of GOT and PLT entries
+ * based on the relocation types. It checks the relocation type and calls `put_got_entry` to add the
+ * corresponding GOT entry if necessary.
+ *
+ * @param s1  The TCC state structure.
+ */
 static void build_got_entries(TCCState *s1)
 {
     Section *s, *symtab;
@@ -1124,6 +1449,22 @@ static void build_got_entries(TCCState *s1)
 }
 #endif
 
+/**
+ * @brief Create a new symbol table section.
+ *
+ * This function creates a new symbol table section with the specified attributes. It also creates
+ * a corresponding string table section and a hash table section for symbol lookup.
+ *
+ * @param s1              The TCC state structure.
+ * @param symtab_name     The name of the symbol table section.
+ * @param sh_type         The type of the symbol table section.
+ * @param sh_flags        The flags of the symbol table section.
+ * @param strtab_name     The name of the string table section.
+ * @param hash_name       The name of the hash table section.
+ * @param hash_sh_flags   The flags of the hash table section.
+ *
+ * @return The created symbol table section.
+ */
 static Section *new_symtab(TCCState *s1,
                            const char *symtab_name,
                            int sh_type,
@@ -1157,7 +1498,15 @@ static Section *new_symtab(TCCState *s1,
 }
 
 #ifndef TCC_TARGET_816
-/* put dynamic tag */
+/**
+ * @brief Add a dynamic tag to the dynamic section.
+ *
+ * This function adds a dynamic tag with the specified tag value and value to the dynamic section.
+ *
+ * @param dynamic   The dynamic section to add the tag to.
+ * @param dt        The tag value.
+ * @param val       The value associated with the tag.
+ */
 static void put_dt(Section *dynamic, int dt, unsigned long val)
 {
     ElfW(Dyn) * dyn;
@@ -1166,6 +1515,15 @@ static void put_dt(Section *dynamic, int dt, unsigned long val)
     dyn->d_un.d_val = val;
 }
 
+/**
+ * @brief Add the defines for the initialization array start and end symbols.
+ *
+ * This function adds the start and end symbols for the initialization array of a given section.
+ * The symbols are added to the symbol table section.
+ *
+ * @param s1            The TCC state structure.
+ * @param section_name  The name of the section.
+ */
 static void add_init_array_defines(TCCState *s1, const char *section_name)
 {
     Section *s;
@@ -1194,7 +1552,14 @@ static void add_init_array_defines(TCCState *s1, const char *section_name)
                 sym_end);
 }
 
-/* add tcc runtime libraries */
+/**
+ * @brief Add the TCC runtime libraries.
+ *
+ * This function adds the TCC runtime libraries to the compilation process.
+ * It adds the necessary object files and libraries based on the TCC configuration.
+ *
+ * @param s1    The TCC state structure.
+ */
 static void tcc_add_runtime(TCCState *s1)
 {
 #if defined(CONFIG_TCC_BCHECK) || !defined(CONFIG_USE_LIBGCC)
@@ -1255,9 +1620,17 @@ static void tcc_add_runtime(TCCState *s1)
     }
 }
 
-/* add various standard linker symbols (must be done after the
-   sections are filled (for example after allocating common
-   symbols)) */
+/**
+ * @brief Add various standard linker symbols.
+ *
+ * This function adds standard linker symbols such as _etext, _edata, and _end
+ * to the symbol table section. It also adds start and stop symbols for sections
+ * whose names can be expressed in C. Additionally, it adds defines for the
+ * initialization and finalization arrays (preinit_array, init_array, fini_array)
+ * used in ldscripts.
+ *
+ * @param s1    The TCC state structure.
+ */
 static void tcc_add_linker_symbols(TCCState *s1)
 {
     char buf[1024];
@@ -1343,6 +1716,19 @@ static const char elf_interp[] = "/lib/ld-linux.so.2";
 #endif
 #endif
 
+/**
+ * @brief Output the binary executable file.
+ *
+ * This function writes the binary executable file to the specified file stream.
+ * The output format is determined by the target architecture and can be an
+ * object file, an executable file, or any other binary format supported by TCC.
+ *
+ * @param s1              The TCC state structure.
+ * @param f               The file stream to write the output to.
+ * @param section_order   An array specifying the order in which sections should
+ *                        be written to the output. It is an optional parameter,
+ *                        and if NULL, the default order is used.
+ */
 static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
 {
 #ifndef TCC_TARGET_816
@@ -1686,8 +2072,17 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
 #endif
 }
 
-/* output an ELF file */
-/* XXX: suppress unneeded sections */
+/**
+ * @brief Output an ELF file.
+ *
+ * This function writes the ELF file to the specified filename. The ELF file
+ * contains the compiled code, symbols, sections, and other relevant information
+ * based on the TCCState structure.
+ *
+ * @param s1        The TCC state structure.
+ * @param filename  The name of the output ELF file.
+ * @return          0 on success, -1 on failure.
+ */
 int elf_output_file(TCCState *s1, const char *filename)
 {
 #ifndef TCC_TARGET_816
@@ -2422,6 +2817,16 @@ the_end:
     return ret;
 }
 
+/**
+ * @brief Output the compiled code to a file.
+ *
+ * This function writes the compiled code to the specified file based on the
+ * output type specified in the TCCState structure.
+ *
+ * @param s         The TCC state structure.
+ * @param filename  The name of the output file.
+ * @return          0 on success, -1 on failure.
+ */
 int tcc_output_file(TCCState *s, const char *filename)
 {
     int ret;
@@ -2437,6 +2842,18 @@ int tcc_output_file(TCCState *s, const char *filename)
 }
 
 #ifndef TCC_TARGET_816
+/**
+ * @brief Load data from a file into memory.
+ *
+ * This function loads the data from the specified file descriptor starting at
+ * the specified file offset into memory. It allocates memory to store the data
+ * and returns a pointer to the allocated memory.
+ *
+ * @param fd           The file descriptor of the file.
+ * @param file_offset  The offset within the file to start reading from.
+ * @param size         The size of the data to read.
+ * @return             A pointer to the loaded data, or NULL on failure.
+ */
 static void *load_data(int fd, unsigned long file_offset, unsigned long size)
 {
     void *data;
@@ -2447,16 +2864,36 @@ static void *load_data(int fd, unsigned long file_offset, unsigned long size)
     return data;
 }
 
+/**
+ * @brief Information about section merging during linking.
+ *
+ * This structure contains information about the merging of sections during
+ * the linking process. It is used to track the corresponding existing section,
+ * the offset of the new section within the existing section, and other
+ * attributes related to the merging process.
+ */
 typedef struct SectionMergeInfo
 {
-    Section *s;           /* corresponding existing section */
-    unsigned long offset; /* offset of the new section in the existing section */
-    uint8_t new_section;  /* true if section 's' was added */
-    uint8_t link_once;    /* true if link once section */
+    Section *s;           /**< Corresponding existing section. */
+    unsigned long offset; /**< Offset of the new section in the existing section. */
+    uint8_t new_section;  /**< Indicates if section 's' was added. */
+    uint8_t link_once;    /**< Indicates if the section is a link once section. */
 } SectionMergeInfo;
 
-/* load an object file and merge it with current files */
-/* XXX: handle correctly stab (debug) info */
+/**
+ * @brief Load an object file and merge it with the current files.
+ *
+ * This function loads an object file from the given file descriptor and merges
+ * it with the current files being compiled. The object file is assumed to start
+ * at the specified file offset.
+ *
+ * @param s1           The TCC compilation state.
+ * @param fd           The file descriptor of the object file.
+ * @param file_offset  The offset within the file where the object file starts.
+ * @return             Zero on success, or a non-zero value if an error occurred.
+ *
+ * @note This function does not currently handle stab (debug) information.
+ */
 static int tcc_load_object_file(TCCState *s1, int fd, unsigned long file_offset)
 {
     ElfW(Ehdr) ehdr;
@@ -2722,23 +3159,50 @@ the_end:
 
 #define ARMAG "!<arch>\012" /* For COFF and a.out archives */
 
+/**
+ * @brief Archive file header format.
+ *
+ * The `ArchiveHeader` structure represents the header format used in an archive
+ * file.
+ */
 typedef struct ArchiveHeader
 {
-    char ar_name[16]; /* name of this member */
-    char ar_date[12]; /* file mtime */
-    char ar_uid[6];   /* owner uid; printed as decimal */
-    char ar_gid[6];   /* owner gid; printed as decimal */
-    char ar_mode[8];  /* file mode, printed as octal   */
-    char ar_size[10]; /* file size, printed as decimal */
-    char ar_fmag[2];  /* should contain ARFMAG */
+    char ar_name[16]; /**< Name of this member. */
+    char ar_date[12]; /**< File modification time. */
+    char ar_uid[6];   /**< Owner UID, printed as decimal. */
+    char ar_gid[6];   /**< Owner GID, printed as decimal. */
+    char ar_mode[8];  /**< File mode, printed as octal. */
+    char ar_size[10]; /**< File size, printed as decimal. */
+    char ar_fmag[2];  /**< Should contain ARFMAG. */
 } ArchiveHeader;
 
+/**
+ * @brief Read a 32-bit big-endian integer from a byte array.
+ *
+ * The `get_be32` function reads a 32-bit big-endian integer from a byte array
+ * and returns the corresponding value.
+ *
+ * @param b The byte array.
+ * @return The 32-bit big-endian integer value.
+ */
 static int get_be32(const uint8_t *b)
 {
     return b[3] | (b[2] << 8) | (b[1] << 16) | (b[0] << 24);
 }
 
-/* load only the objects which resolve undefined symbols */
+/**
+ * @brief Load objects from an archive file that resolve undefined symbols.
+ *
+ * The `tcc_load_alacarte` function loads only the objects from an archive file
+ * that resolve undefined symbols. It iterates over the symbols in the symbol
+ * table and checks if they are undefined. If an undefined symbol is found,
+ * the corresponding object file is loaded and merged into the current files.
+ *
+ * @param s1   The TCC state.
+ * @param fd   The file descriptor of the archive file.
+ * @param size The size of the archive file.
+ * @return 0 on success, -1 on failure.
+ */
 static int tcc_load_alacarte(TCCState *s1, int fd, int size)
 {
     int i, bound, nsyms, sym_index, off, ret;
@@ -2782,7 +3246,18 @@ the_end:
     return ret;
 }
 
-/* load a '.a' file */
+/**
+ * @brief Load an archive file (.a) and process its contents.
+ *
+ * The `tcc_load_archive` function reads an archive file and processes its
+ * contents. It iterates over the members of the archive and loads the object
+ * files or handles special cases such as coff symbol tables. The function
+ * supports both standard archives and alacarte archives.
+ *
+ * @param s1 The TCC state.
+ * @param fd The file descriptor of the archive file.
+ * @return 0 on success, -1 on failure.
+ */
 static int tcc_load_archive(TCCState *s1, int fd)
 {
     ArchiveHeader hdr;
@@ -2833,9 +3308,20 @@ static int tcc_load_archive(TCCState *s1, int fd)
 }
 
 #ifndef TCC_TARGET_PE
-/* load a DLL and all referenced DLLs. 'level = 0' means that the DLL
-   is referenced by the user (so it should be added as DT_NEEDED in
-   the generated ELF file) */
+/**
+ * @brief Load a DLL file and all referenced DLLs.
+ *
+ * The `tcc_load_dll` function reads a DLL file and processes its dynamic
+ * sections and symbols. It also loads all referenced DLLs recursively. The
+ * function adds dynamic symbols to the dynsym_section and updates the
+ * loaded_dlls list with the loaded DLLs and their levels.
+ *
+ * @param s1 The TCC state.
+ * @param fd The file descriptor of the DLL file.
+ * @param filename The name of the DLL file.
+ * @param level The level of the DLL file (0 if referenced by the user).
+ * @return 0 on success, -1 on failure.
+ */
 static int tcc_load_dll(TCCState *s1, int fd, const char *filename, int level)
 {
     ElfW(Ehdr) ehdr;
@@ -2956,7 +3442,18 @@ the_end:
 #define LD_TOK_NAME 256
 #define LD_TOK_EOF (-1)
 
-/* return next ld script token */
+/**
+ * @brief Get the next ld script token.
+ *
+ * The `ld_next` function reads characters from the input file and determines the
+ * next ld script token based on the character. It handles whitespace, comments,
+ * and different types of names.
+ *
+ * @param s1 The TCC state.
+ * @param name The buffer to store the name of the token.
+ * @param name_size The size of the name buffer.
+ * @return The type of the token.
+ */
 static int ld_next(TCCState *s1, char *name, int name_size)
 {
     int c;
@@ -3073,6 +3570,17 @@ redo:
     return c;
 }
 
+/**
+ * @brief Add a list of files specified in an ld script to the TCC state.
+ *
+ * The `ld_add_file_list` function reads a list of filenames from the ld script
+ * and adds the files to the TCC state. It supports the `AS_NEEDED` directive to
+ * conditionally add files based on dependencies.
+ *
+ * @param s1 The TCC state.
+ * @param as_needed Flag indicating whether the files are added as needed.
+ * @return 0 on success, -1 on failure.
+ */
 static int ld_add_file_list(TCCState *s1, int as_needed)
 {
     char filename[1024];
@@ -3109,8 +3617,16 @@ static int ld_add_file_list(TCCState *s1, int as_needed)
     return 0;
 }
 
-/* interpret a subset of GNU ldscripts to handle the dummy libc.so
-   files */
+/**
+ * @brief Interpret a subset of GNU ldscripts to handle the dummy libc.so files.
+ *
+ * The `tcc_load_ldscript` function interprets a subset of GNU ldscripts to
+ * handle the dummy `libc.so` files. It reads commands from the ld script and
+ * processes them accordingly.
+ *
+ * @param s1 The TCC state.
+ * @return 0 on success, -1 on failure.
+ */
 static int tcc_load_ldscript(TCCState *s1)
 {
     char cmd[64];

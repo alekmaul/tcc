@@ -1,8 +1,9 @@
-name: tcc Build & Release
+name:
+  tcc Build & Release
 
-      # ------------------------------------ #
-      # Events to trigger the action         #
-      # ------------------------------------ #
+  # ------------------------------------ #
+  # Events to trigger the action         #
+  # ------------------------------------ #
 on:
   workflow_dispatch:
   push:
@@ -69,7 +70,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
-          path: tcc
 
       # ------------------------------------ #
       # Compiling sources and create release #
@@ -77,18 +77,15 @@ jobs:
       - name: Build & Release tcc for Linux
         if: (matrix.name == 'linux')
         run: |
-          cd tcc
           make | tee tcc_${{ matrix.name }}.log
       - name: Build & Release tcc for Windows
         if: (matrix.name == 'windows')
         shell: msys2 {0}
         run: |
-          cd tcc
           make | tee tcc_${{ matrix.name }}.log
       - name: Build & Release tcc for MacOS
         if: (matrix.name == 'darwin')
         run: |
-          cd tcc
           make | tee tcc_${{ matrix.name }}.log
 
       # ------------------------------------ #
@@ -97,12 +94,10 @@ jobs:
       - name: Checking libraries linking for tcc
         if: matrix.name == 'darwin'
         run: |
-          cd tcc
           otool -L 816-tcc | tee tcc_linking_${{ matrix.name }}.log || true
       - name: Checking libraries linking for tcc
         if: matrix.name == 'windows' || matrix.name == 'linux'
         run: |
-          cd tcc
           ldd 816-tcc | tee tcc_linking_${{ matrix.name }}.log || true
 
       # ------------------------------------ #
@@ -113,19 +108,19 @@ jobs:
         if: matrix.name == 'linux'
         with:
           name: tcc Release for ${{ matrix.name }}
-          path: tcc/816-tcc
+          path: 816-tcc
       - name: Upload tcc release
         uses: actions/upload-artifact@v3
         if: matrix.name == 'windows'
         with:
           name: tcc Release for ${{ matrix.name }}
-          path: tcc/816-tcc.exe
+          path: 816-tcc.exe
       - name: Upload tcc release
         uses: actions/upload-artifact@v3
         if: matrix.name == 'darwin'
         with:
           name: tcc Release for ${{ matrix.name }}
-          path: tcc/816-tcc
+          path: 816-tcc
 
       # ------------------------------------ #
       # Upload releases                      #
@@ -134,4 +129,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: tcc build Logs for ${{ matrix.name }}
-          path: tcc/*.log
+          path: "*.log"

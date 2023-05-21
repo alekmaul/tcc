@@ -1,0 +1,30 @@
+name: Publish Doxygen documentation
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          submodules: recursive
+      - name: Install Doxygen
+        run: |
+          sudo apt-get install graphviz doxygen -y
+
+      - name: "Build Doxygen Doc"
+        run: |
+          make docs
+          pwd
+          ls -rtl docs/html/index.html
+      - name: "Deploy Github Pages"
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs/html

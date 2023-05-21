@@ -134,7 +134,7 @@ PROGS+=$(PROGS_CROSS)
 endif
 
 ifdef CONFIG_816
-all: $(PROGS) $(LIBTCC1) $(BCHECK_O) tcc-doc.html tcc.1
+all: $(PROGS) $(LIBTCC1)
 else
 all: $(PROGS) $(LIBTCC1) $(BCHECK_O) libtcc.a tcc-doc.html tcc.1 libtcc_test$(EXESUF)
 endif
@@ -276,6 +276,13 @@ install: $(PROGS) $(LIBTCC1) libtcc.a tcc-doc.html
 	$(INSTALL) -m644 libtcc.a libtcc.h "$(tccdir)/libtcc"
 endif
 
+ifdef CONFIG_816
+docs: docs/html/index.html
+
+docs/html/index.html:
+	@rm -rf docs/html
+	@doxygen docs/Doxyfile
+else
 # documentation and man page
 t2hinstalled := $(shell command -v texi2html 2> /dev/null)
 tcc-doc.html: tcc-doc.texi
@@ -288,6 +295,7 @@ endif
 tcc.1: tcc-doc.texi
 	-./texi2pod.pl $< tcc.pod
 	-pod2man --section=1 --center=" " --release=" " tcc.pod > $@
+endif
 
 # tar release (use 'make -k tar' on a checkouted tree)
 TCC-VERSION=tcc-$(shell cat VERSION)
@@ -305,12 +313,18 @@ config.mak:
 	@echo Running configure ...
 	@./configure
 
+ifdef CONFIG_816
+    DIST_FILES := config.h config.mak docs/html
+else
+    DIST_FILES := config.h config.mak config.texi tcc.1 tcc-doc.html
+endif
+
 # clean
 clean: local_clean
 local_clean:
 	rm -vf $(PROGS) tcc_p$(EXESUF) tcc.pod *~ *.o *.a *.out libtcc_test$(EXESUF)
 
 distclean: clean
-	rm -vf config.h config.mak config.texi tcc.1 tcc-doc.html
+	rm -vrf $(DIST_FILES)
 
 endif # ifeq ($(TOP),.)
