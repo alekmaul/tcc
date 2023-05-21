@@ -1,0 +1,12 @@
+<map id="vsnprintf" name="vsnprintf">
+<area shape="rect" id="node1" title=" " alt="" coords="429,132,509,159"/>
+<area shape="rect" id="node2" href="$d9/d87/816-gen_8c.html#a220afe8499ba2cd6916acfb45ed46bc3" title="Formats and prints data into the current text section." alt="" coords="343,132,381,159"/>
+<area shape="rect" id="node3" href="$d9/d87/816-gen_8c.html#a45eba475ee8e90cc31f54a1a2d58b23b" title="Prints the function name based on the input type." alt="" coords="140,5,295,32"/>
+<area shape="rect" id="node4" href="$d9/d87/816-gen_8c.html#a224c4b5ecaa29ef9518221d484ed89d6" title="Generates code for converting a floating&#45;point number to an integer." alt="" coords="167,56,268,83"/>
+<area shape="rect" id="node5" href="$d9/d87/816-gen_8c.html#a1d910c5c7e8c05ee2fac32508eb877c3" title="Generates the function epilog." alt="" coords="165,107,270,133"/>
+<area shape="rect" id="node6" href="$d9/d87/816-gen_8c.html#a8dae2bd31eb0be656aa313202714d868" title="Handles the association between a jump instruction and its target address." alt="" coords="170,157,265,184"/>
+<area shape="rect" id="node8" href="$d9/d87/816-gen_8c.html#a6a03507382ef17e3b879c6e2238a8748" title="The function loads a value from memory or a register into a specified register." alt="" coords="192,208,243,235"/>
+<area shape="rect" id="node10" href="$d9/d87/816-gen_8c.html#a940cf034ce59a0654c9a2029a007119b" title="Restores the stack pointer based on the function call stack." alt="" coords="162,259,273,285"/>
+<area shape="rect" id="node7" href="$d9/d87/816-gen_8c.html#a4399a4ead347fccc95d9928d22031e73" title="Adds a global symbol to the current instruction index." alt="" coords="19,157,78,184"/>
+<area shape="rect" id="node9" href="$da/d5b/libtcc_8c.html#af0fb34b48e0e77892613681e305b3378" title=" " alt="" coords="5,208,92,235"/>
+</map>

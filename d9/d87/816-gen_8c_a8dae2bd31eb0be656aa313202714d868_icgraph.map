@@ -1,0 +1,4 @@
+<map id="gsym_addr" name="gsym_addr">
+<area shape="rect" id="node1" title="Handles the association between a jump instruction and its target address." alt="" coords="112,5,207,32"/>
+<area shape="rect" id="node2" href="$d9/d87/816-gen_8c.html#a4399a4ead347fccc95d9928d22031e73" title="Adds a global symbol to the current instruction index." alt="" coords="5,5,64,32"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="elf_output_file" name="elf_output_file">
+<area shape="rect" id="node1" title="Output an ELF file." alt="" coords="171,5,285,32"/>
+<area shape="rect" id="node2" href="$db/d41/libtcc_8h.html#a972b66c8d0f3d47b0bb038db6a272391" title="Output the compiled code to a file." alt="" coords="5,5,123,32"/>
+</map>
