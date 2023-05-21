@@ -20,6 +20,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifndef STDDEF_H
+#define STDDEF_H
+#include <stddef.h>
+#endif
+
 #define LDOUBLE_SIZE 12 // not actually supported
 #define LDOUBLE_ALIGN 4
 #define MAX_ALIGN 8
@@ -98,17 +103,23 @@ int reg_classes[NB_REGS] = {
 
 #define MAXLEN 512
 
-char current_fn[MAXLEN] = "";
-
-// Variable relocate a given section
-char **relocptrs = NULL;
+#define MAX_LABELS 1000
 
 // Define random string maximum size (token usage)
 #define RS_MAX_SIZE 10
 
 char random_token[RS_MAX_SIZE + 1];
 
-void generate_token(char *str, size_t max_size)
+/**
+ * @brief Generates a random token of mixed-case letters.
+ *
+ * This function generates a random token of mixed-case letters. The size of the
+ * token is specified by the caller. The token is null-terminated.
+ *
+ * @param str Pointer to the output character array.
+ * @param max_size The maximum size of the generated token, not including the null-terminator.
+ */
+void generate_token(char *str, const size_t max_size)
 {
     size_t i;
     int seed;
@@ -130,32 +141,52 @@ void generate_token(char *str, size_t max_size)
     str[max_size] = '\0';
 }
 
-/* yet another terrible workaround
-   WLA does not have file-local symbols, only section-local and global.
-   thus, everything that is file-local must be made global and given a
-   unique name. not knowing how to choose one deterministically (filename?
-   could be more than one file with the same name...), I chose to use a
-   random number, saved to static_prefix.
-
-   with WLA 9.X, if you have a label that begins with a _ and it is inside a section,
-   then the name doesn't show outside of that section.
-   If it is not inside a section it doesn't show outside of the object file...
-*/
+/**
+ * @note WLA does not have file-local symbols, only section-local and global.
+ * Thus, everything that is file-local must be made global and given a
+ * unique name. Not knowing how to choose one deterministically, we use a
+ * random string, saved to static_prefix.
+ * With WLA 9.X, if you have a label that begins with a _ and it is inside a section,
+ * then the name doesn't show outside of that section.
+ * If it is not inside a section it doesn't show outside of the object file...
+ */
 char *static_prefix = "tccs_";
+
+char current_fn[MAXLEN] = "";
+
+// Variable relocate a given section
+char **relocptrs = NULL;
 
 char *label_workaround = NULL;
 
-#define MAX_LABELS 1000
-
+/**
+ * @struct labels_816
+ *
+ * @brief Structure representing labels in the code.
+ *
+ * This structure represents a label in the code with a name and a position.
+ */
 struct labels_816
 {
-    char *name;
-    int pos;
+    char *name; /**< @brief The name of the label. */
+    int pos;    /**< @brief The position of the label in the code. */
 };
-struct labels_816 label[MAX_LABELS];
+
+struct labels_816 label[MAX_LABELS]; /**< @brief Array to store multiple label structures. */
+
 int labels = 0;
 
-/* Returns a string representation of the symbol.*/
+/**
+ * @brief Constructs and returns a symbol string from a given symbol.
+ *
+ * This function constructs a string representing a given symbol. If the symbol is static,
+ * a prefix is added to the symbol name. The constructed string is then returned.
+ * Note that the returned string is statically allocated, and therefore will be
+ * overwritten on subsequent calls to this function.
+ *
+ * @param sym Pointer to the symbol structure representing the symbol.
+ * @return Pointer to the constructed symbol string. This string is statically allocated and should not be freed.
+ */
 char *get_sym_str(Sym *sym)
 {
     static char name[MAXLEN];
@@ -176,7 +207,16 @@ char *get_sym_str(Sym *sym)
     return name;
 }
 
-/* This function appends a character to the current text section. */
+/**
+ * @brief Adds a character into the current text section and increments the index.
+ *
+ * This function checks if there is enough space allocated in the current text section,
+ * if not, it reallocates the section with additional space. Then it copies the character
+ * into the current text section at the current index and increments the index to point
+ * to the next free position in the text section.
+ *
+ * @param c The character to be added into the current text section.
+ */
 void g(int c)
 {
     // If there isn't enough space allocated in the current text section,
@@ -192,6 +232,15 @@ void g(int c)
     ind++;
 }
 
+/**
+ * @brief Adds each character from the input string into the current text section.
+ *
+ * This function iterates over each character in the input string and calls the function
+ * 'g' to add it into the current text section. It continues to do this until it reaches
+ * the null character that signifies the end of the string.
+ *
+ * @param str The input string whose characters are to be added into the current text section.
+ */
 void s(char *str)
 {
     // Loop while the current character in the input string is not a null character.
@@ -205,6 +254,18 @@ void s(char *str)
 
 char line[MAXLEN];
 
+/**
+ * @brief Formats and prints data into the current text section.
+ *
+ * This function uses variadic arguments to allow for input of variable data types
+ * and quantities. It uses the vsnprintf function to format the data into a string
+ * and then calls the function 's' to add this string into the current text section.
+ *
+ * @param format This is a string that contains the text to be written to the text section.
+ *               It can optionally contain embedded format specifiers that will be replaced
+ *               by the values specified in subsequent additional arguments and formatted as requested.
+ * @param ... This indicates that the function takes a variable number of additional arguments.
+ */
 void pr(const char *format, ...)
 {
     va_list args;
@@ -217,7 +278,16 @@ void pr(const char *format, ...)
 // update from mic_to have more space
 int jump[20000][2], jumps = 0;
 
-/* output a symbol and patch all calls to it */
+/**
+ * @brief Handles the association between a jump instruction and its target address.
+ *
+ * This function is used to link a jump instruction at a specific location with its target address.
+ * It also handles the use of labels in the code, storing their names and positions for later use.
+ * If a jump instruction cannot be found at the provided location, an error message is printed.
+ *
+ * @param t The location of the jump instruction in the code.
+ * @param a The target address for the jump instruction.
+ */
 void gsym_addr(int t, int a)
 {
     /* code at t wants to jump to a */
@@ -249,12 +319,35 @@ void gsym_addr(int t, int a)
         pr("; ERROR no jump found to patch\n");
 }
 
+/**
+ * @brief Adds a global symbol to the current instruction index.
+ *
+ * This function takes a global symbol represented by its token and adds it to the
+ * current instruction index. The current instruction index is determined by the
+ * global variable 'ind'.
+ *
+ * @param t The token representing the global symbol to be added.
+ */
 void gsym(int t)
 {
     gsym_addr(t, ind);
 }
 
 int stack_back = 0;
+
+/**
+ * @brief Adjusts the stack pointer based on the function call stack and a displacement.
+ *
+ * This function calculates the required adjustment to the stack pointer based on
+ * the current function call stack, a given displacement, and the current location.
+ * If the calculated adjustment is less than 0, the function returns the function call
+ * stack value. Otherwise, the function adjusts the stack pointer and returns the
+ * adjusted function call stack value.
+ *
+ * @param fc The function call stack.
+ * @param disp The displacement value.
+ * @return The adjusted function call stack value.
+ */
 int adjust_stack(int fc, int disp)
 {
     int stack_adj = fc + disp - loc - 256;
@@ -269,6 +362,16 @@ int adjust_stack(int fc, int disp)
     return fc - stack_back;
 }
 
+/**
+ * @brief Restores the stack pointer based on the function call stack.
+ *
+ * If a previous stack adjustment was made (indicated by a non-zero value of `stack_back`),
+ * this function undoes that adjustment and updates the function call stack value accordingly.
+ * If no previous stack adjustment was made, the function returns the function call stack value unchanged.
+ *
+ * @param fc The function call stack.
+ * @return The updated function call stack value.
+ */
 int restore_stack(int fc)
 {
     if (stack_back != 0) {
@@ -286,7 +389,14 @@ int args_size = 0;
 
 int ll_workaround = 0;
 
-/* load 'r' from value 'sv' */
+/**
+ * @brief The function loads a value from memory or a register into a specified register.
+ *
+ * @param r The register number to load the value into.
+ * @param sv The parameter `sv` is a pointer to a `SValue` struct, which contains information about the
+ * value being loaded into a register. This includes the register to load into (`sv->r`), the type of
+ * the value (`sv->type.t`), and any additional information about the value.
+ */
 void load(int r, SValue *sv)
 {
     int fr, ft, fc;
@@ -305,8 +415,6 @@ void load(int r, SValue *sv)
         length = 2; // long longs are handled word-wise
     if (ll_workaround)
         length = 4;
-
-    // pr("; load r 0x%x fr 0x%x ft 0x%x fc 0x%x\n",r,fr,ft,fc);
 
     int base = -1;
     v = fr & VT_VALMASK;
@@ -579,7 +687,19 @@ void load(int r, SValue *sv)
     error("load unimplemented");
 }
 
-/* store register 'r' in lvalue 'v' */
+/**
+ * @brief Store a value at a specified location.
+ *
+ * This function is used to store a value from a given register into a specified
+ * location. The location and the value are given by a SValue structure. The function
+ * can handle different types of data such as integers, long longs, symbols and
+ * pointers, among others. The stored value is written in the assembly language.
+ * Errors are thrown in case of illegal or unimplemented operations.
+ *
+ * @param r    Register from which the value is to be stored.
+ * @param sv   Pointer to a structure of type SValue which holds the value and its
+ *             location to be stored.
+ */
 void store(int r, SValue *sv)
 {
     int v, ft, fc, fr, sign;
@@ -762,7 +882,21 @@ void store(int r, SValue *sv)
     error("store unimplemented");
 }
 
-/* generate function call */
+/**
+ * @brief Generate function call with a specified number of arguments.
+ *
+ * This function manages the invocation of another function with a specified number of arguments.
+ * Arguments are processed and prepared for the call, with special handling for different types such as
+ * floats and structs. Both direct and symbolic function calls are supported.
+ *
+ * The function also maintains stack integrity and handles calling conventions correctly. If the function
+ * call does not conform to the standard calling convention, necessary adjustments to the stack pointer
+ * are performed after the function invocation.
+ *
+ * @note If the called function conforms to the 'fastcall' convention, an error will be raised.
+ *
+ * @param[in] nb_args The number of arguments to pass to the function.
+ */
 void gfunc_call(int nb_args)
 {
     int align, r, i, func_call;
@@ -920,7 +1054,19 @@ void gfunc_call(int nb_args)
     vtop--;
 }
 
-/* generate a jump to a label */
+/**
+ * @brief Create a jump instruction.
+ *
+ * This function generates a jump instruction to a particular target address. It keeps track of all
+ * generated jumps, and updates any jumps that were previously targeted at the same address as the
+ * new jump.
+ *
+ * Each jump is assigned a unique index, which is used for subsequent operations on that jump.
+ *
+ * @param[in] t The target address for the jump.
+ *
+ * @return The unique index of the newly generated jump.
+ */
 int gjmp(int t)
 {
     int r = ind;
@@ -942,13 +1088,33 @@ int gjmp(int t)
     return r;
 }
 
-/* generate a jump to a fixed address */
+/**
+ * @brief Generates a jump instruction to a fixed address.
+ *
+ * This function is a wrapper around the `gjmp()` function. It calls `gjmp()` with the given address.
+ *
+ * @param[in] a The target address for the jump.
+ *
+ * @return void.
+ */
 void gjmp_addr(int a)
 {
     gjmp(a);
 }
 
-/* generate a test. set 'inv' to invert test. Stack entry is popped */
+/**
+ * @brief Generates test instructions for a given condition.
+ *
+ * This function generates assembly code for various types of tests and comparisons.
+ * It supports different types of values, including floats, constants, and jumps.
+ * It also supports negation/inversion of the condition.
+ *
+ * @param[in] inv If non-zero, invert the condition.
+ * @param[in] t The current position in the generated code (the instruction index).
+ *
+ * @return The index of the next instruction in the generated code. If a branch
+ *         was generated, this could be the index of a jump target.
+ */
 int gtst(int inv, int t)
 {
     int v, r;
@@ -993,7 +1159,7 @@ int gtst(int inv, int t)
             return gtst(inv, t);
         } else if ((vtop->r & (VT_VALMASK | VT_LVAL | VT_SYM)) == VT_CONST) {
             if ((vtop->type.t & VT_BTYPE) == VT_LLONG)
-                error("zweiundvierzig");
+                error("42 (Deep Thought)");
             if ((vtop->c.i != 0) != inv) {
                 pr("; uncond jump: go! (vtop->c.i %d, inv %d)\n", vtop->c.i, inv);
                 /* set flags as if we had a false compare result */
@@ -1018,7 +1184,26 @@ int gtst(int inv, int t)
     return t;
 }
 
-/* generate an integer binary operation */
+/**
+ * @brief This function performs various arithmetic operations based on the input opcode.
+ *
+ * @param op The operation code that determines the arithmetic operation to be performed.
+ *
+ * The function performs operations such as addition, subtraction, multiplication, division,
+ * bit shifting, and comparison based on the input op code. The operations are performed on
+ * global stack top value `vtop` which is a global variable. The result is then stored back
+ * into `vtop`.
+ *
+ * Some of the operations performed include:
+ * - For multiplication (`*`), it optimizes for 8-bit computations.
+ * - For unsigned multiplication (`TOK_UMULL`), it generates assembly for 32-bit multiplication.
+ * - For division and modulus operations (`TOK_PDIV`, `/`, `TOK_UDIV`, `%`, `TOK_UMOD`), it handles both signed and unsigned division.
+ * - For bitwise operations (`+`, `-`, `&`, `|`, `^`), it handles the carry flag accordingly.
+ * - For comparison operations (`TOK_EQ`, `TOK_NE`, `TOK_GT`, `TOK_LE`, `TOK_LT`, `TOK_GE`, `TOK_UGT`, `TOK_ULE`, `TOK_ULT`, `TOK_UGE`), it handles signed and unsigned comparisons.
+ * - For bitwise shift operations (`TOK_SAR`, `TOK_SHR`, `TOK_SHL`), it handles arithmetic and logical right shifts and left shifts.
+ *
+ * The function generates assembly code for these operations.
+ */
 void gen_opi(int op)
 {
     int r, fr, fc, c, r5; // only set, remove it ,ft;
@@ -1429,7 +1614,22 @@ void gen_opi(int op)
     }
 }
 
-/* convert floats to Woz format */
+/**
+ * @brief Converts a 32-bit floating-point number to a WOZ format.
+ *
+ * This function uses bitwise operations to transform a float into a WOZ format.
+ * It first creates a bitwise representation of the float, and then
+ * checks if the sign bit is set. If it is, the function sets the sign
+ * bit and the exponent in the WOZ format and performs a two's complement
+ * on the bitwise representation. The function then shifts the bits
+ * of the bitwise representation to the right and stores the bytes
+ * in the WOZ format.
+ *
+ * @param[in] f The 32-bit floating-point number to be converted.
+ * @param[out] w Pointer to an array where the WOZ format will be stored.
+ *
+ * @note The WOZ format is stored in the array in big-endian format.
+ */
 void float_to_woz(float f, unsigned char *w)
 {
     unsigned int i;
@@ -1449,20 +1649,35 @@ void float_to_woz(float f, unsigned char *w)
     w[3] = (i >> 8) & 0xff;
 }
 
-/* generate a floating point operation */
+/**
+ * @brief Generate assembly code for floating point operations.
+ *
+ * This function generates assembly code based on a given operator.
+ * The operator can be a basic arithmetic operation such as addition,
+ * subtraction, multiplication, and division, or a comparison operation.
+ * Depending on the operation, the function calls the relevant assembly
+ * subroutine.
+ *
+ * @param[in] op Operator that determines the operation to perform.
+ *
+ * @note If an unimplemented operator is given, the function calls
+ * an error routine.
+ *
+ * @warning This function modifies the vtop global variable.
+ *
+ * @note The function makes heavy use of the global vtop variable.
+ * This variable should be properly initialized before calling this function.
+ */
 void gen_opf(int op)
 {
-    int length, align;
     int ir;
-
-    length = type_size(&vtop[0].type, &align);
 
     // get the actual values
     gv2(RC_F1, RC_F0);
 
     vtop--;
 
-    pr("; gen_opf len %d op 0x%x ('%c')\n", length, op, op);
+    pr("; gen_opf len %d op 0x%x ('%c')\n", type_size(&vtop[0].type, NULL), op, op);
 
     switch (op) {
     case '*':
@@ -1486,41 +1701,29 @@ void gen_opf(int op)
         ir = get_reg(RC_INT);
         pr("jsr.l tcc__fcmp\n");
         pr("dec a\n");
-        if (op == TOK_EQ)
-            pr("beq +\n");
-        else
-            pr("bne +\n");
+        pr(op == TOK_EQ ? "beq +\n" : "bne +\n");
         pr("dex\n+\nstx.b tcc__r%d\n", ir);
         vtop->r = ir;
         return;
-        break;
 
     case TOK_GT:
     case TOK_LE:
     case TOK_LT:
     case TOK_GE:
-        ir = get_reg(RC_INT); // register to store the result flag in
+        ir = get_reg(RC_INT);
         pr("jsr.l tcc__fcmp\n");
-        // assuming tcc__fcmp returns signum + 1 in accu and inits X with 1
-        // subtracting one to set overflow flag
         pr("sec\nsbc.w #1\n");
-        if (op == TOK_GT)
-            pr("beq ++\n"); // greater than => equality not good, result 0
-        else if (op == TOK_LE)
-            pr("beq +++\n"); // less than or equal => equality good, result 1
+        pr(op == TOK_GT ? "beq ++\n" : "beq +++\n");
         pr("bvc +\neor #$8000\n");
+
         switch (op) {
         case TOK_GT:
+        case TOK_GE:
             pr("+ bpl +++\n");
             break;
         case TOK_LE:
-            pr("+ bmi +++\n");
-            break;
         case TOK_LT:
             pr("+ bmi +++\n");
-            break;
-        case TOK_GE:
-            pr("+ bpl +++\n");
             break;
         default:
             error("don't know how to handle signed 0x%x\n", op);
@@ -1528,14 +1731,25 @@ void gen_opf(int op)
         pr("++\ndex\n+++\nstx.b tcc__r%d\n", ir);
         vtop->r = ir;
         return;
-        break;
-
     default:
         error("opf 0x%x (%c) unimplemented\n", op, op);
     }
     vtop->r = TREG_F0;
 }
 
+/**
+ * @brief Prints the function name based on the input type.
+ *
+ * The function checks if the input type is unsigned or not.
+ * Based on the result, it prints the corresponding function name.
+ *
+ * @param[in] it The input type which will be checked if it is unsigned or not.
+ * @param[in] unsigned_fn The function name to print if the input type is unsigned.
+ * @param[in] signed_fn The function name to print if the input type is not unsigned (i.e., it's signed).
+ *
+ * @note This function does not call the printed functions. It merely selects
+ * and prints the appropriate function name.
+ */
 void convert_type_helper(int it, const char *unsigned_fn, const char *signed_fn)
 {
     if (it & VT_UNSIGNED)
@@ -1544,6 +1758,20 @@ void convert_type_helper(int it, const char *unsigned_fn, const char *signed_fn)
         pr(signed_fn);
 }
 
+/**
+ * @brief Generates code for converting an integer to a floating-point number.
+ *
+ * The function accepts an integer and generates appropriate machine code
+ * to perform the conversion to a floating-point number. It uses the input
+ * integer's type to determine how to perform the conversion.
+ *
+ * @param[in] t Not used directly in the function, but inferred to be the type
+ * of the floating-point number to which the integer should be converted.
+ *
+ * @note This function does not return a value, but modifies the global
+ * variable `vtop` to indicate that the result of the conversion is in
+ * the `TREG_F0` register.
+ */
 void gen_cvt_itof(int t)
 {
     int r, r2, it;
@@ -1565,6 +1793,20 @@ void gen_cvt_itof(int t)
     vtop->r = TREG_F0; // tell TCC that the result is in f0
 }
 
+/**
+ * @brief Generates code for converting a floating-point number to an integer.
+ *
+ * The function accepts a floating-point number and generates the appropriate
+ * machine code to perform the conversion to an integer. It uses the target
+ * integer's type to determine how to perform the conversion.
+ *
+ * @param[in] t The type of the integer to which the floating-point number
+ * should be converted.
+ *
+ * @note This function does not return a value, but modifies the global
+ * variable `vtop` to indicate that the result of the conversion is in
+ * the specified register.
+ */
 void gen_cvt_ftoi(int t)
 {
     int r = 0;
@@ -1591,13 +1833,41 @@ void gen_cvt_ftoi(int t)
     }
 }
 
-/* convert from one floating point type to another */
+/**
+ * @brief Throws an error for unsupported conversion between floating point types.
+ *
+ * This function is intended to handle conversion from one floating-point type
+ * to another. However, in the current implementation, it throws an error
+ * message, as such conversion is not supported.
+ *
+ * @param[in] t The target type of the floating-point conversion.
+ *
+ * @note This function does not perform any actual operations; it always results
+ * in an error. If your project requires floating-point to floating-point conversions,
+ * this function needs to be implemented accordingly.
+ */
 void gen_cvt_ftof(int t)
 {
     error("gen_cvt_ftof 0x%x\n", t);
 }
 
-/* computed goto support */
+/**
+ * @brief Performs an unconditional goto (jump) to a specified address.
+ *
+ * This function is used to implement an unconditional jump to a target address.
+ * The target address is obtained from the integer register specified by `r`.
+ * The function assumes that the target address is in the same format as the
+ * program counter address, based on the provided `type` information.
+ *
+ * @note The target address is typically obtained from a register or a constant.
+ *
+ * @param[in] r The register containing the target address.
+ * @param[in] t The type of the target address, providing information about the format
+ *              and representation of the address.
+ *
+ * @note This function does not have a return value as it performs a direct jump
+ * to the specified address.
+ */
 void ggoto(void)
 {
     int r = gv(RC_INT);
@@ -1614,7 +1884,19 @@ int ind_before_section = 0;
 int section_closed = 1;
 int section_count = 0;
 
-/* generate function prolog of type 't' */
+/**
+ * @brief Generates the function prolog for a given function type.
+ *
+ * This function is responsible for generating the prolog of a function based on
+ * the provided function type. The prolog sets up the function's local variables,
+ * initializes necessary registers, and prepares the function's stack frame.
+ *
+ * @param[in] func_type Pointer to the function type information.
+ *
+ * @note The function relies on various internal state variables and context to generate
+ * the function prolog correctly. Please ensure that the necessary state is properly
+ * set up before calling this function.
+ */
 void gfunc_prolog(CType *func_type)
 {
     Sym *sym;
@@ -1661,11 +1943,23 @@ void gfunc_prolog(CType *func_type)
 }
 
 #define MAX_LOCALS 1000
+#define STACK_SIZE_LIMIT 0x1f00
+
 char locals[MAX_LOCALS][MAXLEN];
 int localnos[MAX_LOCALS];
 int localno = 0;
 
-/* generate function epilog */
+/**
+ * @brief Generates the function epilog.
+ *
+ * This function is responsible for generating the epilog of a function. The epilog
+ * performs necessary cleanup operations, restores the stack pointer, and returns
+ * from the function.
+ *
+ * @note The function relies on various internal state variables and context to generate
+ * the function epilog correctly. Please ensure that the necessary state is properly set up
+ * before calling this function.
+ */
 void gfunc_epilog(void)
 {
     pr("; add sp, #__%s_locals\n", current_fn);
@@ -1675,7 +1969,7 @@ void gfunc_epilog(void)
     pr(".ENDS\n");
     section_closed = 1;
 
-    if (-loc > 0x1f00) {
+    if (-loc > STACK_SIZE_LIMIT) {
         error("stack overflow");
     }
 
