@@ -62,7 +62,7 @@ Generate the documentation in `docs/html` like this.
 make docs
 ```
 
-> The current documentation is still in progress and can be incomplete of inaccurate.
+> The current documentation is still in progress and can be incomplete or inaccurate.
 
 ### Use it
 

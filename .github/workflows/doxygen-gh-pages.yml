@@ -1,4 +1,4 @@
-name: Publish Doxygen documentation
+name: Publish Doxygen Documentation
 
 on:
   push:
@@ -17,6 +17,7 @@ jobs:
           submodules: recursive
       - name: Install Doxygen
         run: |
+          sudo apt-get update -y
           sudo apt-get install graphviz doxygen -y
 
       - name: "Build Doxygen Doc"
