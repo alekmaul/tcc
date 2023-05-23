@@ -231,6 +231,22 @@ static int find_elf_sym(Section *s, const char *name)
     return 0;
 }
 
+/* return elf symbol value, signal error if 'err' is nonzero */
+static void *get_elf_sym_addr(TCCState *s, const char *name, int err)
+{
+    int sym_index;
+    ElfW(Sym) * sym;
+
+    sym_index = find_elf_sym(symtab_section, name);
+    sym = &((ElfW(Sym) *) symtab_section->data)[sym_index];
+    if (!sym_index || sym->st_shndx == SHN_UNDEF) {
+        if (err)
+            error("%s not defined", name);
+        return NULL;
+    }
+    return (void *) (uplong) sym->st_value;
+}
+
 #ifdef TCC_TARGET_816
 /**
  * @brief Get an ELF symbol by name and update its value.
@@ -274,13 +290,7 @@ ElfW(Sym) * tcc_really_get_symbol(TCCState *s, unsigned long *pval, const char *
  */
 void *tcc_get_symbol(TCCState *s, const char *name)
 {
-    int sym_index;
-    ElfW(Sym) * sym;
-    sym_index = find_elf_sym(symtab_section, name);
-    if (!sym_index)
-        return NULL;
-    sym = &((ElfW(Sym) *) symtab_section->data)[sym_index];
-    return (void *) (uplong) sym->st_value;
+    return get_elf_sym_addr(s, name, 0);
 }
 
 /**
@@ -298,11 +308,7 @@ void *tcc_get_symbol(TCCState *s, const char *name)
  */
 void *tcc_get_symbol_err(TCCState *s, const char *name)
 {
-    void *sym;
-    sym = tcc_get_symbol(s, name);
-    if (!sym)
-        error("%s not defined", name);
-    return sym;
+    return get_elf_sym_addr(s, name, 1);
 }
 
 /**
