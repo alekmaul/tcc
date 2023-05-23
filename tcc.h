@@ -46,9 +46,6 @@
 #include <direct.h> /* getcwd */
 #define inline __inline
 #define inp next_inp
-#ifdef _MSC_VER
-#define __aligned(n) __declspec(align(n))
-#endif
 #ifdef _WIN64
 #define uplong unsigned long long
 #endif
@@ -65,10 +62,6 @@
 
 #ifndef uplong
 #define uplong unsigned long
-#endif
-
-#ifndef __aligned
-#define __aligned(n) __attribute__((aligned(n)))
 #endif
 
 #ifndef PAGESIZE
@@ -274,23 +267,21 @@ typedef struct DLLReference
 /* GNUC attribute definition */
 typedef struct AttributeDef
 {
-    int aligned;
-    int packed;
-    Section *section;
-    int func_attr; /* calling convention, exports, ... */
+    unsigned packed : 1, aligned : 5, /* alignement (0..16) */
+        func_call : 3,                /* calling convention (0..5), see below */
+        func_export : 1, func_import : 1, func_args : 8;
+    struct Section *section;
 } AttributeDef;
 
-/* -------------------------------------------------- */
 /* gr: wrappers for casting sym->r for other purposes */
-typedef struct
-{
-    unsigned func_call : 8, func_args : 8, func_export : 1, func_import : 1;
-} func_attr_t;
+#define FUNC_CALL(r) (((AttributeDef *) &(r))->func_call)
+#define FUNC_EXPORT(r) (((AttributeDef *) &(r))->func_export)
+#define FUNC_IMPORT(r) (((AttributeDef *) &(r))->func_import)
+#define FUNC_ARGS(r) (((AttributeDef *) &(r))->func_args)
+#define FUNC_ALIGN(r) (((AttributeDef *) &(r))->aligned)
+#define FUNC_PACKED(r) (((AttributeDef *) &(r))->packed)
+#define INT_ATTR(ad) (*(int *) (ad))
 
-#define FUNC_CALL(r) (((func_attr_t *) &(r))->func_call)
-#define FUNC_EXPORT(r) (((func_attr_t *) &(r))->func_export)
-#define FUNC_IMPORT(r) (((func_attr_t *) &(r))->func_import)
-#define FUNC_ARGS(r) (((func_attr_t *) &(r))->func_args)
 /* -------------------------------------------------- */
 
 #define SYM_STRUCT 0x40000000     /* struct/union/enum symbol space */
@@ -496,9 +487,6 @@ struct TCCState
     void *error_opaque;
     void (*error_func)(void *opaque, const char *msg);
     int error_set_jmp_enabled;
-#ifdef _WIN64
-    __aligned(16)
-#endif
         jmp_buf error_jmp_buf;
     int nb_errors;
 
@@ -552,7 +540,7 @@ struct TCCState
 /* The current value can be: */
 #define VT_VALMASK 0x00ff
 #define VT_CONST \
-    0x00f0               /* constant in vc \
+    0x00f0               /* constant in vc
                                  (must be first non register value) */
 #define VT_LLOCAL 0x00f1 /* lvalue, offset on stack */
 #define VT_LOCAL 0x00f2  /* offset on stack */
@@ -562,13 +550,13 @@ struct TCCState
 #define VT_LVAL 0x0100   /* var is an lvalue */
 #define VT_SYM 0x0200    /* a symbol value is added */
 #define VT_MUSTCAST \
-    0x0400 /* value must be casted to be correct (used for \
+    0x0400 /* value must be casted to be correct (used for
                                    char/short stored in integer registers) */
 #define VT_MUSTBOUND \
-    0x0800 /* bound checking must be done before \
+    0x0800 /* bound checking must be done before
                                    dereferencing value */
 #define VT_BOUNDED \
-    0x8000                      /* value is bounded. The address of the \
+    0x8000                      /* value is bounded. The address of the
                                    bounding function call point is in vc */
 #define VT_LVAL_BYTE 0x1000     /* lvalue is a byte */
 #define VT_LVAL_SHORT 0x2000    /* lvalue is a short */
@@ -590,7 +578,7 @@ struct TCCState
 #define VT_BOOL 11    /* ISOC99 boolean type */
 #define VT_LLONG 12   /* 64 bit integer */
 #define VT_LONG \
-    13                     /* long integer (NEVER USED as type, only \
+    13                     /* long integer (NEVER USED as type, only
                               during parsing) */
 #define VT_BTYPE 0x000f    /* mask for basic type */
 #define VT_UNSIGNED 0x0010 /* unsigned type */
@@ -713,18 +701,18 @@ struct TCCState
 
 #ifdef TCC_TARGET_X86_64
 
-#define DEF_BWLQ(x) \
- DEF(TOK_ASM_ ## x ## b, #x "b") \
- DEF(TOK_ASM_ ## x ## w, #x "w") \
- DEF(TOK_ASM_ ## x ## l, #x "l") \
- DEF(TOK_ASM_ ## x ## q, #x "q") \
- DEF(TOK_ASM_ ## x, #x)
+#define DEF_BWLQ(x)             \
+    DEF(TOK_ASM_##x##b, #x "b") \
+    DEF(TOK_ASM_##x##w, #x "w") \
+    DEF(TOK_ASM_##x##l, #x "l") \
+    DEF(TOK_ASM_##x##q, #x "q") \
+    DEF(TOK_ASM_##x, #x)
 
-#define DEF_WLQ(x) \
- DEF(TOK_ASM_ ## x ## w, #x "w") \
- DEF(TOK_ASM_ ## x ## l, #x "l") \
- DEF(TOK_ASM_ ## x ## q, #x "q") \
- DEF(TOK_ASM_ ## x, #x)
+#define DEF_WLQ(x)              \
+    DEF(TOK_ASM_##x##w, #x "w") \
+    DEF(TOK_ASM_##x##l, #x "l") \
+    DEF(TOK_ASM_##x##q, #x "q") \
+    DEF(TOK_ASM_##x, #x)
 
 #endif
 

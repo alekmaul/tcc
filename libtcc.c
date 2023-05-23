@@ -334,12 +334,15 @@ static inline int toup(int c)
 #include "tccgen.c"
 
 #ifdef CONFIG_TCC_ASM
+
 #ifdef TCC_TARGET_I386
 #include "i386-asm.c"
 #endif
+
 #ifdef TCC_TARGET_X86_64
 #include "x86_64-asm.c"
 #endif
+
 #include "tccasm.c"
 #else
 static void asm_instr(void)
@@ -1359,7 +1362,6 @@ static int tcc_compile(TCCState *s1)
     return s1->nb_errors != 0 ? -1 : 0;
 }
 
-#ifdef LIBTCC
 int tcc_compile_string(TCCState *s, const char *str)
 {
     BufferedFile bf1, *bf = &bf1;
@@ -1387,7 +1389,6 @@ int tcc_compile_string(TCCState *s, const char *str)
     /* currently, no need to close */
     return ret;
 }
-#endif
 
 /* define a preprocessor symbol. A value can also be provided with the '=' operator */
 void tcc_define_symbol(TCCState *s1, const char *sym, const char *value)
@@ -1602,10 +1603,18 @@ static int rt_get_caller_pc(unsigned long *paddr, ucontext_t *uc, int level)
 
     if (level == 0) {
         /* XXX: only support linux */
+#if defined(__FreeBSD__)
+        *paddr = uc->uc_mcontext.mc_rip;
+#else
         *paddr = uc->uc_mcontext.gregs[REG_RIP];
+#endif
         return 0;
     } else {
+#if defined(__FreeBSD__)
+        fp = uc->uc_mcontext.mc_rbp;
+#else
         fp = uc->uc_mcontext.gregs[REG_RBP];
+#endif
         for (i = 1; i < level; i++) {
             /* XXX: check address validity with program info */
             if (fp <= 0x1000)
@@ -1865,7 +1874,7 @@ TCCState *tcc_new(void)
 {
     TCCState *s;
     char buffer[100];
-    int a,b,c;
+    int a, b, c;
 
     tcc_cleanup();
 
@@ -1892,7 +1901,9 @@ TCCState *tcc_new(void)
     tcc_define_symbol(s, "__STDC__", NULL);
     tcc_define_symbol(s, "__STDC_VERSION__", "199901L");
 #if defined(TCC_TARGET_I386)
-    tcc_define_symbol(s, "__i386__", NULL);
+    tcc_define_symbol(s, "__i386__", "1");
+    tcc_define_symbol(s, "__i386", "1");
+    tcc_define_symbol(s, "i386", "1");
 #endif
 #ifdef TCC_TARGET_816
     tcc_define_symbol(s, "__65816__", NULL);
@@ -1916,8 +1927,15 @@ TCCState *tcc_new(void)
     tcc_define_symbol(s, "_WIN64", NULL);
 #endif
 #else
-    tcc_define_symbol(s, "__unix__", NULL);
-    tcc_define_symbol(s, "__unix", NULL);
+    tcc_define_symbol(s, "__unix__", "1");
+    tcc_define_symbol(s, "__unix", "1");
+    tcc_define_symbol(s, "unix", "1");
+#if defined(__FreeBSD__)
+#define str(s) #s
+    tcc_define_symbol(s, "__FreeBSD__", str(__FreeBSD__));
+    tcc_define_symbol(s, "__INTEL_COMPILER", "1");
+#undef str
+#endif
 #if defined(__linux)
     tcc_define_symbol(s, "__linux__", NULL);
     tcc_define_symbol(s, "__linux", NULL);
@@ -1925,12 +1943,12 @@ TCCState *tcc_new(void)
 #endif
     /* tiny C specific defines */
     sscanf(TCC_VERSION, "%d.%d.%d", &a, &b, &c);
-    sprintf(buffer, "%d", a*10000 + b*100 + c);
+    sprintf(buffer, "%d", a * 10000 + b * 100 + c);
     tcc_define_symbol(s, "__TINYC__", buffer);
 
     /* tiny C & gcc defines */
-    tcc_define_symbol(s, "__SIZE_TYPE__", "unsigned int");
-    tcc_define_symbol(s, "__PTRDIFF_TYPE__", "int");
+    tcc_define_symbol(s, "__SIZE_TYPE__", "unsigned long");
+    tcc_define_symbol(s, "__PTRDIFF_TYPE__", "long");
 #ifdef TCC_TARGET_PE
     tcc_define_symbol(s, "__WCHAR_TYPE__", "unsigned short");
 #else
@@ -2060,7 +2078,7 @@ static int tcc_add_file_internal(TCCState *s1, const char *filename, int flags)
     int ret;
 #else
     ElfW(Ehdr) ehdr;
-    int fd, ret;
+    int fd, ret, size;
 #endif
     BufferedFile *saved_file;
 
@@ -2222,7 +2240,6 @@ int tcc_add_library(TCCState *s, const char *libraryname)
             return 0;
 #endif
     }
-
     /* then we look for the static library */
     for (i = 0; i < s->nb_library_paths; i++) {
         snprintf(buf, sizeof(buf), "%s/lib%s.a", s->library_paths[i], libraryname);

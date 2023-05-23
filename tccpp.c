@@ -1557,6 +1557,7 @@ redo:
                 if (!IS_ABSPATH(buf))
                     continue;
                 buf1[0] = 0;
+
             } else if (i == -1) {
                 /* search in current dir if "header.h" */
                 if (c != '\"')
@@ -1564,6 +1565,7 @@ redo:
                 size = tcc_basename(file->filename) - file->filename;
                 memcpy(buf1, file->filename, size);
                 buf1[size] = '\0';
+
             } else {
                 /* search in all the include paths */
                 if (i < s1->nb_include_paths)
@@ -2011,12 +2013,12 @@ void parse_number(const char *p)
                 tokc.f = (float) d;
             } else if (t == 'L') {
                 ch = *p++;
-#if defined(TCC_TARGET_816)
-                tok = TOK_CFLOAT;
-                tokc.f = d;
-#elif defined(TCC_TARGET_PE)
+#if defined(TCC_TARGET_PE)
                 tok = TOK_CDOUBLE;
                 tokc.d = d;
+#elif defined(TCC_TARGET_816)
+                tok = TOK_CFLOAT;
+                tokc.f = d;
 #else
                 tok = TOK_CLDOUBLE;
                 /* XXX: not large enough */
@@ -3085,6 +3087,7 @@ redo:
                 unget_buffer_enabled = 0;
             } else {
                 /* end of macro string: free it */
+                tok_str_free(macro_ptr_allocated);
                 macro_ptr_allocated = NULL;
                 macro_ptr = NULL;
             }
