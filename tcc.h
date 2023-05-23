@@ -118,8 +118,7 @@
 #endif
 
 /* define it to include assembler support */
-#if !defined(TCC_TARGET_ARM) && !defined(TCC_TARGET_C67) && !defined(TCC_TARGET_X86_64) \
-    && !defined(TCC_TARGET_816)
+#if !defined(TCC_TARGET_ARM) && !defined(TCC_TARGET_C67) && !defined(TCC_TARGET_816)
 #define CONFIG_TCC_ASM
 #endif
 
@@ -285,11 +284,12 @@ typedef struct AttributeDef
 /* gr: wrappers for casting sym->r for other purposes */
 typedef struct
 {
-    unsigned func_call : 8, func_args : 8, func_export : 1;
+    unsigned func_call : 8, func_args : 8, func_export : 1, func_import : 1;
 } func_attr_t;
 
 #define FUNC_CALL(r) (((func_attr_t *) &(r))->func_call)
 #define FUNC_EXPORT(r) (((func_attr_t *) &(r))->func_export)
+#define FUNC_IMPORT(r) (((func_attr_t *) &(r))->func_import)
 #define FUNC_ARGS(r) (((func_attr_t *) &(r))->func_args)
 /* -------------------------------------------------- */
 
@@ -527,6 +527,10 @@ struct TCCState
     struct InlineFunc **inline_fns;
     int nb_inline_fns;
 
+#ifdef TCC_TARGET_I386
+    int seg_size;
+#endif
+
 #ifndef TCC_TARGET_PE
 #ifdef TCC_TARGET_X86_64
     /* write PLT and GOT here */
@@ -592,6 +596,7 @@ struct TCCState
 #define VT_STATIC 0x00000100  /* static variable */
 #define VT_TYPEDEF 0x00000200 /* typedef definition */
 #define VT_INLINE 0x00000400  /* inline definition */
+#define VT_IMPORT 0x00004000  /* win32: extern data imported from dll */
 #ifdef TCC_TARGET_816
 #define VT_STATICLOCAL 0x00004000
 #endif
@@ -599,7 +604,7 @@ struct TCCState
 #define VT_STRUCT_SHIFT 16 /* shift for bitfield shift values */
 
 /* type mask (except storage) */
-#define VT_STORAGE (VT_EXTERN | VT_STATIC | VT_TYPEDEF | VT_INLINE)
+#define VT_STORAGE (VT_EXTERN | VT_STATIC | VT_TYPEDEF | VT_INLINE | VT_IMPORT)
 #ifdef TCC_TARGET_816
 #define VT_TYPE (~(VT_STORAGE) & ~(VT_STATICLOCAL))
 #else
@@ -696,6 +701,23 @@ struct TCCState
     DEF(TOK_ASM_##x##w, #x "w") \
     DEF(TOK_ASM_##x##l, #x "l") \
     DEF(TOK_ASM_##x, #x)
+
+#ifdef TCC_TARGET_X86_64
+
+#define DEF_BWLQ(x) \
+ DEF(TOK_ASM_ ## x ## b, #x "b") \
+ DEF(TOK_ASM_ ## x ## w, #x "w") \
+ DEF(TOK_ASM_ ## x ## l, #x "l") \
+ DEF(TOK_ASM_ ## x ## q, #x "q") \
+ DEF(TOK_ASM_ ## x, #x)
+
+#define DEF_WLQ(x) \
+ DEF(TOK_ASM_ ## x ## w, #x "w") \
+ DEF(TOK_ASM_ ## x ## l, #x "l") \
+ DEF(TOK_ASM_ ## x ## q, #x "q") \
+ DEF(TOK_ASM_ ## x, #x)
+
+#endif
 
 #define DEF_FP1(x)                       \
     DEF(TOK_ASM_##f##x##s, "f" #x "s")   \

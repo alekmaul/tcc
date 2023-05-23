@@ -1653,7 +1653,7 @@ redo:
         if (s1->ifdef_stack_ptr[-1] & 2)
             error("#else after #else");
         c = (s1->ifdef_stack_ptr[-1] ^= 3);
-        goto test_skip;
+        goto test_else;
     case TOK_ELIF:
         if (s1->ifdef_stack_ptr == s1->ifdef_stack)
             error("#elif without matching #if");
@@ -1665,6 +1665,9 @@ redo:
             goto skip;
         c = expr_preprocess();
         s1->ifdef_stack_ptr[-1] = c;
+    test_else:
+        if (s1->ifdef_stack_ptr == file->ifdef_stack_ptr + 1)
+            file->ifndef_macro = 0;
     test_skip:
         if (!(c & 1)) {
         skip:

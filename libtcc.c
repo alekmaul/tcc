@@ -337,6 +337,9 @@ static inline int toup(int c)
 #ifdef TCC_TARGET_I386
 #include "i386-asm.c"
 #endif
+#ifdef TCC_TARGET_X86_64
+#include "x86_64-asm.c"
+#endif
 #include "tccasm.c"
 #else
 static void asm_instr(void)
@@ -1861,6 +1864,8 @@ static void tcc_cleanup(void)
 TCCState *tcc_new(void)
 {
     TCCState *s;
+    char buffer[100];
+    int a,b,c;
 
     tcc_cleanup();
 
@@ -1919,7 +1924,9 @@ TCCState *tcc_new(void)
 #endif
 #endif
     /* tiny C specific defines */
-    tcc_define_symbol(s, "__TINYC__", NULL);
+    sscanf(TCC_VERSION, "%d.%d.%d", &a, &b, &c);
+    sprintf(buffer, "%d", a*10000 + b*100 + c);
+    tcc_define_symbol(s, "__TINYC__", buffer);
 
     /* tiny C & gcc defines */
     tcc_define_symbol(s, "__SIZE_TYPE__", "unsigned int");
@@ -1980,6 +1987,9 @@ TCCState *tcc_new(void)
 #if defined(TCC_TARGET_PE) && 0
     /* XXX: currently the PE linker is not ready to support that */
     s->leading_underscore = 1;
+#endif
+#ifdef TCC_TARGET_I386
+    s->seg_size = 32;
 #endif
     return s;
 }

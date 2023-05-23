@@ -1243,8 +1243,9 @@ void gen_opic(int op)
 #ifdef TCC_TARGET_816
                    (vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM))
 #else
-                   ((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM)
-                    || (vtop[-1].r & (VT_VALMASK | VT_LVAL)) == VT_LOCAL))
+                   (((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM)
+                        && !(vtop[-1].sym->type.t & VT_IMPORT))
+                       || (vtop[-1].r & (VT_VALMASK | VT_LVAL)) == VT_LOCAL))
 #endif
         {
             /* symbol + constant case */
@@ -1453,6 +1454,9 @@ void gen_op(int op)
                 swap(&t1, &t2);
             }
             type1 = vtop[-1].type;
+#ifndef TCC_TARGET_816
+            type1.t &= ~VT_ARRAY;
+#endif
 #ifdef TCC_TARGET_X86_64
             vpushll(pointed_size(&vtop[-1].type));
 #else
@@ -2516,6 +2520,9 @@ static void parse_attribute(AttributeDef *ad)
 #endif
             case TOK_DLLEXPORT:
                 FUNC_EXPORT(ad->func_attr) = 1;
+                break;
+            case TOK_DLLIMPORT:
+                FUNC_IMPORT(ad->func_attr) = 1;
                 break;
             default:
                 if (tcc_state->warn_unsupported)
@@ -4630,7 +4637,7 @@ static void init_putv(CType *type, Section *sec, unsigned long c, int v, int exp
             break;
         default:
             if (vtop->r & VT_SYM) {
-                greloc(sec, vtop->sym, c, R_DATA_32);
+                greloc(sec, vtop->sym, c, R_DATA_PTR);
             }
 #ifdef TCC_TARGET_816
             *(short *) ptr |= (vtop->c.i & bit_mask) << bit_pos;
@@ -5098,7 +5105,7 @@ static void decl_initializer_alloc(
         if (tcc_state->do_bounds_check) {
             unsigned long *bounds_ptr;
 
-            greloc(bounds_section, sym, bounds_section->data_offset, R_DATA_32);
+            greloc(bounds_section, sym, bounds_section->data_offset, R_DATA_PTR);
             /* then add global bound info */
             bounds_ptr = section_ptr_add(bounds_section, 2 * sizeof(long));
             bounds_ptr[0] = 0; /* relocated */
@@ -5416,6 +5423,10 @@ static void decl(int l)
                         /* NOTE: as GCC, uninitialized global static
                            arrays of null size are considered as
                            extern */
+#ifdef TCC_TARGET_PE
+                        if (FUNC_IMPORT(ad.func_attr))
+                            type.t |= VT_IMPORT;
+#endif
                         external_sym(v, &type, r);
                     } else {
                         type.t |= (btype.t & VT_STATIC); /* Retain "static". */
