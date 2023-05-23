@@ -390,7 +390,7 @@ typedef struct
 #define SYMINFO_FLG_PASSTHRU 0x0002 /* Pass-thru symbol for translator */
 #define SYMINFO_FLG_COPY 0x0004     /* Symbol is a copy-reloc */
 #define SYMINFO_FLG_LAZYLOAD \
-    0x0008 /* Symbol bound to object to be lazy \
+    0x0008 /* Symbol bound to object to be lazy
                                        loaded */
 /* Syminfo version values.  */
 #define SYMINFO_NONE 0
@@ -631,7 +631,7 @@ typedef struct
    approach.  */
 #define DT_VALRNGLO 0x6ffffd00
 #define DT_POSFLAG_1 \
-    0x6ffffdfd                 /* Flags for DT_* entries, effecting \
+    0x6ffffdfd                 /* Flags for DT_* entries, effecting
                                    the following DT_* entry.  */
 #define DT_SYMINSZ 0x6ffffdfe  /* Size of syminfo table (in bytes) */
 #define DT_SYMINENT 0x6ffffdff /* Entry size of syminfo */
@@ -653,11 +653,11 @@ typedef struct
 /* These were chosen by Sun.  */
 #define DT_FLAGS_1 0x6ffffffb /* State flags, see DF_1_* below.  */
 #define DT_VERDEF \
-    0x6ffffffc                  /* Address of version definition \
+    0x6ffffffc                  /* Address of version definition
                                                          table */
 #define DT_VERDEFNUM 0x6ffffffd /* Number of version definitions */
 #define DT_VERNEED \
-    0x6ffffffe                                        /* Address of table with needed \
+    0x6ffffffe                                        /* Address of table with needed
                                                          versions */
 #define DT_VERNEEDNUM 0x6fffffff                      /* Number of needed versions */
 #define DT_VERSIONTAGIDX(tag) (DT_VERNEEDNUM - (tag)) /* Reverse order! */
@@ -835,7 +835,7 @@ typedef struct
 /* Some more special a_type values describing the hardware.  */
 #define AT_PLATFORM 15 /* String identifying platform.  */
 #define AT_HWCAP \
-    16 /* Machine dependent hints about \
+    16 /* Machine dependent hints about
                           processor capabilities.  */
 
 /* This entry gives some information about the FPU initialization
@@ -937,8 +937,8 @@ typedef struct
 #define R_386_NUM 11
 
 /* TCC-specific 16-bit relocs. */
-#define R_386_16        12              /* Direct 16 bit  */
-#define R_386_PC16      13              /* PC relative 16 bit */
+#define R_386_16 12   /* Direct 16 bit  */
+#define R_386_PC16 13 /* PC relative 16 bit */
 
 /* SUN SPARC specific definitions.  */
 
@@ -1026,7 +1026,7 @@ typedef struct
 #define R_X86_64_JUMP_SLOT 7 /* Create PLT entry */
 #define R_X86_64_RELATIVE 8  /* Adjust by program base */
 #define R_X86_64_GOTPCREL \
-    9                        /* 32 bit signed PC relative \
+    9                        /* 32 bit signed PC relative
                     offset to GOT */
 #define R_X86_64_32 10       /* Direct 32 bit zero extended */
 #define R_X86_64_32S 11      /* Direct 32 bit sign extended */
@@ -1038,14 +1038,14 @@ typedef struct
 #define R_X86_64_DTPOFF64 17 /* Offset in module's TLS block */
 #define R_X86_64_TPOFF64 18  /* Offset in initial TLS block */
 #define R_X86_64_TLSGD \
-    19 /* 32 bit signed PC relative offset \
+    19 /* 32 bit signed PC relative offset
                     to two GOT entries for GD symbol */
 #define R_X86_64_TLSLD \
-    20                       /* 32 bit signed PC relative offset \
+    20                       /* 32 bit signed PC relative offset
                     to two GOT entries for LD symbol */
 #define R_X86_64_DTPOFF32 21 /* Offset in TLS block */
 #define R_X86_64_GOTTPOFF \
-    22                      /* 32 bit signed PC relative offset \
+    22                      /* 32 bit signed PC relative offset
                     to GOT entry for IE symbol */
 #define R_X86_64_TPOFF32 23 /* Offset in initial TLS block */
 
@@ -1326,27 +1326,27 @@ typedef struct
 #define DT_MIPS_RLD_MAP 0x70000016     /* Address of run time loader map.  */
 #define DT_MIPS_DELTA_CLASS 0x70000017 /* Delta C++ class definition.  */
 #define DT_MIPS_DELTA_CLASS_NO \
-    0x70000018                            /* Number of entries in \
+    0x70000018                            /* Number of entries in
                                                 DT_MIPS_DELTA_CLASS.  */
 #define DT_MIPS_DELTA_INSTANCE 0x70000019 /* Delta C++ class instances.  */
 #define DT_MIPS_DELTA_INSTANCE_NO \
-    0x7000001a                         /* Number of entries in \
+    0x7000001a                         /* Number of entries in
                                                 DT_MIPS_DELTA_INSTANCE.  */
 #define DT_MIPS_DELTA_RELOC 0x7000001b /* Delta relocations.  */
 #define DT_MIPS_DELTA_RELOC_NO \
-    0x7000001c /* Number of entries in \
+    0x7000001c /* Number of entries in
                                                 DT_MIPS_DELTA_RELOC.  */
 #define DT_MIPS_DELTA_SYM \
-    0x7000001d /* Delta symbols that Delta \
+    0x7000001d /* Delta symbols that Delta
                                                 relocations refer to.  */
 #define DT_MIPS_DELTA_SYM_NO \
-    0x7000001e /* Number of entries in \
+    0x7000001e /* Number of entries in
                                                 DT_MIPS_DELTA_SYM.  */
 #define DT_MIPS_DELTA_CLASSSYM \
-    0x70000020 /* Delta symbols that hold the \
+    0x70000020 /* Delta symbols that hold the
                                                 class declaration.  */
 #define DT_MIPS_DELTA_CLASSSYM_NO \
-    0x70000021                       /* Number of entries in \
+    0x70000021                       /* Number of entries in
                                                 DT_MIPS_DELTA_CLASSSYM.  */
 #define DT_MIPS_CXX_FLAGS 0x70000022 /* Flags indicating for C++ flavor.  */
 #define DT_MIPS_PIXIE_INIT 0x70000023
@@ -1360,10 +1360,10 @@ typedef struct
 #define DT_MIPS_DYNSTR_ALIGN 0x7000002b
 #define DT_MIPS_INTERFACE_SIZE 0x7000002c /* Size of the .interface section. */
 #define DT_MIPS_RLD_TEXT_RESOLVE_ADDR \
-    0x7000002d /* Address of rld_text_rsolve \
+    0x7000002d /* Address of rld_text_rsolve
                                                     function stored in GOT.  */
 #define DT_MIPS_PERF_SUFFIX \
-    0x7000002e                          /* Default suffix of dso to be added \
+    0x7000002e                          /* Default suffix of dso to be added
                                                     by rld on dlopen() calls.  */
 #define DT_MIPS_COMPACT_SIZE 0x7000002f /* (O32)Size of compact rel section. */
 #define DT_MIPS_GP_VALUE 0x70000030     /* GP value for aux GOTs.  */
@@ -1469,10 +1469,10 @@ typedef Elf32_Addr Elf32_Conflict;
 #define R_PARISC_PCREL21L 5 /* PC-relative, left 21 bits.  */
 #define R_PARISC_PCREL14R 6 /* PC-relative, right 14 bits.  */
 #define R_PARISC_PCREL17C \
-    7 /* Conditional PC-relative, ignore \
+    7 /* Conditional PC-relative, ignore
                                  if displacement > 17bits.  */
 #define R_PARISC_PCREL17F \
-    8                         /* Conditional PC-relative, must \
+    8                         /* Conditional PC-relative, must
                                  fit in 17bits.  */
 #define R_PARISC_DPREL21L 9   /* DP-relative, left 21 bits.  */
 #define R_PARISC_DPREL14R 10  /* DP-relative, right 14 bits.  */
@@ -1481,13 +1481,13 @@ typedef Elf32_Addr Elf32_Conflict;
 #define R_PARISC_DLTREL14R 13 /* DLT-relative, right 14 bits.  */
 #define R_PARISC_DLTREL14F 14 /* DLT-relative, must fit in 14 bits.*/
 #define R_PARISC_DLTIND21L \
-    15 /* DLT-relative indirect, left \
+    15 /* DLT-relative indirect, left
                                  21 bits.  */
 #define R_PARISC_DLTIND14R \
-    16 /* DLT-relative indirect, right \
+    16 /* DLT-relative indirect, right
                                  14 bits.  */
 #define R_PARISC_DLTIND14F \
-    17                       /* DLT-relative indirect, must fit \
+    17                       /* DLT-relative indirect, must fit
                                  int 14 bits.  */
 #define R_PARISC_PLABEL32 18 /* Direct 32-bit reference to proc.  */
 
@@ -1638,12 +1638,12 @@ typedef Elf32_Addr Elf32_Conflict;
 /* ARM-specific values for sh_flags */
 #define SHF_ARM_ENTRYSECT 0x10000000 /* Section contains an entry point */
 #define SHF_ARM_COMDEF \
-    0x80000000 /* Section may be multiply defined \
+    0x80000000 /* Section may be multiply defined
                                         in the input to a link step */
 
 /* ARM-specific program header flags */
 #define PF_ARM_SB \
-    0x10000000 /* Segment contains the location \
+    0x10000000 /* Segment contains the location
                                 addressed by the static base */
 
 /* ARM relocs.  */

@@ -61,6 +61,7 @@ void vpushll(long long v)
     CValue cval;
     CType ctype;
     ctype.t = VT_LLONG;
+    ctype.ref = 0;
     cval.ull = v;
     vsetc(&ctype, VT_CONST, &cval);
 }
@@ -148,6 +149,7 @@ void vseti(int r, int v)
 {
     CType type;
     type.t = VT_INT;
+    type.ref = 0;
     vset(&type, r, v);
 }
 
@@ -500,11 +502,11 @@ int gv(int rc)
                     ll = vtop->c.ull;
                     vtop->c.ui = ll; /* first word */
                     load(r, vtop);
-                    vtop->r = r;            /* save register value */
+                    vtop->r = r; /* save register value */
 #ifdef TCC_TARGET_816
                     vpushi(ll >> 16);
 #else
-                    vpushi(ll >> 32);       /* second word */
+                    vpushi(ll >> 32); /* second word */
 #endif
                 } else if (r >= VT_CONST || /* XXX: test to VT_CONST incorrect ? */
                            (vtop->r & VT_LVAL)) {
@@ -1244,8 +1246,8 @@ void gen_opic(int op)
                    (vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM))
 #else
                    (((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == (VT_CONST | VT_SYM)
-                        && !(vtop[-1].sym->type.t & VT_IMPORT))
-                       || (vtop[-1].r & (VT_VALMASK | VT_LVAL)) == VT_LOCAL))
+                     && !(vtop[-1].sym->type.t & VT_IMPORT))
+                    || (vtop[-1].r & (VT_VALMASK | VT_LVAL)) == VT_LOCAL))
 #endif
         {
             /* symbol + constant case */
@@ -1707,6 +1709,10 @@ static void gen_cast(CType *type)
                     vtop->c.ll = vtop->c.ull;
                 else if (sbt & VT_UNSIGNED)
                     vtop->c.ll = vtop->c.ui;
+#ifdef TCC_TARGET_X86_64
+                else if (sbt == VT_PTR)
+                    ;
+#endif
                 else if (sbt != VT_LLONG)
                     vtop->c.ll = vtop->c.i;
 
@@ -3208,6 +3214,7 @@ static void vpush_tokc(int t)
 {
     CType type;
     type.t = t;
+    type.ref = 0;
     vsetc(&type, VT_CONST, &tokc);
 }
 
@@ -5444,6 +5451,10 @@ static void decl(int l)
                             r |= l;
                         if (has_init)
                             next();
+#ifdef TCC_TARGET_PE
+                        if (ad.func_export)
+                            type.t |= VT_EXPORT;
+#endif
                         decl_initializer_alloc(&type, &ad, r, has_init, v, l);
                     }
                 }
