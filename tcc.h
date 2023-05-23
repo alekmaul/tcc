@@ -480,8 +480,10 @@ struct TCCState
     int verbose;
     /* compile with debug symbol (and use them if error during execution) */
     int do_debug;
+#ifdef CONFIG_TCC_BCHECK
     /* compile with built-in memory and bounds checker */
     int do_bounds_check;
+#endif
     /* give the path of the tcc libraries */
     char *tcc_lib_path;
 
@@ -489,7 +491,7 @@ struct TCCState
     void *error_opaque;
     void (*error_func)(void *opaque, const char *msg);
     int error_set_jmp_enabled;
-        jmp_buf error_jmp_buf;
+    jmp_buf error_jmp_buf;
     int nb_errors;
 
     /* tiny assembler state */
@@ -834,11 +836,6 @@ char *pstrcpy(char *buf, int buf_size, const char *s);
 char *pstrcat(char *buf, int buf_size, const char *s);
 void dynarray_add(void ***ptab, int *nb_ptr, void *data);
 void dynarray_reset(void *pp, int *n);
-
-#ifdef CONFIG_TCC_BACKTRACE
-extern int num_callers;
-extern const char **rt_bound_error_msg;
-#endif
 
 /* true if float/double/long double type */
 static inline int is_float(int t)

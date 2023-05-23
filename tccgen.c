@@ -3154,8 +3154,10 @@ static void indir(void)
     if (!(vtop->type.t & VT_ARRAY) && (vtop->type.t & VT_BTYPE) != VT_FUNC) {
         vtop->r |= lvalue_type(vtop->type.t);
         /* if bound checking, the referenced pointer must be checked */
+#ifdef CONFIG_TCC_BCHECK
         if (tcc_state->do_bounds_check)
             vtop->r |= VT_MUSTBOUND;
+#endif
     }
 }
 
@@ -3575,9 +3577,11 @@ tok_next:
             /* an array is never an lvalue */
             if (!(vtop->type.t & VT_ARRAY)) {
                 vtop->r |= lvalue_type(vtop->type.t);
+#ifdef CONFIG_TCC_BCHECK
                 /* if bound checking, the referenced pointer must be checked */
                 if (tcc_state->do_bounds_check)
                     vtop->r |= VT_MUSTBOUND;
+#endif
             }
             next();
         } else if (tok == '[') {
@@ -4988,10 +4992,13 @@ static void decl_initializer_alloc(
     }
     if ((r & VT_VALMASK) == VT_LOCAL) {
         sec = NULL;
+#ifdef CONFIG_TCC_BCHECK
         if (tcc_state->do_bounds_check && (type->t & VT_ARRAY))
             loc--;
+#endif
         loc = (loc - size) & -align;
         addr = loc;
+#ifdef CONFIG_TCC_BCHECK
         /* handles bounds */
         /* XXX: currently, since we do only one pass, we cannot track
            '&' operators, so we add only arrays */
@@ -5004,6 +5011,7 @@ static void decl_initializer_alloc(
             bounds_ptr[0] = addr;
             bounds_ptr[1] = size;
         }
+#endif
         if (v) {
             /* local variable */
             sym_push(v, type, r, addr);
@@ -5063,9 +5071,11 @@ static void decl_initializer_alloc(
             /* very important to increment global pointer at this time
                because initializers themselves can create new initializers */
             data_offset += size;
+#ifdef CONFIG_TCC_BCHECK
             /* add padding if bound check */
             if (tcc_state->do_bounds_check)
                 data_offset++;
+#endif
             sec->data_offset = data_offset;
             /* allocate section space to put the data */
             if (sec->sh_type != SHT_NOBITS && data_offset > sec->data_allocated)
@@ -5101,7 +5111,7 @@ static void decl_initializer_alloc(
             vsetc(type, VT_CONST | VT_SYM, &cval);
             vtop->sym = sym;
         }
-
+#ifdef CONFIG_TCC_BCHECK
         /* handles bounds now because the symbol must be defined
            before for the relocation */
         if (tcc_state->do_bounds_check) {
@@ -5113,6 +5123,7 @@ static void decl_initializer_alloc(
             bounds_ptr[0] = 0; /* relocated */
             bounds_ptr[1] = size;
         }
+#endif
     }
     if (has_init) {
         decl_initializer(type, sec, addr, 1, 0);
