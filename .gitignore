@@ -9,3 +9,5 @@ tcc.1
 tcc.pod
 backup/
 docs/html
+lib/libtcc1.o
+libtcc1.a
