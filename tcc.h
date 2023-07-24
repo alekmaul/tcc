@@ -41,6 +41,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#undef RC_NONE
 #include <sys/timeb.h>
 #include <io.h>     /* open, close etc. */
 #include <direct.h> /* getcwd */
