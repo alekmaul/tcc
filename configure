@@ -29,8 +29,15 @@ includedir=""
 mandir=""
 sysroot=""
 cross_prefix=""
-cc="gcc"
-host_cc="gcc"
+
+cc=$(which cc)
+if [ "$cc" = "" ]; then
+    cc="gcc"
+    host_cc="gcc"
+else
+    host_cc="$cc"
+fi
+
 ar="ar"
 strip="strip"
 cpu=$(uname -m)
