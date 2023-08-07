@@ -1895,8 +1895,10 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
             }
           }
 #endif
+#if 0 // 07/06/2023 ALekmaul, useless to declare with variable
             if (empty)
                 fprintf(f, "__local_dummybss dsb 1\n");
+#endif
             // fprintf(f, "endsection.bss dsb 0\n");
             fprintf(f, ".ENDS\n");
         } else { /* .data, .rodata, user-defined sections */
@@ -2066,17 +2068,22 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
 
                 if (k == 0) {
                     if (!bytecount) {
+#if 0 // 07/06/2023 ALekmaul, useless to declare with variable
                         fprintf(f, "__local_dummy%s%s ", random_token, s->name);
                         bytecount++;
+#endif
                     }
-                    fprintf(f, "dsb %d\n", bytecount);
+                    if (bytecount) // 07/06/2023, added because of previous test removed
+                        fprintf(f, "dsb %d\n", bytecount);
                     bytecount = 0;
                 }
                 // if(k==1 && deebeed) fprintf(f,"\n");
                 if (k == 1) {
                     // fprintf(f,"\nendsection%s:", s->name);
+#if 0 // 07/06/2023 ALekmaul, useless to declare with variable
                     if (!size)
                         fprintf(f, "\n__local_dummy%s%s: .db 0", random_token, s->name);
+#endif
                 }
                 fprintf(f, "\n.ENDS\n\n");
             }

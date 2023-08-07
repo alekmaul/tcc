@@ -1925,7 +1925,8 @@ void gfunc_prolog(CType *func_type)
        than 50K of assembler code have been written */
     if (section_closed) {
         ind_before_section = ind;
-        pr("\n.SECTION \".text_0x%x\" SUPERFREE\n", section_count++);
+        //230625 pr("\n.SECTION \".text_0x%x\" SUPERFREE\n", section_count++);
+        pr("\n.SECTION \".%stext_0x%x\" SUPERFREE\n", current_fn, section_count++);
         section_closed = 0;
     }
 
