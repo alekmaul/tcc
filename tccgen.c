@@ -5004,6 +5004,7 @@ static void decl_initializer_alloc(
         }
     } else {
         Sym *sym;
+        int is_const_var = 0;
 
         sym = NULL;
         if (v && scope == VT_CONST) {
@@ -5030,22 +5031,25 @@ static void decl_initializer_alloc(
                     if (!has_init)
                         goto no_alloc;
                 }
+            } else if ((type->t & VT_EXTERN) == 0 && (r & VT_CONST)) {
+                if ((type->t & VT_CONSTANT) || ((type->t & VT_ARRAY) && type->ref && (type->ref->type.t & VT_CONSTANT)))
+                    is_const_var = 1;
             }
         }
 
         /* allocate symbol in corresponding section */
         sec = ad->section;
         if (!sec) {
-#ifdef TCC_TARGET_816
-            if (has_init == 2)
+            if (has_init == 2) {
                 sec = rodata_section;
-            else if (has_init)
-#else
-            if (has_init)
-#endif
-                sec = data_section;
-            else if (tcc_state->nocommon)
+            } else if (has_init) {
+                if (is_const_var)
+                    sec = rodata_section;
+                else
+                    sec = data_section;
+            } else if (tcc_state->nocommon) {
                 sec = bss_section;
+            }
         }
         if (sec) {
             data_offset = sec->data_offset;
