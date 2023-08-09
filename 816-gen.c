@@ -89,6 +89,7 @@ int reg_classes[NB_REGS] = {
 #define REG_FRET TREG_F0
 
 #define R_DATA_32 1  // whatever
+#define R_DATA_PTR 1 // whatever
 #define R_JMP_SLOT 2 // whatever
 #define R_COPY 3     // whatever
 

@@ -1557,6 +1557,7 @@ redo:
                 if (!IS_ABSPATH(buf))
                     continue;
                 buf1[0] = 0;
+
             } else if (i == -1) {
                 /* search in current dir if "header.h" */
                 if (c != '\"')
@@ -1564,6 +1565,7 @@ redo:
                 size = tcc_basename(file->filename) - file->filename;
                 memcpy(buf1, file->filename, size);
                 buf1[size] = '\0';
+
             } else {
                 /* search in all the include paths */
                 if (i < s1->nb_include_paths)
@@ -1653,7 +1655,7 @@ redo:
         if (s1->ifdef_stack_ptr[-1] & 2)
             error("#else after #else");
         c = (s1->ifdef_stack_ptr[-1] ^= 3);
-        goto test_skip;
+        goto test_else;
     case TOK_ELIF:
         if (s1->ifdef_stack_ptr == s1->ifdef_stack)
             error("#elif without matching #if");
@@ -1665,6 +1667,9 @@ redo:
             goto skip;
         c = expr_preprocess();
         s1->ifdef_stack_ptr[-1] = c;
+    test_else:
+        if (s1->ifdef_stack_ptr == file->ifdef_stack_ptr + 1)
+            file->ifndef_macro = 0;
     test_skip:
         if (!(c & 1)) {
         skip:
@@ -2008,12 +2013,12 @@ void parse_number(const char *p)
                 tokc.f = (float) d;
             } else if (t == 'L') {
                 ch = *p++;
-#if defined(TCC_TARGET_816)
-                tok = TOK_CFLOAT;
-                tokc.f = d;
-#elif defined(TCC_TARGET_PE)
+#if defined(TCC_TARGET_PE)
                 tok = TOK_CDOUBLE;
                 tokc.d = d;
+#elif defined(TCC_TARGET_816)
+                tok = TOK_CFLOAT;
+                tokc.f = d;
 #else
                 tok = TOK_CLDOUBLE;
                 /* XXX: not large enough */
@@ -3083,6 +3088,7 @@ redo:
             } else {
                 /* end of macro string: free it */
                 tok_str_free(macro_ptr_allocated);
+                macro_ptr_allocated = NULL;
                 macro_ptr = NULL;
             }
             goto redo;

@@ -141,9 +141,11 @@ tar:
 	( cd /tmp ; tar zcvf ~/$(TCC-VERSION).tar.gz $(TCC-VERSION) --exclude CVS )
 	rm -rf /tmp/$(TCC-VERSION)
 
+ifndef CONFIG_816
 # in tests subdir
 test clean:
 	$(MAKE) -C tests $@
+endif
 
 config.mak:
 	@echo Running configure ...

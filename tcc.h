@@ -47,9 +47,6 @@
 #include <direct.h> /* getcwd */
 #define inline __inline
 #define inp next_inp
-#ifdef _MSC_VER
-#define __aligned(n) __declspec(align(n))
-#endif
 #ifdef _WIN64
 #define uplong unsigned long long
 #endif
@@ -66,10 +63,6 @@
 
 #ifndef uplong
 #define uplong unsigned long
-#endif
-
-#ifndef __aligned
-#define __aligned(n) __attribute__((aligned(n)))
 #endif
 
 #ifndef PAGESIZE
@@ -119,8 +112,7 @@
 #endif
 
 /* define it to include assembler support */
-#if !defined(TCC_TARGET_ARM) && !defined(TCC_TARGET_C67) && !defined(TCC_TARGET_X86_64) \
-    && !defined(TCC_TARGET_816)
+#if !defined(TCC_TARGET_ARM) && !defined(TCC_TARGET_C67) && !defined(TCC_TARGET_816)
 #define CONFIG_TCC_ASM
 #endif
 
@@ -276,22 +268,21 @@ typedef struct DLLReference
 /* GNUC attribute definition */
 typedef struct AttributeDef
 {
-    int aligned;
-    int packed;
-    Section *section;
-    int func_attr; /* calling convention, exports, ... */
+    unsigned packed : 1, aligned : 5, /* alignement (0..16) */
+        func_call : 3,                /* calling convention (0..5), see below */
+        func_export : 1, func_import : 1, func_args : 8;
+    struct Section *section;
 } AttributeDef;
 
-/* -------------------------------------------------- */
 /* gr: wrappers for casting sym->r for other purposes */
-typedef struct
-{
-    unsigned func_call : 8, func_args : 8, func_export : 1;
-} func_attr_t;
+#define FUNC_CALL(r) (((AttributeDef *) &(r))->func_call)
+#define FUNC_EXPORT(r) (((AttributeDef *) &(r))->func_export)
+#define FUNC_IMPORT(r) (((AttributeDef *) &(r))->func_import)
+#define FUNC_ARGS(r) (((AttributeDef *) &(r))->func_args)
+#define FUNC_ALIGN(r) (((AttributeDef *) &(r))->aligned)
+#define FUNC_PACKED(r) (((AttributeDef *) &(r))->packed)
+#define INT_ATTR(ad) (*(int *) (ad))
 
-#define FUNC_CALL(r) (((func_attr_t *) &(r))->func_call)
-#define FUNC_EXPORT(r) (((func_attr_t *) &(r))->func_export)
-#define FUNC_ARGS(r) (((func_attr_t *) &(r))->func_args)
 /* -------------------------------------------------- */
 
 #define SYM_STRUCT 0x40000000     /* struct/union/enum symbol space */
@@ -459,6 +450,8 @@ struct TCCState
 
     /* soname as specified on the command line (-soname) */
     const char *soname;
+    /* rpath as specified on the command line (-Wl,-rpath=) */
+    const char *rpath;
 
     /* if true, all symbols are exported */
     int rdynamic;
@@ -488,8 +481,10 @@ struct TCCState
     int verbose;
     /* compile with debug symbol (and use them if error during execution) */
     int do_debug;
+#ifdef CONFIG_TCC_BCHECK
     /* compile with built-in memory and bounds checker */
     int do_bounds_check;
+#endif
     /* give the path of the tcc libraries */
     char *tcc_lib_path;
 
@@ -497,10 +492,7 @@ struct TCCState
     void *error_opaque;
     void (*error_func)(void *opaque, const char *msg);
     int error_set_jmp_enabled;
-#ifdef _WIN64
-    __aligned(16)
-#endif
-        jmp_buf error_jmp_buf;
+    jmp_buf error_jmp_buf;
     int nb_errors;
 
     /* tiny assembler state */
@@ -524,9 +516,23 @@ struct TCCState
 
     /* for tcc_relocate */
     int runtime_added;
+    void *runtime_mem;
 
     struct InlineFunc **inline_fns;
     int nb_inline_fns;
+
+#ifdef TCC_TARGET_I386
+    int seg_size;
+#endif
+
+    /* section alignment */
+    unsigned long section_align;
+
+#ifdef TCC_TARGET_PE
+    /* PE info */
+    int pe_subsystem;
+    unsigned long pe_file_align;
+#endif
 
 #ifndef TCC_TARGET_PE
 #ifdef TCC_TARGET_X86_64
@@ -540,7 +546,7 @@ struct TCCState
 /* The current value can be: */
 #define VT_VALMASK 0x00ff
 #define VT_CONST \
-    0x00f0               /* constant in vc \
+    0x00f0               /* constant in vc
                                  (must be first non register value) */
 #define VT_LLOCAL 0x00f1 /* lvalue, offset on stack */
 #define VT_LOCAL 0x00f2  /* offset on stack */
@@ -550,13 +556,13 @@ struct TCCState
 #define VT_LVAL 0x0100   /* var is an lvalue */
 #define VT_SYM 0x0200    /* a symbol value is added */
 #define VT_MUSTCAST \
-    0x0400 /* value must be casted to be correct (used for \
+    0x0400 /* value must be casted to be correct (used for
                                    char/short stored in integer registers) */
 #define VT_MUSTBOUND \
-    0x0800 /* bound checking must be done before \
+    0x0800 /* bound checking must be done before
                                    dereferencing value */
 #define VT_BOUNDED \
-    0x8000                      /* value is bounded. The address of the \
+    0x8000                      /* value is bounded. The address of the
                                    bounding function call point is in vc */
 #define VT_LVAL_BYTE 0x1000     /* lvalue is a byte */
 #define VT_LVAL_SHORT 0x2000    /* lvalue is a short */
@@ -578,7 +584,7 @@ struct TCCState
 #define VT_BOOL 11    /* ISOC99 boolean type */
 #define VT_LLONG 12   /* 64 bit integer */
 #define VT_LONG \
-    13                     /* long integer (NEVER USED as type, only \
+    13                     /* long integer (NEVER USED as type, only
                               during parsing) */
 #define VT_BTYPE 0x000f    /* mask for basic type */
 #define VT_UNSIGNED 0x0010 /* unsigned type */
@@ -593,6 +599,8 @@ struct TCCState
 #define VT_STATIC 0x00000100  /* static variable */
 #define VT_TYPEDEF 0x00000200 /* typedef definition */
 #define VT_INLINE 0x00000400  /* inline definition */
+#define VT_IMPORT 0x00004000  /* win32: extern data imported from dll */
+#define VT_EXPORT 0x00008000  /* win32: data exported from dll */
 #ifdef TCC_TARGET_816
 #define VT_STATICLOCAL 0x00004000
 #endif
@@ -600,7 +608,7 @@ struct TCCState
 #define VT_STRUCT_SHIFT 16 /* shift for bitfield shift values */
 
 /* type mask (except storage) */
-#define VT_STORAGE (VT_EXTERN | VT_STATIC | VT_TYPEDEF | VT_INLINE)
+#define VT_STORAGE (VT_EXTERN | VT_STATIC | VT_TYPEDEF | VT_INLINE | VT_IMPORT | VT_EXPORT)
 #ifdef TCC_TARGET_816
 #define VT_TYPE (~(VT_STORAGE) & ~(VT_STATICLOCAL))
 #else
@@ -684,19 +692,42 @@ struct TCCState
 /* all identificators and strings have token above that */
 #define TOK_IDENT 256
 
-/* only used for i386 asm opcodes definitions */
 #define DEF_ASM(x) DEF(TOK_ASM_##x, #x)
+#define TOK_ASM_int TOK_INT
 
+#if defined TCC_TARGET_I386 || defined TCC_TARGET_X86_64
+/* only used for i386 asm opcodes definitions */
 #define DEF_BWL(x)              \
     DEF(TOK_ASM_##x##b, #x "b") \
     DEF(TOK_ASM_##x##w, #x "w") \
     DEF(TOK_ASM_##x##l, #x "l") \
     DEF(TOK_ASM_##x, #x)
-
 #define DEF_WL(x)               \
     DEF(TOK_ASM_##x##w, #x "w") \
     DEF(TOK_ASM_##x##l, #x "l") \
     DEF(TOK_ASM_##x, #x)
+#ifdef TCC_TARGET_X86_64
+#define DEF_BWLQ(x)             \
+    DEF(TOK_ASM_##x##b, #x "b") \
+    DEF(TOK_ASM_##x##w, #x "w") \
+    DEF(TOK_ASM_##x##l, #x "l") \
+    DEF(TOK_ASM_##x##q, #x "q") \
+    DEF(TOK_ASM_##x, #x)
+#define DEF_WLQ(x)              \
+    DEF(TOK_ASM_##x##w, #x "w") \
+    DEF(TOK_ASM_##x##l, #x "l") \
+    DEF(TOK_ASM_##x##q, #x "q") \
+    DEF(TOK_ASM_##x, #x)
+#define DEF_BWLX DEF_BWLQ
+#define DEF_WLX DEF_WLQ
+/* number of sizes + 1 */
+#define NBWLX 5
+#else
+#define DEF_BWLX DEF_BWL
+#define DEF_WLX DEF_WL
+/* number of sizes + 1 */
+#define NBWLX 4
+#endif
 
 #define DEF_FP1(x)                       \
     DEF(TOK_ASM_##f##x##s, "f" #x "s")   \
@@ -741,7 +772,7 @@ struct TCCState
     DEF_ASM(x##nle)    \
     DEF_ASM(x##g)
 
-#define TOK_ASM_int TOK_INT
+#endif // defined TCC_TARGET_I386 || defined TCC_TARGET_X86_64
 
 enum tcc_token {
     TOK_LAST = TOK_IDENT - 1,
@@ -806,11 +837,6 @@ char *pstrcpy(char *buf, int buf_size, const char *s);
 char *pstrcat(char *buf, int buf_size, const char *s);
 void dynarray_add(void ***ptab, int *nb_ptr, void *data);
 void dynarray_reset(void *pp, int *n);
-
-#ifdef CONFIG_TCC_BACKTRACE
-extern int num_callers;
-extern const char **rt_bound_error_msg;
-#endif
 
 /* true if float/double/long double type */
 static inline int is_float(int t)

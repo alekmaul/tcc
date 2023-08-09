@@ -191,7 +191,7 @@ static UDWtype __udivmoddi4(UDWtype n, UDWtype d, UDWtype *rp)
 
             if (bm != 0) {
                 /* Normalize, i.e. make the most significant bit of the
-               denominator set.  */
+         denominator set.  */
 
                 d0 = d0 << bm;
                 n1 = (n1 << bm) | (n0 >> (W_TYPE_SIZE - bm));
@@ -212,11 +212,11 @@ static UDWtype __udivmoddi4(UDWtype n, UDWtype d, UDWtype *rp)
 
             if (bm == 0) {
                 /* From (n1 >= d0) /\ (the most significant bit of d0 is set),
-               conclude (the most significant bit of n1 is set) /\ (the
-               leading quotient digit q1 = 1).
+         conclude (the most significant bit of n1 is set) /\ (the
+         leading quotient digit q1 = 1).
 
-               This special case is necessary, not an optimization.
-               (Shifts counts of W_TYPE_SIZE are undefined.)  */
+         This special case is necessary, not an optimization.
+         (Shifts counts of W_TYPE_SIZE are undefined.)  */
 
                 n1 -= d0;
                 q1 = 1;
@@ -267,13 +267,13 @@ static UDWtype __udivmoddi4(UDWtype n, UDWtype d, UDWtype *rp)
             count_leading_zeros(bm, d1);
             if (bm == 0) {
                 /* From (n1 >= d1) /\ (the most significant bit of d1 is set),
-               conclude (the most significant bit of n1 is set) /\ (the
-               quotient digit q0 = 0 or 1).
+         conclude (the most significant bit of n1 is set) /\ (the
+         quotient digit q0 = 0 or 1).
 
-               This special case is necessary, not an optimization.  */
+         This special case is necessary, not an optimization.  */
 
                 /* The condition on the next line takes advantage of that
-               n1 >= d1 (true due to program flow).  */
+         n1 >= d1 (true due to program flow).  */
                 if (n1 > d1 || n0 >= d0) {
                     q0 = 1;
                     sub_ddmmss(n1, n0, n1, n0, d1, d0);

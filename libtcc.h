@@ -51,11 +51,11 @@ LIBTCCAPI void tcc_undefine_symbol(TCCState *s, const char *sym);
 /* compiling */
 
 /* add a file (either a C file, dll, an object, a library or an ld
-       script). Return -1 if error. */
+   script). Return -1 if error. */
 LIBTCCAPI int tcc_add_file(TCCState *s, const char *filename);
 
 /* compile a string containing a C source. Return non zero if
-       error. */
+   error. */
 LIBTCCAPI int tcc_compile_string(TCCState *s, const char *buf);
 
 /*****************************/
@@ -63,8 +63,8 @@ LIBTCCAPI int tcc_compile_string(TCCState *s, const char *buf);
 
 /* set output type. MUST BE CALLED before any compilation */
 #define TCC_OUTPUT_MEMORY \
-    0                           /* output will be ran in memory (no \
-                                   output file) (default) */
+    0                           /* output will be ran in memory (no
+                                 output file) (default) */
 #define TCC_OUTPUT_EXE 1        /* executable file */
 #define TCC_OUTPUT_DLL 2        /* dynamic library */
 #define TCC_OUTPUT_OBJ 3        /* object file */
@@ -85,17 +85,16 @@ LIBTCCAPI int tcc_add_library(TCCState *s, const char *libraryname);
 LIBTCCAPI int tcc_add_symbol(TCCState *s, const char *name, void *val);
 
 /* output an executable, library or object file. DO NOT call
-       tcc_relocate() before. */
+   tcc_relocate() before. */
 LIBTCCAPI int tcc_output_file(TCCState *s, const char *filename);
 
 /* link and run main() function and return its value. DO NOT call
-       tcc_relocate() before. */
+   tcc_relocate() before. */
 LIBTCCAPI int tcc_run(TCCState *s, int argc, char **argv);
 
-/* copy code into memory passed in by the caller and do all relocations
-       (needed before using tcc_get_symbol()).
-       returns -1 on error and required size if ptr is NULL */
-LIBTCCAPI int tcc_relocate(TCCState *s1, void *ptr);
+/* Do all relocations (needed before using tcc_get_symbol())
+   Returns -1 on error. */
+LIBTCCAPI int tcc_relocate(TCCState *s1);
 
 /* return symbol value or NULL if not found */
 LIBTCCAPI void *tcc_get_symbol(TCCState *s, const char *name);
