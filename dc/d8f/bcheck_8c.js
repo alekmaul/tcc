@@ -19,6 +19,7 @@ var bcheck_8c =
     [ "INVALID_SIZE", "dc/d8f/bcheck_8c.html#aef9728eec8450ec5384dc534a87c8ec4", null ],
     [ "BoundEntry", "dc/d8f/bcheck_8c.html#aca0f5d482da824fb54a1c21d0cb38eb6", null ],
     [ "__bound_delete_region", "dc/d8f/bcheck_8c.html#a52e2a776bbf0946e712a7a83f8e23647", null ],
+    [ "__bound_exit", "dc/d8f/bcheck_8c.html#a732530b910313ad48433b8182aa01195", null ],
     [ "__bound_free", "dc/d8f/bcheck_8c.html#a78bb98fb03caaa41ebdcbc07f6471188", null ],
     [ "__bound_init", "dc/d8f/bcheck_8c.html#a35fe59f2ac3e74bae48a6d5c831cc90e", null ],
     [ "__bound_local_delete", "dc/d8f/bcheck_8c.html#a18fd05be0618f182c0b8674570110368", null ],

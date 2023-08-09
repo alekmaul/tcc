@@ -1,4 +1,0 @@
-<map id="tcc_get_symbol" name="tcc_get_symbol">
-<area shape="rect" id="node1" title="Get the value of an ELF symbol by name." alt="" coords="203,5,327,32"/>
-<area shape="rect" id="node2" href="$d6/da0/tccelf_8c.html#a8e8a3e4ae5ee32c8a7a44e6ccad650df" title="Get the value of an ELF symbol by name with error handling." alt="" coords="5,5,155,32"/>
-</map>

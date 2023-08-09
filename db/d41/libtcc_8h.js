@@ -23,7 +23,7 @@ var libtcc_8h =
     [ "tcc_get_symbol", "db/d41/libtcc_8h.html#a9ac065e95d93981979efb6bfd07da987", null ],
     [ "tcc_new", "db/d41/libtcc_8h.html#a6acc6298a2be25dc8d26e6f6d14d2057", null ],
     [ "tcc_output_file", "db/d41/libtcc_8h.html#a972b66c8d0f3d47b0bb038db6a272391", null ],
-    [ "tcc_relocate", "db/d41/libtcc_8h.html#abbca89fd69ff97f420ea7351c337b684", null ],
+    [ "tcc_relocate", "db/d41/libtcc_8h.html#a1a82067f8809b5ff515a1522a373ac32", null ],
     [ "tcc_run", "db/d41/libtcc_8h.html#a4bcdbd3b4e070cf45145d8b4779621c6", null ],
     [ "tcc_set_error_func", "db/d41/libtcc_8h.html#a7e6c9fb23d27038f9ba08786e18b24fd", null ],
     [ "tcc_set_lib_path", "db/d41/libtcc_8h.html#aceb9222dbcd669c0d4128b6763d623cf", null ],

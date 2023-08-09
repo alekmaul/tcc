@@ -15,6 +15,7 @@ var 816_gen_8c =
     [ "PTR_SIZE", "d9/d87/816-gen_8c.html#a9139e35b6a7857baf24808da65eb9573", null ],
     [ "R_COPY", "d9/d87/816-gen_8c.html#a11ea24791ab00102e7ef613f8c0a95de", null ],
     [ "R_DATA_32", "d9/d87/816-gen_8c.html#a2aa6d3635001f012f6fb4c8c3e49b053", null ],
+    [ "R_DATA_PTR", "d9/d87/816-gen_8c.html#ae2a95ee15a04fc2aed2ba7820d7d3992", null ],
     [ "R_JMP_SLOT", "d9/d87/816-gen_8c.html#a31cf52d2b85046d7c6facc04b7fbfa6e", null ],
     [ "RC_F0", "d9/d87/816-gen_8c.html#a284a4e8da8d261d39f04b78fe168e2e6", null ],
     [ "RC_F1", "d9/d87/816-gen_8c.html#a9080fe2cc25a2e503aa922b30ab3e9c9", null ],

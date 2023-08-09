@@ -168,6 +168,8 @@ Data Fields</h2></td></tr>
 <tr class="separator:a0d640ad029c39d9754e6814fc5b04797"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a326c08252909944ddca1daefac732552"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#a326c08252909944ddca1daefac732552">soname</a></td></tr>
 <tr class="separator:a326c08252909944ddca1daefac732552"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3bed3191bd40d70b9c209584b81aacab"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#a3bed3191bd40d70b9c209584b81aacab">rpath</a></td></tr>
+<tr class="separator:a3bed3191bd40d70b9c209584b81aacab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e9cfa56fdbd1f37ec1e65e4bfb5d38c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#a8e9cfa56fdbd1f37ec1e65e4bfb5d38c">rdynamic</a></td></tr>
 <tr class="separator:a8e9cfa56fdbd1f37ec1e65e4bfb5d38c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad9c76059494c6ab7d56aa3befb2f3a5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#aad9c76059494c6ab7d56aa3befb2f3a5">alacarte_link</a></td></tr>
@@ -206,7 +208,7 @@ Data Fields</h2></td></tr>
 <tr class="separator:a0a469c377dbf70d13bad768c6fee034c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aac06b26d4205175c007bb68d6d6f927f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#aac06b26d4205175c007bb68d6d6f927f">error_set_jmp_enabled</a></td></tr>
 <tr class="separator:aac06b26d4205175c007bb68d6d6f927f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab0405d1fbc7317ae9b1acf6c6e826d10"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../dd/df8/setjmp_8h.html#a6d58a62eb89b4d3d616ed0c5fbe15858">jmp_buf</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#ab0405d1fbc7317ae9b1acf6c6e826d10">error_jmp_buf</a></td></tr>
+<tr class="memitem:ab0405d1fbc7317ae9b1acf6c6e826d10"><td class="memItemLeft" align="right" valign="top">jmp_buf&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#ab0405d1fbc7317ae9b1acf6c6e826d10">error_jmp_buf</a></td></tr>
 <tr class="separator:ab0405d1fbc7317ae9b1acf6c6e826d10"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a058ad08f5875f147b32ab82f89b44591"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#a058ad08f5875f147b32ab82f89b44591">nb_errors</a></td></tr>
 <tr class="separator:a058ad08f5875f147b32ab82f89b44591"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -226,10 +228,16 @@ Data Fields</h2></td></tr>
 <tr class="separator:a0407ef15a10cbb03b7cf2bb43829963a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf2dd3ec103e619cee88eccd50c06e67"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#abf2dd3ec103e619cee88eccd50c06e67">runtime_added</a></td></tr>
 <tr class="separator:abf2dd3ec103e619cee88eccd50c06e67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d9875f4762fd86d02d648737c79b35c"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#a8d9875f4762fd86d02d648737c79b35c">runtime_mem</a></td></tr>
+<tr class="separator:a8d9875f4762fd86d02d648737c79b35c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac750f07f383d7effb759b892ea8d9970"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d7/db3/structInlineFunc.html">InlineFunc</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#ac750f07f383d7effb759b892ea8d9970">inline_fns</a></td></tr>
 <tr class="separator:ac750f07f383d7effb759b892ea8d9970"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac196cabe9b9059c3414655797c193cca"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#ac196cabe9b9059c3414655797c193cca">nb_inline_fns</a></td></tr>
 <tr class="separator:ac196cabe9b9059c3414655797c193cca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5b0cb8851b937613d4f0b85346f6024"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#aa5b0cb8851b937613d4f0b85346f6024">seg_size</a></td></tr>
+<tr class="separator:aa5b0cb8851b937613d4f0b85346f6024"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6d8472d218d2020c970ac7cb4bc4a63"><td class="memItemLeft" align="right" valign="top">unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dea/structTCCState.html#aa6d8472d218d2020c970ac7cb4bc4a63">section_align</a></td></tr>
+<tr class="separator:aa6d8472d218d2020c970ac7cb4bc4a63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Field Documentation</h2>
 <a id="aad9c76059494c6ab7d56aa3befb2f3a5"></a>
@@ -379,7 +387,7 @@ Data Fields</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../dd/df8/setjmp_8h.html#a6d58a62eb89b4d3d616ed0c5fbe15858">jmp_buf</a> TCCState::error_jmp_buf</td>
+          <td class="memname">jmp_buf TCCState::error_jmp_buf</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -876,6 +884,20 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
+<a id="a3bed3191bd40d70b9c209584b81aacab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3bed3191bd40d70b9c209584b81aacab">&#9670;&nbsp;</a></span>rpath</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* TCCState::rpath</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="abf2dd3ec103e619cee88eccd50c06e67"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abf2dd3ec103e619cee88eccd50c06e67">&#9670;&nbsp;</a></span>runtime_added</h2>
 
@@ -890,6 +912,34 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
+<a id="a8d9875f4762fd86d02d648737c79b35c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d9875f4762fd86d02d648737c79b35c">&#9670;&nbsp;</a></span>runtime_mem</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void* TCCState::runtime_mem</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa6d8472d218d2020c970ac7cb4bc4a63"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6d8472d218d2020c970ac7cb4bc4a63">&#9670;&nbsp;</a></span>section_align</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned long TCCState::section_align</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a10242bc959acd362a747c7619b7568e9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a10242bc959acd362a747c7619b7568e9">&#9670;&nbsp;</a></span>sections</h2>
 
@@ -898,6 +948,20 @@ Data Fields</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="../../d7/dce/structSection.html">Section</a>** TCCState::sections</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa5b0cb8851b937613d4f0b85346f6024"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5b0cb8851b937613d4f0b85346f6024">&#9670;&nbsp;</a></span>seg_size</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int TCCState::seg_size</td>
         </tr>
       </table>
 </div><div class="memdoc">

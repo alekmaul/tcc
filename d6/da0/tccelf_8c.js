@@ -5,6 +5,8 @@ var tccelf_8c =
     [ "ArchiveHeader", "d6/ded/structArchiveHeader.html", "d6/ded/structArchiveHeader" ],
     [ "ARMAG", "d6/da0/tccelf_8c.html#a8ff74a872546f6c463e90bd83fabb0b4", null ],
     [ "ElfW_Rel", "d6/da0/tccelf_8c.html#a969f91b3fbe28142a53d799afea7f502", null ],
+    [ "EXTRA_RELITEMS", "d6/da0/tccelf_8c.html#adcbd40c4721c00890b42614a77b24404", null ],
+    [ "HAVE_PHDR", "d6/da0/tccelf_8c.html#a945a5588e2c4397c0a278810357d10d0", null ],
     [ "LD_TOK_EOF", "d6/da0/tccelf_8c.html#a63f172683936f1a9b78fb2fd72de6e54", null ],
     [ "LD_TOK_NAME", "d6/da0/tccelf_8c.html#a2b2b5e7c15b77f6be9aed4f652d59c41", null ],
     [ "REL_SECTION_FMT", "d6/da0/tccelf_8c.html#a46e7891c93aab7f9f1d60b4d9ce6d534", null ],

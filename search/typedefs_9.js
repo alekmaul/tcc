@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['nwchar_5ft_2979',['nwchar_t',['../d3/d29/tcc_8h.html#a27ebc4a9be52788f4630fd2c15789e5b',1,'tcc.h']]]
+  ['parsestate_2835',['ParseState',['../d3/d29/tcc_8h.html#a48a2610eb18680a14aaed690b34a95ae',1,'tcc.h']]],
+  ['ptrdiff_5ft_2836',['ptrdiff_t',['../d3/dce/stddef_8h.html#a6d26a0475a6d6c897e655cdc5d8019d2',1,'stddef.h']]]
 ];

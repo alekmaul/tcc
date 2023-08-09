@@ -124,6 +124,10 @@ Macros</h2></td></tr>
 <tr class="separator:a83a4c6d719bcf2766f4058b9638f93e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a46e7891c93aab7f9f1d60b4d9ce6d534"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/da0/tccelf_8c.html#a46e7891c93aab7f9f1d60b4d9ce6d534">REL_SECTION_FMT</a>&#160;&#160;&#160;&quot;.rel%<a class="el" href="../../d9/d87/816-gen_8c.html#af8949ab607ac917f40f1b3100eed0436">s</a>&quot;</td></tr>
 <tr class="separator:a46e7891c93aab7f9f1d60b4d9ce6d534"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a945a5588e2c4397c0a278810357d10d0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/da0/tccelf_8c.html#a945a5588e2c4397c0a278810357d10d0">HAVE_PHDR</a>&#160;&#160;&#160;0</td></tr>
+<tr class="separator:a945a5588e2c4397c0a278810357d10d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcbd40c4721c00890b42614a77b24404"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/da0/tccelf_8c.html#adcbd40c4721c00890b42614a77b24404">EXTRA_RELITEMS</a>&#160;&#160;&#160;9</td></tr>
+<tr class="separator:adcbd40c4721c00890b42614a77b24404"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8ff74a872546f6c463e90bd83fabb0b4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/da0/tccelf_8c.html#a8ff74a872546f6c463e90bd83fabb0b4">ARMAG</a>&#160;&#160;&#160;&quot;!&lt;arch&gt;\012&quot; /* For COFF and a.out archives */</td></tr>
 <tr class="separator:a8ff74a872546f6c463e90bd83fabb0b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2b2b5e7c15b77f6be9aed4f652d59c41"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/da0/tccelf_8c.html#a2b2b5e7c15b77f6be9aed4f652d59c41">LD_TOK_NAME</a>&#160;&#160;&#160;256</td></tr>
@@ -178,6 +182,34 @@ Functions</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define ElfW_Rel&#160;&#160;&#160;<a class="el" href="../../d1/d9e/elf_8h.html#af16b73934307a73193748f160d39ad24">ElfW</a>(Rel)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adcbd40c4721c00890b42614a77b24404"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcbd40c4721c00890b42614a77b24404">&#9670;&nbsp;</a></span>EXTRA_RELITEMS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define EXTRA_RELITEMS&#160;&#160;&#160;9</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a945a5588e2c4397c0a278810357d10d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a945a5588e2c4397c0a278810357d10d0">&#9670;&nbsp;</a></span>HAVE_PHDR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define HAVE_PHDR&#160;&#160;&#160;0</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -360,15 +392,6 @@ Here is the caller graph for this function:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Void pointer to the symbol's value if found, or NULL if not found. </dd></dl>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d6/da0/tccelf_8c_ab275e024203c0e18835dac3d4e32b263_icgraph.png" border="0" usemap="#ad6/da0/tccelf_8c_ab275e024203c0e18835dac3d4e32b263_icgraph" alt=""/></div>
-<map name="ad6/da0/tccelf_8c_ab275e024203c0e18835dac3d4e32b263_icgraph" id="ad6/da0/tccelf_8c_ab275e024203c0e18835dac3d4e32b263_icgraph">
-<area shape="rect" title="Get the value of an ELF symbol by name." alt="" coords="203,5,327,32"/>
-<area shape="rect" href="../../d6/da0/tccelf_8c.html#a8e8a3e4ae5ee32c8a7a44e6ccad650df" title="Get the value of an ELF symbol by name with error handling." alt="" coords="5,5,155,32"/>
-</map>
-</div>
 
 </div>
 </div>
@@ -408,6 +431,15 @@ Here is the caller graph for this function:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Void pointer to the symbol's value if found, or NULL if not found. </dd></dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/da0/tccelf_8c_a8e8a3e4ae5ee32c8a7a44e6ccad650df_icgraph.png" border="0" usemap="#ad6/da0/tccelf_8c_a8e8a3e4ae5ee32c8a7a44e6ccad650df_icgraph" alt=""/></div>
+<map name="ad6/da0/tccelf_8c_a8e8a3e4ae5ee32c8a7a44e6ccad650df_icgraph" id="ad6/da0/tccelf_8c_a8e8a3e4ae5ee32c8a7a44e6ccad650df_icgraph">
+<area shape="rect" title="Get the value of an ELF symbol by name with error handling." alt="" coords="123,5,272,32"/>
+<area shape="rect" href="../../db/d41/libtcc_8h.html#a4bcdbd3b4e070cf45145d8b4779621c6" title=" " alt="" coords="5,5,75,32"/>
+</map>
+</div>
 
 </div>
 </div>

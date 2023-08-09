@@ -1,29 +1,24 @@
 <map id="g" name="g">
-<area shape="rect" id="node1" title="Adds a character into the current text section and increments the index." alt="" coords="635,385,673,412"/>
-<area shape="rect" id="node2" href="$d9/d87/816-gen_8c.html#af8949ab607ac917f40f1b3100eed0436" title="Adds each character from the input string into the current text section." alt="" coords="548,385,587,412"/>
-<area shape="rect" id="node3" href="$dc/d8f/bcheck_8c.html#aaed1c5546254dd3792a402cd56132bf6" title=" " alt="" coords="365,5,485,32"/>
-<area shape="rect" id="node5" href="$d6/da0/tccelf_8c.html#a4d68af513339fb707d7d7f9c60dbbaea" title="Output an ELF file." alt="" coords="368,56,483,83"/>
+<area shape="rect" id="node1" title="Adds a character into the current text section and increments the index." alt="" coords="621,284,660,311"/>
+<area shape="rect" id="node2" href="$d9/d87/816-gen_8c.html#af8949ab607ac917f40f1b3100eed0436" title="Adds each character from the input string into the current text section." alt="" coords="535,284,573,311"/>
+<area shape="rect" id="node3" href="$dc/d8f/bcheck_8c.html#aaed1c5546254dd3792a402cd56132bf6" title=" " alt="" coords="359,5,479,32"/>
+<area shape="rect" id="node5" href="$d6/da0/tccelf_8c.html#a4d68af513339fb707d7d7f9c60dbbaea" title="Output an ELF file." alt="" coords="361,56,476,83"/>
 <area shape="rect" id="node6" href="$db/d41/libtcc_8h.html#a972b66c8d0f3d47b0bb038db6a272391" title="Output the compiled code to a file." alt="" coords="167,81,284,108"/>
-<area shape="rect" id="node7" href="$d0/dc0/tcccoff_8c.html#a80eab8c0835e8312ffde7c0da4c86c75" title=" " alt="" coords="377,157,474,184"/>
-<area shape="rect" id="node9" href="$d0/dc0/tcccoff_8c.html#ab697c2f1c8059cb67b2c296c1d34f819" title=" " alt="" coords="372,208,479,235"/>
-<area shape="rect" id="node10" href="$d7/de5/tcc_8c.html#a3c04138a5bfe5d72780bb7e82a18e627" title="The entry point of the program." alt="" coords="398,259,453,285"/>
-<area shape="rect" id="node11" href="$da/d5b/libtcc_8c.html#af0fb34b48e0e77892613681e305b3378" title=" " alt="" coords="9,436,96,463"/>
-<area shape="rect" id="node12" href="$d0/dc0/tcccoff_8c.html#ad436a4f7a569b68b605537e34affc3f9" title=" " alt="" coords="356,360,495,387"/>
-<area shape="rect" id="node13" href="$d7/de5/tcc_8c.html#a4775c397908c0fb0c76f6528d0845613" title="The function parses command line arguments and sets various options and flags accordingly." alt="" coords="379,411,472,437"/>
-<area shape="rect" id="node14" href="$df/d5f/tccpp_8c.html#afd5a5826bf9d6a64404c6b404355b5c2" title=" " alt="" coords="368,461,483,488"/>
-<area shape="rect" id="node15" href="$d9/d87/816-gen_8c.html#a220afe8499ba2cd6916acfb45ed46bc3" title="Formats and prints data into the current text section." alt="" coords="406,512,445,539"/>
-<area shape="rect" id="node23" href="$da/d5b/libtcc_8c.html#a2f9f8437694c53829c7d6b5f3d02ae85" title=" " alt="" coords="192,715,259,741"/>
-<area shape="rect" id="node24" href="$da/d5b/libtcc_8c.html#a5b65f629f57ed5a2e09478b16419595f" title=" " alt="" coords="5,715,100,741"/>
-<area shape="rect" id="node25" href="$da/d5b/libtcc_8c.html#ad0ec895139093882085781993424ddba" title=" " alt="" coords="390,740,461,767"/>
-<area shape="rect" id="node26" href="$df/d5f/tccpp_8c.html#accadcc289a7ded8dadb3cc47565dc3b0" title="Save the current parse state." alt="" coords="357,791,493,817"/>
-<area shape="rect" id="node27" href="$d6/da0/tccelf_8c.html#a8e8a3e4ae5ee32c8a7a44e6ccad650df" title="Get the value of an ELF symbol by name with error handling." alt="" coords="351,841,500,868"/>
+<area shape="rect" id="node7" href="$d7/de5/tcc_8c.html#a3c04138a5bfe5d72780bb7e82a18e627" title="The entry point of the program." alt="" coords="391,157,446,184"/>
+<area shape="rect" id="node8" href="$da/d5b/libtcc_8c.html#af0fb34b48e0e77892613681e305b3378" title=" " alt="" coords="9,284,96,311"/>
+<area shape="rect" id="node9" href="$d7/de5/tcc_8c.html#a4775c397908c0fb0c76f6528d0845613" title="The function parses command line arguments and sets various options and flags accordingly." alt="" coords="372,259,465,285"/>
+<area shape="rect" id="node10" href="$df/d5f/tccpp_8c.html#afd5a5826bf9d6a64404c6b404355b5c2" title=" " alt="" coords="361,309,476,336"/>
+<area shape="rect" id="node11" href="$d9/d87/816-gen_8c.html#a220afe8499ba2cd6916acfb45ed46bc3" title="Formats and prints data into the current text section." alt="" coords="399,360,438,387"/>
+<area shape="rect" id="node19" href="$da/d5b/libtcc_8c.html#a2f9f8437694c53829c7d6b5f3d02ae85" title=" " alt="" coords="192,537,259,564"/>
+<area shape="rect" id="node20" href="$da/d5b/libtcc_8c.html#a5b65f629f57ed5a2e09478b16419595f" title=" " alt="" coords="5,588,100,615"/>
+<area shape="rect" id="node21" href="$da/d5b/libtcc_8c.html#ad0ec895139093882085781993424ddba" title=" " alt="" coords="383,537,454,564"/>
+<area shape="rect" id="node22" href="$df/d5f/tccpp_8c.html#accadcc289a7ded8dadb3cc47565dc3b0" title="Save the current parse state." alt="" coords="351,689,487,716"/>
 <area shape="rect" id="node4" href="$dc/d8f/bcheck_8c.html#a016801399cfbed926e673441a811ac29" title=" " alt="" coords="164,5,287,32"/>
-<area shape="rect" id="node8" href="$da/d5b/libtcc_8c.html#a37b72d0bb75ee6f3b7a4576233b911cf" title=" " alt="" coords="165,157,286,184"/>
-<area shape="rect" id="node16" href="$d9/d87/816-gen_8c.html#a45eba475ee8e90cc31f54a1a2d58b23b" title="Prints the function name based on the input type." alt="" coords="148,411,303,437"/>
-<area shape="rect" id="node17" href="$d9/d87/816-gen_8c.html#a224c4b5ecaa29ef9518221d484ed89d6" title="Generates code for converting a floating&#45;point number to an integer." alt="" coords="175,461,276,488"/>
-<area shape="rect" id="node18" href="$d9/d87/816-gen_8c.html#a1d910c5c7e8c05ee2fac32508eb877c3" title="Generates the function epilog." alt="" coords="173,512,278,539"/>
-<area shape="rect" id="node19" href="$d9/d87/816-gen_8c.html#a8dae2bd31eb0be656aa313202714d868" title="Handles the association between a jump instruction and its target address." alt="" coords="178,613,273,640"/>
-<area shape="rect" id="node21" href="$d9/d87/816-gen_8c.html#a6a03507382ef17e3b879c6e2238a8748" title="The function loads a value from memory or a register into a specified register." alt="" coords="200,563,251,589"/>
-<area shape="rect" id="node22" href="$d9/d87/816-gen_8c.html#a940cf034ce59a0654c9a2029a007119b" title="Restores the stack pointer based on the function call stack." alt="" coords="170,360,281,387"/>
-<area shape="rect" id="node20" href="$d9/d87/816-gen_8c.html#a4399a4ead347fccc95d9928d22031e73" title="Adds a global symbol to the current instruction index." alt="" coords="23,613,82,640"/>
+<area shape="rect" id="node12" href="$d9/d87/816-gen_8c.html#a45eba475ee8e90cc31f54a1a2d58b23b" title="Prints the function name based on the input type." alt="" coords="148,233,303,260"/>
+<area shape="rect" id="node13" href="$d9/d87/816-gen_8c.html#a224c4b5ecaa29ef9518221d484ed89d6" title="Generates code for converting a floating&#45;point number to an integer." alt="" coords="175,284,276,311"/>
+<area shape="rect" id="node14" href="$d9/d87/816-gen_8c.html#a1d910c5c7e8c05ee2fac32508eb877c3" title="Generates the function epilog." alt="" coords="173,335,278,361"/>
+<area shape="rect" id="node15" href="$d9/d87/816-gen_8c.html#a8dae2bd31eb0be656aa313202714d868" title="Handles the association between a jump instruction and its target address." alt="" coords="178,436,273,463"/>
+<area shape="rect" id="node17" href="$d9/d87/816-gen_8c.html#a6a03507382ef17e3b879c6e2238a8748" title="The function loads a value from memory or a register into a specified register." alt="" coords="200,385,251,412"/>
+<area shape="rect" id="node18" href="$d9/d87/816-gen_8c.html#a940cf034ce59a0654c9a2029a007119b" title="Restores the stack pointer based on the function call stack." alt="" coords="170,487,281,513"/>
+<area shape="rect" id="node16" href="$d9/d87/816-gen_8c.html#a4399a4ead347fccc95d9928d22031e73" title="Adds a global symbol to the current instruction index." alt="" coords="23,436,82,463"/>
 </map>

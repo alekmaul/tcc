@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['tccoption_2987',['TCCOption',['../d7/de5/tcc_8c.html#a826a67012fec8ebf9e1a32006fe5cf49',1,'tcc.c']]],
-  ['tccstate_2988',['TCCState',['../db/d41/libtcc_8h.html#a49c27f779a69f670da3cf29458fc2760',1,'libtcc.h']]],
-  ['tokenstring_2989',['TokenString',['../d3/d29/tcc_8h.html#acafdd828aaa45572e31c97762ffc0657',1,'tcc.h']]],
-  ['tokensym_2990',['TokenSym',['../d3/d29/tcc_8h.html#a357940d985e0010fef1fd0716d9b1fe6',1,'tcc.h']]]
+  ['udwtype_2846',['UDWtype',['../d0/de6/libtcc1_8c.html#abba8c751d364c1904a9d6527beb32c43',1,'libtcc1.c']]],
+  ['usitype_2847',['USItype',['../d0/de6/libtcc1_8c.html#a876d26a466b120f284e3d5fbf5b44a23',1,'libtcc1.c']]],
+  ['uwtype_2848',['UWtype',['../d0/de6/libtcc1_8c.html#a5a327136744daeaa78ed4131a81da7a8',1,'libtcc1.c']]]
 ];
