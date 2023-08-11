@@ -519,7 +519,7 @@ Macros</h2></td></tr>
 <tr class="separator:ac4f4f0858a57aed81159af0c50a278bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a35b84d97ba98fde76806abc0fe6cb57b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a35b84d97ba98fde76806abc0fe6cb57b">SYMINFO_FLG_PASSTHRU</a>&#160;&#160;&#160;0x0002 /* Pass-thru symbol for translator */</td></tr>
 <tr class="separator:a35b84d97ba98fde76806abc0fe6cb57b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a13a9c735ee6a2614dc13ac2a25a4afab"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a13a9c735ee6a2614dc13ac2a25a4afab">SYMINFO_FLG_COPY</a>&#160;&#160;&#160;0x0004     /* Symbol is a copy-<a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td></tr>
+<tr class="memitem:a13a9c735ee6a2614dc13ac2a25a4afab"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a13a9c735ee6a2614dc13ac2a25a4afab">SYMINFO_FLG_COPY</a>&#160;&#160;&#160;0x0004     /* Symbol is a copy-reloc */</td></tr>
 <tr class="separator:a13a9c735ee6a2614dc13ac2a25a4afab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a42710772c68bddad876900046249e0f1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a42710772c68bddad876900046249e0f1">SYMINFO_FLG_LAZYLOAD</a></td></tr>
 <tr class="separator:a42710772c68bddad876900046249e0f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -683,7 +683,7 @@ Macros</h2></td></tr>
 <tr class="separator:af3fc0eb843f585ae41c72b57a5e4258e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6833e2faf117338d34ba80f30d981370"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a6833e2faf117338d34ba80f30d981370">DT_RELASZ</a>&#160;&#160;&#160;8            /* Total size of Rela relocs */</td></tr>
 <tr class="separator:a6833e2faf117338d34ba80f30d981370"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8028213ea49da91a81f9f1e893ea56b7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a8028213ea49da91a81f9f1e893ea56b7">DT_RELAENT</a>&#160;&#160;&#160;9           /* Size of one Rela <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td></tr>
+<tr class="memitem:a8028213ea49da91a81f9f1e893ea56b7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a8028213ea49da91a81f9f1e893ea56b7">DT_RELAENT</a>&#160;&#160;&#160;9           /* Size of one Rela reloc */</td></tr>
 <tr class="separator:a8028213ea49da91a81f9f1e893ea56b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aebb0156d8b53a9895935c26c2f766ef9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#aebb0156d8b53a9895935c26c2f766ef9">DT_STRSZ</a>&#160;&#160;&#160;10            /* Size of string table */</td></tr>
 <tr class="separator:aebb0156d8b53a9895935c26c2f766ef9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -703,9 +703,9 @@ Macros</h2></td></tr>
 <tr class="separator:a91eac2138273488244f4865cd05fd12e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5693118a149e462dd602f7310a4430e6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a5693118a149e462dd602f7310a4430e6">DT_RELSZ</a>&#160;&#160;&#160;18            /* Total size of Rel relocs */</td></tr>
 <tr class="separator:a5693118a149e462dd602f7310a4430e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adfa81a12735e992ed33d74373ae9ff53"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#adfa81a12735e992ed33d74373ae9ff53">DT_RELENT</a>&#160;&#160;&#160;19           /* Size of one Rel <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td></tr>
+<tr class="memitem:adfa81a12735e992ed33d74373ae9ff53"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#adfa81a12735e992ed33d74373ae9ff53">DT_RELENT</a>&#160;&#160;&#160;19           /* Size of one Rel reloc */</td></tr>
 <tr class="separator:adfa81a12735e992ed33d74373ae9ff53"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a87300a0cb6754476456d9067b77656ba"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a87300a0cb6754476456d9067b77656ba">DT_PLTREL</a>&#160;&#160;&#160;20           /* Type of <a class="el" href="../../d5/db7/structreloc.html">reloc</a> in PLT */</td></tr>
+<tr class="memitem:a87300a0cb6754476456d9067b77656ba"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a87300a0cb6754476456d9067b77656ba">DT_PLTREL</a>&#160;&#160;&#160;20           /* Type of reloc in PLT */</td></tr>
 <tr class="separator:a87300a0cb6754476456d9067b77656ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af561e146ca63f6aba12f7d6304859047"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#af561e146ca63f6aba12f7d6304859047">DT_DEBUG</a>&#160;&#160;&#160;21            /* For debugging; unspecified */</td></tr>
 <tr class="separator:af561e146ca63f6aba12f7d6304859047"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -857,7 +857,7 @@ Macros</h2></td></tr>
 <tr class="separator:a0edf12c6d8177d2e6da4974c7ad0777f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6525bdcae0460295e31b12c51cb50bf6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a6525bdcae0460295e31b12c51cb50bf6">ELF_NOTE_OS_SOLARIS2</a>&#160;&#160;&#160;2</td></tr>
 <tr class="separator:a6525bdcae0460295e31b12c51cb50bf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27660b4a9d6d4652f276f5a8e00f0ac0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a27660b4a9d6d4652f276f5a8e00f0ac0">R_68K_NONE</a>&#160;&#160;&#160;0      /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td></tr>
+<tr class="memitem:a27660b4a9d6d4652f276f5a8e00f0ac0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a27660b4a9d6d4652f276f5a8e00f0ac0">R_68K_NONE</a>&#160;&#160;&#160;0      /* No reloc */</td></tr>
 <tr class="separator:a27660b4a9d6d4652f276f5a8e00f0ac0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05f332c801b3a3b7e3c064befa46102b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a05f332c801b3a3b7e3c064befa46102b">R_68K_32</a>&#160;&#160;&#160;1        /* Direct 32 bit  */</td></tr>
 <tr class="separator:a05f332c801b3a3b7e3c064befa46102b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -905,7 +905,7 @@ Macros</h2></td></tr>
 <tr class="separator:a96b09bce0f89668311be9a11e6e80e51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad52e0301b8614784c22607d62464d07a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#ad52e0301b8614784c22607d62464d07a">R_68K_NUM</a>&#160;&#160;&#160;23</td></tr>
 <tr class="separator:ad52e0301b8614784c22607d62464d07a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e2fc1d7696704e230b4d767c173e3b0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a9e2fc1d7696704e230b4d767c173e3b0">R_386_NONE</a>&#160;&#160;&#160;0     /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td></tr>
+<tr class="memitem:a9e2fc1d7696704e230b4d767c173e3b0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a9e2fc1d7696704e230b4d767c173e3b0">R_386_NONE</a>&#160;&#160;&#160;0     /* No reloc */</td></tr>
 <tr class="separator:a9e2fc1d7696704e230b4d767c173e3b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af363b787459afd7e272677d7858572c0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#af363b787459afd7e272677d7858572c0">R_386_32</a>&#160;&#160;&#160;1       /* Direct 32 bit  */</td></tr>
 <tr class="separator:af363b787459afd7e272677d7858572c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -947,7 +947,7 @@ Macros</h2></td></tr>
 <tr class="separator:a60acb788607fdbd478ad520b06e921ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8fec7398ccc4c1ef3535000e1550d88f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a8fec7398ccc4c1ef3535000e1550d88f">EF_SPARC_HAL_R1</a>&#160;&#160;&#160;0x000400</td></tr>
 <tr class="separator:a8fec7398ccc4c1ef3535000e1550d88f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a707013ed7159df7365fd5805be643a7d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a707013ed7159df7365fd5805be643a7d">R_SPARC_NONE</a>&#160;&#160;&#160;0      /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td></tr>
+<tr class="memitem:a707013ed7159df7365fd5805be643a7d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a707013ed7159df7365fd5805be643a7d">R_SPARC_NONE</a>&#160;&#160;&#160;0      /* No reloc */</td></tr>
 <tr class="separator:a707013ed7159df7365fd5805be643a7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2ee9f5a87b524b39669b975cbfa852c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#ab2ee9f5a87b524b39669b975cbfa852c">R_SPARC_8</a>&#160;&#160;&#160;1         /* Direct 8 bit */</td></tr>
 <tr class="separator:ab2ee9f5a87b524b39669b975cbfa852c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1059,7 +1059,7 @@ Macros</h2></td></tr>
 <tr class="separator:abe7e5390fe029fb378a573f4510c7771"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae5fcf136d1d3772bd21eefac518ca310"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#ae5fcf136d1d3772bd21eefac518ca310">R_SPARC_NUM</a>&#160;&#160;&#160;56</td></tr>
 <tr class="separator:ae5fcf136d1d3772bd21eefac518ca310"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe818855f9b5fedf3e6a2b70f8b0c209"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#abe818855f9b5fedf3e6a2b70f8b0c209">R_X86_64_NONE</a>&#160;&#160;&#160;0      /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td></tr>
+<tr class="memitem:abe818855f9b5fedf3e6a2b70f8b0c209"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#abe818855f9b5fedf3e6a2b70f8b0c209">R_X86_64_NONE</a>&#160;&#160;&#160;0      /* No reloc */</td></tr>
 <tr class="separator:abe818855f9b5fedf3e6a2b70f8b0c209"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14c39da8e2667c3dffe6d4a8367df892"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a14c39da8e2667c3dffe6d4a8367df892">R_X86_64_64</a>&#160;&#160;&#160;1        /* Direct 64 bit  */</td></tr>
 <tr class="separator:a14c39da8e2667c3dffe6d4a8367df892"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1335,7 +1335,7 @@ Macros</h2></td></tr>
 <tr class="separator:af88b7bf1f5db324b4d68b484d41b4988"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83d77a43ccd6922cc2492e7fc67dad79"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a83d77a43ccd6922cc2492e7fc67dad79">OHWA1_R4KEOP_CLEAN</a>&#160;&#160;&#160;0x00000002</td></tr>
 <tr class="separator:a83d77a43ccd6922cc2492e7fc67dad79"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a92cb501f4c04605d295575d8d839fb4f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a92cb501f4c04605d295575d8d839fb4f">R_MIPS_NONE</a>&#160;&#160;&#160;0     /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td></tr>
+<tr class="memitem:a92cb501f4c04605d295575d8d839fb4f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a92cb501f4c04605d295575d8d839fb4f">R_MIPS_NONE</a>&#160;&#160;&#160;0     /* No reloc */</td></tr>
 <tr class="separator:a92cb501f4c04605d295575d8d839fb4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa8cfd579492b34304c9a44d2f2ac59c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#afa8cfd579492b34304c9a44d2f2ac59c">R_MIPS_16</a>&#160;&#160;&#160;1       /* Direct 16 bit */</td></tr>
 <tr class="separator:afa8cfd579492b34304c9a44d2f2ac59c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1633,7 +1633,7 @@ Macros</h2></td></tr>
 <tr class="separator:a2788f297425e58432eedeecf7577f388"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acffa909da87419709d08a30c4dd56615"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#acffa909da87419709d08a30c4dd56615">STO_ALPHA_STD_GPLOAD</a>&#160;&#160;&#160;0x88 /* PV only used for initial ldgp.  */</td></tr>
 <tr class="separator:acffa909da87419709d08a30c4dd56615"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac26320b64d1e37bac0b21d50f9c3163b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#ac26320b64d1e37bac0b21d50f9c3163b">R_ALPHA_NONE</a>&#160;&#160;&#160;0        /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td></tr>
+<tr class="memitem:ac26320b64d1e37bac0b21d50f9c3163b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#ac26320b64d1e37bac0b21d50f9c3163b">R_ALPHA_NONE</a>&#160;&#160;&#160;0        /* No reloc */</td></tr>
 <tr class="separator:ac26320b64d1e37bac0b21d50f9c3163b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afec3155520d8ec003cf4fb2d511f8615"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#afec3155520d8ec003cf4fb2d511f8615">R_ALPHA_REFLONG</a>&#160;&#160;&#160;1     /* Direct 32 bit */</td></tr>
 <tr class="separator:afec3155520d8ec003cf4fb2d511f8615"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1839,7 +1839,7 @@ Macros</h2></td></tr>
 <tr class="separator:a6b9f5807e799e05ba8ffdf0253d82c0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef62c1dcbcc586f16fd6118ceed34caf"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#aef62c1dcbcc586f16fd6118ceed34caf">PF_ARM_SB</a></td></tr>
 <tr class="separator:aef62c1dcbcc586f16fd6118ceed34caf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba173f6bfc4939c6c675c7c9aac58f6b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#aba173f6bfc4939c6c675c7c9aac58f6b">R_ARM_NONE</a>&#160;&#160;&#160;0  /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td></tr>
+<tr class="memitem:aba173f6bfc4939c6c675c7c9aac58f6b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#aba173f6bfc4939c6c675c7c9aac58f6b">R_ARM_NONE</a>&#160;&#160;&#160;0  /* No reloc */</td></tr>
 <tr class="separator:aba173f6bfc4939c6c675c7c9aac58f6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8aa3aa7e46a9d204f5216b89ec49bdd3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9e/elf_8h.html#a8aa3aa7e46a9d204f5216b89ec49bdd3">R_ARM_PC24</a>&#160;&#160;&#160;1  /* PC relative 26 bit branch */</td></tr>
 <tr class="separator:a8aa3aa7e46a9d204f5216b89ec49bdd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -3337,7 +3337,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define DT_PLTREL&#160;&#160;&#160;20           /* Type of <a class="el" href="../../d5/db7/structreloc.html">reloc</a> in PLT */</td>
+          <td class="memname">#define DT_PLTREL&#160;&#160;&#160;20           /* Type of reloc in PLT */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3423,7 +3423,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define DT_RELAENT&#160;&#160;&#160;9           /* Size of one Rela <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td>
+          <td class="memname">#define DT_RELAENT&#160;&#160;&#160;9           /* Size of one Rela reloc */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3451,7 +3451,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define DT_RELENT&#160;&#160;&#160;19           /* Size of one Rel <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td>
+          <td class="memname">#define DT_RELENT&#160;&#160;&#160;19           /* Size of one Rel reloc */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -7625,7 +7625,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define R_386_NONE&#160;&#160;&#160;0     /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td>
+          <td class="memname">#define R_386_NONE&#160;&#160;&#160;0     /* No reloc */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -7877,7 +7877,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define R_68K_NONE&#160;&#160;&#160;0      /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td>
+          <td class="memname">#define R_68K_NONE&#160;&#160;&#160;0      /* No reloc */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -8283,7 +8283,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define R_ALPHA_NONE&#160;&#160;&#160;0        /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td>
+          <td class="memname">#define R_ALPHA_NONE&#160;&#160;&#160;0        /* No reloc */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -8661,7 +8661,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define R_ARM_NONE&#160;&#160;&#160;0  /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td>
+          <td class="memname">#define R_ARM_NONE&#160;&#160;&#160;0  /* No reloc */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -9515,7 +9515,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define R_MIPS_NONE&#160;&#160;&#160;0     /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td>
+          <td class="memname">#define R_MIPS_NONE&#160;&#160;&#160;0     /* No reloc */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -11261,7 +11261,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define R_SPARC_NONE&#160;&#160;&#160;0      /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td>
+          <td class="memname">#define R_SPARC_NONE&#160;&#160;&#160;0      /* No reloc */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -11783,7 +11783,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define R_X86_64_NONE&#160;&#160;&#160;0      /* No <a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td>
+          <td class="memname">#define R_X86_64_NONE&#160;&#160;&#160;0      /* No reloc */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -14239,7 +14239,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define SYMINFO_FLG_COPY&#160;&#160;&#160;0x0004     /* Symbol is a copy-<a class="el" href="../../d5/db7/structreloc.html">reloc</a> */</td>
+          <td class="memname">#define SYMINFO_FLG_COPY&#160;&#160;&#160;0x0004     /* Symbol is a copy-reloc */</td>
         </tr>
       </table>
 </div><div class="memdoc">

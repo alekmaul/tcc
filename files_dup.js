@@ -3,7 +3,6 @@ var files_dup =
     [ "include", "dir_d44c64559bbebec7f509842c48db8b23.html", "dir_d44c64559bbebec7f509842c48db8b23" ],
     [ "lib", "dir_97aefd0d527b934f1d99a682da8fe6a9.html", "dir_97aefd0d527b934f1d99a682da8fe6a9" ],
     [ "816-gen.c", "d9/d87/816-gen_8c.html", "d9/d87/816-gen_8c" ],
-    [ "coff.h", "d2/d2b/coff_8h.html", "d2/d2b/coff_8h" ],
     [ "config.h", "db/d16/config_8h.html", "db/d16/config_8h" ],
     [ "elf.h", "d1/d9e/elf_8h.html", "d1/d9e/elf_8h" ],
     [ "libtcc.c", "da/d5b/libtcc_8c.html", "da/d5b/libtcc_8c" ],
