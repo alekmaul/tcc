@@ -141,24 +141,15 @@ tar:
 	( cd /tmp ; tar zcvf ~/$(TCC-VERSION).tar.gz $(TCC-VERSION) --exclude CVS )
 	rm -rf /tmp/$(TCC-VERSION)
 
-ifndef CONFIG_816
-# in tests subdir
-test clean:
-	$(MAKE) -C tests $@
-endif
-
 config.mak:
 	@echo Running configure ...
 	@./configure
 
-DIST_FILES := config.h config.mak docs/html
-
 # clean
-clean: local_clean
-local_clean:
-	rm -vf $(PROGS) 816-tcc_p$(EXESUF) tcc.pod *~ *.o lib/*.o *.a *.out libtcc_test$(EXESUF)
+clean:
+	rm -f $(PROGS) *.o lib/*.o *.a *.out
 
 distclean: clean
-	rm -vrf $(DIST_FILES)
+	rm -rf config.h config.mak config.texi docs/html
 
 endif # ifeq ($(TOP),.)
