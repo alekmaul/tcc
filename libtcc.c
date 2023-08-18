@@ -1426,6 +1426,7 @@ TCCState *tcc_new(void)
 #endif
     s->output_type = TCC_OUTPUT_MEMORY;
     preprocess_new();
+    s->include_stack_ptr = s->include_stack;
 
     /* we add dummy defines for some special macros to speed up tests
        and to have working defined() */
