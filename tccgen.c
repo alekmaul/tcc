@@ -4700,6 +4700,9 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
 
         no_oblock = 1;
         if ((first && tok != TOK_LSTR && tok != TOK_STR) || tok == '{') {
+            if (tok != '{')
+                error("character array initializer must be a literal,"
+                      " optionally enclosed in braces");
             skip('{');
             no_oblock = 0;
         }
@@ -5049,7 +5052,8 @@ static void decl_initializer_alloc(
                         goto no_alloc;
                 }
             } else if ((type->t & VT_EXTERN) == 0 && (r & VT_CONST)) {
-                if ((type->t & VT_CONSTANT) || ((type->t & VT_ARRAY) && type->ref && (type->ref->type.t & VT_CONSTANT)))
+                if ((type->t & VT_CONSTANT)
+                    || ((type->t & VT_ARRAY) && type->ref && (type->ref->type.t & VT_CONSTANT)))
                     is_const_var = 1;
             }
         }
