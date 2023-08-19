@@ -1,5 +1,5 @@
 <map id="gv2" name="gv2">
-<area shape="rect" id="node1" title=" " alt="" coords="128,31,175,57"/>
+<area shape="rect" id="node1" title="Generates vtop[&#45;1] and vtop[0] in respective classes rc1 and rc2." alt="" coords="128,31,175,57"/>
 <area shape="rect" id="node2" href="$d9/d87/816-gen_8c.html#ac45bdcf2e2fe3697008cdb9937d7a6d2" title="Generate assembly code for floating point operations." alt="" coords="5,5,80,32"/>
-<area shape="rect" id="node3" href="$d7/dd0/tccgen_8c.html#a885f0b6cf2ba18b67f86e982cf305ce1" title=" " alt="" coords="13,56,72,83"/>
+<area shape="rect" id="node3" href="$d7/dd0/tccgen_8c.html#a885f0b6cf2ba18b67f86e982cf305ce1" title="Build a long long from two ints." alt="" coords="13,56,72,83"/>
 </map>
