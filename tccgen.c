@@ -18,6 +18,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/**
+ * @brief Swaps the values of two integers.
+ *
+ * @param p Pointer to the first integer.
+ * @param q Pointer to the second integer.
+ */
 void swap(int *p, int *q)
 {
     int t;
@@ -26,6 +32,13 @@ void swap(int *p, int *q)
     *q = t;
 }
 
+/**
+ * @brief Sets the value of a variable on the virtual stack.
+ *
+ * @param type Pointer to the CType representing the type of the variable.
+ * @param r The register to store the value.
+ * @param vc Pointer to the CValue representing the value to be set.
+ */
 void vsetc(CType *type, int r, CValue *vc)
 {
     int v;
@@ -47,15 +60,25 @@ void vsetc(CType *type, int r, CValue *vc)
     vtop->c = *vc;
 }
 
-/* push integer constant */
+/**
+ * @brief Pushes an integer constant onto the virtual stack.
+ *
+ * @param v The integer constant to be pushed.
+ */
 void vpushi(int v)
 {
+
     CValue cval;
     cval.i = v;
+
     vsetc(&int_type, VT_CONST, &cval);
 }
 
-/* push long long constant */
+/**
+ * @brief Pushes a long long constant onto the virtual stack.
+ *
+ * @param v The long long constant to be pushed.
+ */
 void vpushll(long long v)
 {
     CValue cval;
@@ -66,7 +89,15 @@ void vpushll(long long v)
     vsetc(&ctype, VT_CONST, &cval);
 }
 
-/* Return a static symbol pointing to a section */
+/**
+ * @brief Returns a static symbol pointing to a section.
+ *
+ * @param type Pointer to the CType representing the type of the symbol.
+ * @param sec Pointer to the Section representing the section.
+ * @param offset The offset within the section.
+ * @param size The size of the section.
+ * @return Pointer to the Sym representing the static symbol.
+ */
 static Sym *get_sym_ref(CType *type, Section *sec, unsigned long offset, unsigned long size)
 {
     int v;
@@ -80,17 +111,39 @@ static Sym *get_sym_ref(CType *type, Section *sec, unsigned long offset, unsigne
     return sym;
 }
 
-/* push a reference to a section offset by adding a dummy symbol */
+/**
+ * @brief Pushes a reference to a section offset by adding a dummy symbol.
+ *
+ * @param type Pointer to the CType representing the type of the reference.
+ * @param sec Pointer to the Section representing the section.
+ * @param offset The offset within the section.
+ * @param size The size of the section.
+ */
 static void vpush_ref(CType *type, Section *sec, unsigned long offset, unsigned long size)
 {
     CValue cval;
 
     cval.ul = 0;
+
+    /**
+     * @note Set the CValue as a constant symbol reference.
+     */
     vsetc(type, VT_CONST | VT_SYM, &cval);
+
+    /**
+     * @note Assign the dummy symbol reference to the virtual stack top.
+     */
     vtop->sym = get_sym_ref(type, sec, offset, size);
 }
 
-/* define a new external reference to a symbol 'v' of type 'u' */
+/**
+ * @brief Define a new external reference to a symbol with the given value and type.
+ *
+ * @param v The value of the symbol.
+ * @param type Pointer to the CType representing the type of the symbol.
+ * @param r The register.
+ * @return Pointer to the Sym representing the external symbol.
+ */
 static Sym *external_global_sym(int v, CType *type, int r)
 {
     Sym *s;
@@ -105,7 +158,14 @@ static Sym *external_global_sym(int v, CType *type, int r)
     return s;
 }
 
-/* define a new external reference to a symbol 'v' of type 'u' */
+/**
+ * @brief Define a new external reference to a symbol 'v' of type 'u'.
+ *
+ * @param v The value of the symbol.
+ * @param type Pointer to the CType representing the type of the symbol.
+ * @param r The register.
+ * @return Pointer to the Sym representing the external symbol.
+ */
 static Sym *external_sym(int v, CType *type, int r)
 {
     Sym *s;
@@ -125,7 +185,12 @@ static Sym *external_sym(int v, CType *type, int r)
     return s;
 }
 
-/* push a reference to global symbol v */
+/**
+ * @brief Push a reference to a global symbol.
+ *
+ * @param type Pointer to the CType representing the type of the symbol.
+ * @param v The value of the symbol.
+ */
 static void vpush_global_sym(CType *type, int v)
 {
     Sym *sym;
@@ -137,6 +202,13 @@ static void vpush_global_sym(CType *type, int v)
     vtop->sym = sym;
 }
 
+/**
+ * @brief Sets the value of a variable.
+ *
+ * @param type Pointer to the CType representing the type of the variable.
+ * @param r The register to store the value.
+ * @param v The value to be set.
+ */
 void vset(CType *type, int r, int v)
 {
     CValue cval;
@@ -145,6 +217,12 @@ void vset(CType *type, int r, int v)
     vsetc(type, r, &cval);
 }
 
+/**
+ * @brief Sets the value of an integer variable.
+ *
+ * @param r The register to store the value.
+ * @param v The value to be set.
+ */
 void vseti(int r, int v)
 {
     CType type;
@@ -153,6 +231,9 @@ void vseti(int r, int v)
     vset(&type, r, v);
 }
 
+/**
+ * @brief Swaps the values at the top of the stack.
+ */
 void vswap(void)
 {
     SValue tmp;
@@ -162,6 +243,11 @@ void vswap(void)
     vtop[-1] = tmp;
 }
 
+/**
+ * @brief Pushes a value onto the stack.
+ *
+ * @param v Pointer to the SValue representing the value.
+ */
 void vpushv(SValue *v)
 {
     if (vtop >= vstack + (VSTACK_SIZE - 1))
@@ -170,32 +256,37 @@ void vpushv(SValue *v)
     *vtop = *v;
 }
 
+/**
+ * @brief Duplicates the top value on the stack.
+ */
 void vdup(void)
 {
     vpushv(vtop);
 }
 
-/* save r to the memory stack, and mark it as being free */
+/**
+ * @brief Save register to the memory stack and mark it as being free.
+ *
+ * This function saves the given register `r` to the memory stack and marks it as being free. It modifies all stack values and ensures that the value of `r` is saved on the stack if not already done.
+ *
+ * @param r The register to be saved to the memory stack.
+ */
 void save_reg(int r)
 {
     int l, saved, size, align;
     SValue *p, sv;
     CType *type;
 
-    /* modify all stack values */
     saved = 0;
     l = 0;
     for (p = vstack; p <= vtop; p++) {
         if ((p->r & VT_VALMASK) == r
             || ((p->type.t & VT_BTYPE) == VT_LLONG && (p->r2 & VT_VALMASK) == r)) {
-            /* must save value on stack if not already done */
             if (!saved) {
 #ifdef TCC_TARGET_816
                 pr("; saveregging\n");
 #endif
-                /* NOTE: must reload 'r' because r might be equal to r2 */
                 r = p->r & VT_VALMASK;
-                /* store register in the stack */
                 type = &p->type;
                 if ((p->r & VT_LVAL) || (!is_float(type->t) && (type->t & VT_BTYPE) != VT_LLONG))
 #ifdef TCC_TARGET_X86_64
@@ -212,13 +303,11 @@ void save_reg(int r)
                 sv.c.ul = loc;
                 store(r, &sv);
 #if defined(TCC_TARGET_I386) || defined(TCC_TARGET_X86_64)
-                /* x86 specific: need to pop fp register ST0 if saved */
                 if (r == TREG_ST0) {
                     o(0xd8dd); /* fstp %st(0) */
                 }
 #endif
 #ifndef TCC_TARGET_X86_64
-                /* special long long case */
                 if ((type->t & VT_BTYPE) == VT_LLONG) {
 #ifdef TCC_TARGET_816
                     sv.c.ul += 2;
@@ -231,11 +320,7 @@ void save_reg(int r)
                 l = loc;
                 saved = 1;
             }
-            /* mark that stack entry as being saved on the stack */
             if (p->r & VT_LVAL) {
-                /* also clear the bounded flag because the
-                   relocation address of the function was stored in
-                   p->c.ul */
                 p->r = (p->r & ~(VT_VALMASK | VT_BOUNDED)) | VT_LLOCAL;
             } else {
                 p->r = lvalue_type(p->type.t) | VT_LOCAL;
@@ -246,8 +331,14 @@ void save_reg(int r)
     }
 }
 
-/* find a register of class 'rc2' with at most one reference on stack.
- * If none, call get_reg(rc) */
+/**
+ * @brief Finds a register of class 'rc2' with at most one reference on the stack. 
+ * If none, calls get_reg(rc).
+ *
+ * @param rc The register class to search for.
+ * @param rc2 The register class to match.
+ * @return The register found or obtained.
+ */
 int get_reg_ex(int rc, int rc2)
 {
     int r;
@@ -268,7 +359,12 @@ int get_reg_ex(int rc, int rc2)
     return get_reg(rc);
 }
 
-/* find a free register of class 'rc'. If none, save one register */
+/**
+ * @brief Finds a free register of class 'rc'. If none, saves one register.
+ *
+ * @param rc The register class.
+ * @return The free register or -1 if no registers are available.
+ */
 int get_reg(int rc)
 {
     int r;
@@ -319,8 +415,12 @@ void save_regs(int n)
     }
 }
 
-/* move register 's' to 'r', and flush previous value of r to memory
-   if needed */
+/**
+ * @brief Moves the value from register 's' to register 'r', flushing the previous value of 'r' to memory if needed.
+ *
+ * @param r The destination register.
+ * @param s The source register.
+ */
 void move_reg(int r, int s)
 {
     SValue sv;
@@ -334,7 +434,11 @@ void move_reg(int r, int s)
     }
 }
 
-/* get address of vtop (vtop MUST BE an lvalue) */
+/**
+ * @brief Get the address of vtop (vtop MUST BE an lvalue).
+ *
+ * This function modifies vtop's register to remove the VT_LVAL flag. If vtop's register was a saved lvalue, it sets the register to a local lvalue.
+ */
 void gaddrof(void)
 {
     vtop->r &= ~VT_LVAL;
@@ -344,19 +448,24 @@ void gaddrof(void)
 }
 
 #ifdef CONFIG_TCC_BCHECK
-/* generate lvalue bound code */
+/**
+ * @brief Generates lvalue-bound code.
+ *
+ * Checks for lvalue and adds necessary code for bound checking before dereferencing.
+ */
 void gbound(void)
 {
     int lval_type;
     CType type1;
 
     vtop->r &= ~VT_MUSTBOUND;
-    /* if lvalue, then use checking code before dereferencing */
+
+    // If lvalue, then use checking code before dereferencing
     if (vtop->r & VT_LVAL) {
-        /* if not VT_BOUNDED value, then make one */
+        // If not VT_BOUNDED value, then make one
         if (!(vtop->r & VT_BOUNDED)) {
             lval_type = vtop->r & (VT_LVAL_TYPE | VT_LVAL);
-            /* must save type because we must set it to int to get pointer */
+            // Must save type because we must set it to int to get pointer
             type1 = vtop->type;
             vtop->type.t = VT_INT;
             gaddrof();
@@ -365,7 +474,7 @@ void gbound(void)
             vtop->r |= lval_type;
             vtop->type = type1;
         }
-        /* then check for dereferencing */
+        // Then check for dereferencing
         gen_bounded_ptr_deref();
     }
 }
@@ -596,7 +705,12 @@ int gv(int rc)
     return r;
 }
 
-/* generate vtop[-1] and vtop[0] in resp. classes rc1 and rc2 */
+/**
+ * @brief Generates vtop[-1] and vtop[0] in respective classes rc1 and rc2.
+ *
+ * @param rc1 The register class for vtop[-1].
+ * @param rc2 The register class for vtop[0].
+ */
 void gv2(int rc1, int rc2)
 {
     int v;
@@ -628,7 +742,14 @@ void gv2(int rc1, int rc2)
     }
 }
 
-/* wrapper around RC_FRET to return a register by type */
+/**
+ * @brief Returns a register by type.
+ *
+ * This function is a wrapper around RC_FRET and is used to return a register based on the specified type.
+ *
+ * @param t The type of the register.
+ * @return The register value.
+ */
 int rc_fret(int t)
 {
 #ifdef TCC_TARGET_X86_64
@@ -639,7 +760,14 @@ int rc_fret(int t)
     return RC_FRET;
 }
 
-/* wrapper around REG_FRET to return a register by type */
+/**
+ * @brief Returns a register by type.
+ *
+ * This function is a wrapper around REG_FRET and returns a register based on the given type `t`.
+ *
+ * @param t The type of the register.
+ * @return The register based on the type.
+ */
 int reg_fret(int t)
 {
 #ifdef TCC_TARGET_X86_64
@@ -650,7 +778,12 @@ int reg_fret(int t)
     return REG_FRET;
 }
 
-/* expand long long on stack in two int registers */
+/**
+ * @brief Expands a long long on stack in two int registers.
+ *
+ * This function expands a long long value on the stack into two
+ * int registers.
+ */
 void lexpand(void)
 {
     int u;
@@ -666,7 +799,9 @@ void lexpand(void)
 }
 
 #ifdef TCC_TARGET_ARM
-/* expand long long on stack */
+/**
+ * @brief Expands long long on the stack.
+ */
 void lexpand_nr(void)
 {
     int u, v;
@@ -693,7 +828,13 @@ void lexpand_nr(void)
 }
 #endif
 
-/* build a long long from two ints */
+/**
+ * @brief Build a long long from two ints.
+ *
+ * This function builds a long long value by combining two int values.
+ *
+ * @param t The type of the long long value.
+ */
 void lbuild(int t)
 {
     gv2(RC_INT, RC_INT);
@@ -702,9 +843,14 @@ void lbuild(int t)
     vpop();
 }
 
-/* rotate n first stack elements to the bottom
-   I1 ... In -> I2 ... In I1 [top is right]
-*/
+/**
+ * @brief Rotates the top `n` elements of the stack to the bottom.
+ *
+ * The top `n` elements of the stack are rotated to the bottom,
+ * maintaining the order of the other elements.
+ *
+ * @param n The number of elements to rotate.
+ */
 void vrotb(int n)
 {
     int i;
