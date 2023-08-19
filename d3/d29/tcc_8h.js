@@ -18,6 +18,8 @@ var tcc_8h =
     [ "ASMOperand", "db/d75/structASMOperand.html", "db/d75/structASMOperand" ],
     [ "TCCState", "d4/dea/structTCCState.html", "d4/dea/structTCCState" ],
     [ "_GNU_SOURCE", "d3/d29/tcc_8h.html#a369266c24eacffb87046522897a570d5", null ],
+    [ "ARRAY_RESIZE", "d3/d29/tcc_8h.html#ad6b33b692bf1bd372a5c61fd5ce705bb", null ],
+    [ "ATTR_MODE", "d3/d29/tcc_8h.html#ae470539fa9ddb726cc52b76d3088afd6", null ],
     [ "CACHED_INCLUDES_HASH_SIZE", "d3/d29/tcc_8h.html#aa90fd23b0961c1b7b3aeb95e6018fd61", null ],
     [ "CH_EOB", "d3/d29/tcc_8h.html#ac460c7ab43a4b77af12162cb2ed66b22", null ],
     [ "CH_EOF", "d3/d29/tcc_8h.html#a1801a4e55bb24535c0e7605f8da5f037", null ],

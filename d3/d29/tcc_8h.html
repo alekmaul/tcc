@@ -252,6 +252,10 @@ Macros</h2></td></tr>
 <tr class="separator:a8d28bd66f1c84a62249223002d5457b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a017efc55ca8762dcbf904ed85bcd5500"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d29/tcc_8h.html#a017efc55ca8762dcbf904ed85bcd5500">FUNC_PACKED</a>(r)&#160;&#160;&#160;(((<a class="el" href="../../d0/d94/structAttributeDef.html">AttributeDef</a> *) &amp;(r))-&gt;packed)</td></tr>
 <tr class="separator:a017efc55ca8762dcbf904ed85bcd5500"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6b33b692bf1bd372a5c61fd5ce705bb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d29/tcc_8h.html#ad6b33b692bf1bd372a5c61fd5ce705bb">ARRAY_RESIZE</a>(r)&#160;&#160;&#160;(((<a class="el" href="../../d0/d94/structAttributeDef.html">AttributeDef</a> *) &amp;(r))-&gt;resize)</td></tr>
+<tr class="separator:ad6b33b692bf1bd372a5c61fd5ce705bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae470539fa9ddb726cc52b76d3088afd6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d29/tcc_8h.html#ae470539fa9ddb726cc52b76d3088afd6">ATTR_MODE</a>(r)&#160;&#160;&#160;(((<a class="el" href="../../d0/d94/structAttributeDef.html">AttributeDef</a> *) &amp;(r))-&gt;mode)</td></tr>
+<tr class="separator:ae470539fa9ddb726cc52b76d3088afd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a87ddcd30c57b4612d68eacf6208ffc14"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d29/tcc_8h.html#a87ddcd30c57b4612d68eacf6208ffc14">INT_ATTR</a>(ad)&#160;&#160;&#160;(*(int *) (ad))</td></tr>
 <tr class="separator:a87ddcd30c57b4612d68eacf6208ffc14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef73f894fb4a3a20892a06a3e74e60da"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d29/tcc_8h.html#aef73f894fb4a3a20892a06a3e74e60da">SYM_STRUCT</a>&#160;&#160;&#160;0x40000000     /* struct/union/enum symbol space */</td></tr>
@@ -644,6 +648,42 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ad6b33b692bf1bd372a5c61fd5ce705bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6b33b692bf1bd372a5c61fd5ce705bb">&#9670;&nbsp;</a></span>ARRAY_RESIZE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ARRAY_RESIZE</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">r</td><td>)</td>
+          <td>&#160;&#160;&#160;(((<a class="el" href="../../d0/d94/structAttributeDef.html">AttributeDef</a> *) &amp;(r))-&gt;resize)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae470539fa9ddb726cc52b76d3088afd6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae470539fa9ddb726cc52b76d3088afd6">&#9670;&nbsp;</a></span>ATTR_MODE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ATTR_MODE</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">r</td><td>)</td>
+          <td>&#160;&#160;&#160;(((<a class="el" href="../../d0/d94/structAttributeDef.html">AttributeDef</a> *) &amp;(r))-&gt;mode)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aa90fd23b0961c1b7b3aeb95e6018fd61"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa90fd23b0961c1b7b3aeb95e6018fd61">&#9670;&nbsp;</a></span>CACHED_INCLUDES_HASH_SIZE</h2>
 
@@ -851,9 +891,9 @@ Functions</h2></td></tr>
 <div class="line">    DEF_ASM(x##ng)     \</div>
 <div class="line">    DEF_ASM(x##nle)    \</div>
 <div class="line">    DEF_ASM(x##<a class="code" href="../../d9/d87/816-gen_8c.html#ad4f41ed4eda48092da9ba611614f8915">g</a>)</div>
-<div class="ttc" id="a816-gen_8c_html_ad4f41ed4eda48092da9ba611614f8915"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#ad4f41ed4eda48092da9ba611614f8915">g</a></div><div class="ttdeci">void g(int c)</div><div class="ttdoc">Adds a character into the current text section and increments the index.</div><div class="ttdef"><b>Definition:</b> 816-gen.c:221</div></div>
-<div class="ttc" id="a816-gen_8c_html_af8949ab607ac917f40f1b3100eed0436"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#af8949ab607ac917f40f1b3100eed0436">s</a></div><div class="ttdeci">void s(char *str)</div><div class="ttdoc">Adds each character from the input string into the current text section.</div><div class="ttdef"><b>Definition:</b> 816-gen.c:245</div></div>
-<div class="ttc" id="atcc_8h_html_ab20bc377af7c92b314478d46e7f02ea2"><div class="ttname"><a href="../../d3/d29/tcc_8h.html#ab20bc377af7c92b314478d46e7f02ea2">DEF_ASM</a></div><div class="ttdeci">#define DEF_ASM(x)</div><div class="ttdef"><b>Definition:</b> tcc.h:690</div></div>
+<div class="ttc" id="a816-gen_8c_html_ad4f41ed4eda48092da9ba611614f8915"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#ad4f41ed4eda48092da9ba611614f8915">g</a></div><div class="ttdeci">void g(int c)</div><div class="ttdoc">Adds a character into the current text section and increments the index.</div><div class="ttdef"><b>Definition:</b> 816-gen.c:216</div></div>
+<div class="ttc" id="a816-gen_8c_html_af8949ab607ac917f40f1b3100eed0436"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#af8949ab607ac917f40f1b3100eed0436">s</a></div><div class="ttdeci">void s(char *str)</div><div class="ttdoc">Adds each character from the input string into the current text section.</div><div class="ttdef"><b>Definition:</b> 816-gen.c:240</div></div>
+<div class="ttc" id="atcc_8h_html_ab20bc377af7c92b314478d46e7f02ea2"><div class="ttname"><a href="../../d3/d29/tcc_8h.html#ab20bc377af7c92b314478d46e7f02ea2">DEF_ASM</a></div><div class="ttdeci">#define DEF_ASM(x)</div><div class="ttdef"><b>Definition:</b> tcc.h:692</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -876,7 +916,7 @@ Functions</h2></td></tr>
 <div class="line">    DEF(TOK_ASM_##x##w, #x <span class="stringliteral">&quot;w&quot;</span>) \</div>
 <div class="line">    DEF(TOK_ASM_##x##l, #x <span class="stringliteral">&quot;l&quot;</span>) \</div>
 <div class="line">    DEF(TOK_ASM_##x, #x)</div>
-<div class="ttc" id="atcc_8h_html_a3260c8cdf916048be8ce14d1e0d7733b"><div class="ttname"><a href="../../d3/d29/tcc_8h.html#a3260c8cdf916048be8ce14d1e0d7733b">DEF</a></div><div class="ttdeci">#define DEF(id, str)</div><div class="ttdef"><b>Definition:</b> tcc.h:774</div></div>
+<div class="ttc" id="atcc_8h_html_a3260c8cdf916048be8ce14d1e0d7733b"><div class="ttname"><a href="../../d3/d29/tcc_8h.html#a3260c8cdf916048be8ce14d1e0d7733b">DEF</a></div><div class="ttdeci">#define DEF(id, str)</div><div class="ttdef"><b>Definition:</b> tcc.h:776</div></div>
 </div><!-- fragment -->
 </div>
 </div>

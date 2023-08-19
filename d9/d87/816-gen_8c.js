@@ -41,7 +41,7 @@ var 816_gen_8c =
     [ "RS_MAX_SIZE", "d9/d87/816-gen_8c.html#af733f160f258e1d84f2983f996d4495d", null ],
     [ "SHIFT_IN_PLACE_MAX", "d9/d87/816-gen_8c.html#a3695e283829f54554e8bbafaf86c656f", null ],
     [ "STACK_SIZE_LIMIT", "d9/d87/816-gen_8c.html#a3fa05ac6cc18f9a3c587403ec165b22f", null ],
-    [ "STDDEF_H", "d9/d87/816-gen_8c.html#a4129f187f4b987bbdeb87a587d5221c5", null ],
+    [ "STATIC_PREFIX", "d9/d87/816-gen_8c.html#a3cfae1fa1ab7a7c181422762e037d209", null ],
     [ "UNROLL_SHIFT_MAX", "d9/d87/816-gen_8c.html#afb7a5d6e6d466a5c48b9c27fee4176c2", null ],
     [ "adjust_stack", "d9/d87/816-gen_8c.html#a7a4cd541804bbb77d23c4548f9c75905", null ],
     [ "convert_type_helper", "d9/d87/816-gen_8c.html#a45eba475ee8e90cc31f54a1a2d58b23b", null ],
@@ -52,7 +52,7 @@ var 816_gen_8c =
     [ "gen_cvt_itof", "d9/d87/816-gen_8c.html#a49e1220065c4632a74866549df250941", null ],
     [ "gen_opf", "d9/d87/816-gen_8c.html#ac45bdcf2e2fe3697008cdb9937d7a6d2", null ],
     [ "gen_opi", "d9/d87/816-gen_8c.html#a3a8ace35d2eaf38069c3731269580ad6", null ],
-    [ "generate_token", "d9/d87/816-gen_8c.html#ae72e0f03f4ad6f100d6e240f00fb6a4f", null ],
+    [ "generate_token", "d9/d87/816-gen_8c.html#a5f535605b5bd51f68bf95afd84f0ffb9", null ],
     [ "get_sym_str", "d9/d87/816-gen_8c.html#a81bab6fe0b491f7b941ceed091291838", null ],
     [ "gfunc_call", "d9/d87/816-gen_8c.html#aa9023f012434f08565f87722c0abed6b", null ],
     [ "gfunc_epilog", "d9/d87/816-gen_8c.html#a1d910c5c7e8c05ee2fac32508eb877c3", null ],
@@ -86,6 +86,5 @@ var 816_gen_8c =
     [ "relocptrs", "d9/d87/816-gen_8c.html#a325b4b156e4c807d34765adce1c52915", null ],
     [ "section_closed", "d9/d87/816-gen_8c.html#a62c5092632cea5b8d65cbbb79c8243c8", null ],
     [ "section_count", "d9/d87/816-gen_8c.html#a9f0e9a968a860f1189c022ee38ef015e", null ],
-    [ "stack_back", "d9/d87/816-gen_8c.html#a16fc9bf4a0de81f9e22858be45c047da", null ],
-    [ "static_prefix", "d9/d87/816-gen_8c.html#a3d3b59fa5225d65b8904187ebe585db3", null ]
+    [ "stack_back", "d9/d87/816-gen_8c.html#a16fc9bf4a0de81f9e22858be45c047da", null ]
 ];

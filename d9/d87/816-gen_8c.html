@@ -94,17 +94,7 @@ $(document).ready(function(){initNavTree('d9/d87/816-gen_8c.html','../../'); ini
 <div class="title">816-gen.c File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;<a class="el" href="../../d3/dce/stddef_8h_source.html">stddef.h</a>&gt;</code><br />
-</div><div class="textblock"><div class="dynheader">
-Include dependency graph for 816-gen.c:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d5/d68/816-gen_8c__incl.png" border="0" usemap="#a816-gen_8c" alt=""/></div>
-<map name="a816-gen_8c" id="a816-gen_8c">
-<area shape="rect" title=" " alt="" coords="5,5,92,32"/>
-<area shape="rect" href="../../d3/dce/stddef_8h.html" title=" " alt="" coords="11,80,86,107"/>
-</map>
-</div>
-</div><table class="memberdecls">
+<table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/df2/structlabels__816.html">labels_816</a></td></tr>
@@ -113,8 +103,6 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:a4129f187f4b987bbdeb87a587d5221c5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#a4129f187f4b987bbdeb87a587d5221c5">STDDEF_H</a></td></tr>
-<tr class="separator:a4129f187f4b987bbdeb87a587d5221c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ed3dbd50ed336063c09b05a50083a41"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#a1ed3dbd50ed336063c09b05a50083a41">LDOUBLE_SIZE</a>&#160;&#160;&#160;12</td></tr>
 <tr class="separator:a1ed3dbd50ed336063c09b05a50083a41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab21f03a2220d0b9b62b9bb84a39b201b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#ab21f03a2220d0b9b62b9bb84a39b201b">LDOUBLE_ALIGN</a>&#160;&#160;&#160;4</td></tr>
@@ -189,6 +177,8 @@ Macros</h2></td></tr>
 <tr class="separator:af3aacb96d65013368831751be391d3e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af733f160f258e1d84f2983f996d4495d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#af733f160f258e1d84f2983f996d4495d">RS_MAX_SIZE</a>&#160;&#160;&#160;10</td></tr>
 <tr class="separator:af733f160f258e1d84f2983f996d4495d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3cfae1fa1ab7a7c181422762e037d209"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#a3cfae1fa1ab7a7c181422762e037d209">STATIC_PREFIX</a>&#160;&#160;&#160;&quot;tccs_&quot;</td></tr>
+<tr class="separator:a3cfae1fa1ab7a7c181422762e037d209"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb7a5d6e6d466a5c48b9c27fee4176c2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#afb7a5d6e6d466a5c48b9c27fee4176c2">UNROLL_SHIFT_MAX</a>&#160;&#160;&#160;4</td></tr>
 <tr class="separator:afb7a5d6e6d466a5c48b9c27fee4176c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3695e283829f54554e8bbafaf86c656f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#a3695e283829f54554e8bbafaf86c656f">SHIFT_IN_PLACE_MAX</a>&#160;&#160;&#160;2</td></tr>
@@ -221,9 +211,9 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ae72e0f03f4ad6f100d6e240f00fb6a4f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#ae72e0f03f4ad6f100d6e240f00fb6a4f">generate_token</a> (char *str, const <a class="el" href="../../d3/dce/stddef_8h.html#aa9d55e2f20e580b7445617d0d12fff6e">size_t</a> max_size)</td></tr>
-<tr class="memdesc:ae72e0f03f4ad6f100d6e240f00fb6a4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generates a random token of mixed-case letters.  <a href="../../d9/d87/816-gen_8c.html#ae72e0f03f4ad6f100d6e240f00fb6a4f">More...</a><br /></td></tr>
-<tr class="separator:ae72e0f03f4ad6f100d6e240f00fb6a4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f535605b5bd51f68bf95afd84f0ffb9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#a5f535605b5bd51f68bf95afd84f0ffb9">generate_token</a> (char *str, const int max_size)</td></tr>
+<tr class="memdesc:a5f535605b5bd51f68bf95afd84f0ffb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generates a random token of mixed-case letters.  <a href="../../d9/d87/816-gen_8c.html#a5f535605b5bd51f68bf95afd84f0ffb9">More...</a><br /></td></tr>
+<tr class="separator:a5f535605b5bd51f68bf95afd84f0ffb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a81bab6fe0b491f7b941ceed091291838"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#a81bab6fe0b491f7b941ceed091291838">get_sym_str</a> (<a class="el" href="../../d0/dc6/structSym.html">Sym</a> *sym)</td></tr>
 <tr class="memdesc:a81bab6fe0b491f7b941ceed091291838"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs and returns a symbol string from a given symbol.  <a href="../../d9/d87/816-gen_8c.html#a81bab6fe0b491f7b941ceed091291838">More...</a><br /></td></tr>
 <tr class="separator:a81bab6fe0b491f7b941ceed091291838"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -303,8 +293,6 @@ Variables</h2></td></tr>
 <tr class="separator:ab60683898e02aa1fca032475795c23b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34d5fc9ea34404be9e0c3a92aebf6c93"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#a34d5fc9ea34404be9e0c3a92aebf6c93">random_token</a> [<a class="el" href="../../d9/d87/816-gen_8c.html#af733f160f258e1d84f2983f996d4495d">RS_MAX_SIZE</a>+1]</td></tr>
 <tr class="separator:a34d5fc9ea34404be9e0c3a92aebf6c93"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d3b59fa5225d65b8904187ebe585db3"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#a3d3b59fa5225d65b8904187ebe585db3">static_prefix</a> = &quot;tccs_&quot;</td></tr>
-<tr class="separator:a3d3b59fa5225d65b8904187ebe585db3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5964772d4e1e24d41be7405df7f8a06"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#ac5964772d4e1e24d41be7405df7f8a06">current_fn</a> [<a class="el" href="../../d9/d87/816-gen_8c.html#ae6648cd71a8bd49d58ae8ed33ba910d1">MAXLEN</a>] = &quot;&quot;</td></tr>
 <tr class="separator:ac5964772d4e1e24d41be7405df7f8a06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a325b4b156e4c807d34765adce1c52915"><td class="memItemLeft" align="right" valign="top">char **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d87/816-gen_8c.html#a325b4b156e4c807d34765adce1c52915">relocptrs</a> = <a class="el" href="../../d3/dce/stddef_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4">NULL</a></td></tr>
@@ -902,17 +890,18 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="a4129f187f4b987bbdeb87a587d5221c5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4129f187f4b987bbdeb87a587d5221c5">&#9670;&nbsp;</a></span>STDDEF_H</h2>
+<a id="a3cfae1fa1ab7a7c181422762e037d209"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3cfae1fa1ab7a7c181422762e037d209">&#9670;&nbsp;</a></span>STATIC_PREFIX</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define STDDEF_H</td>
+          <td class="memname">#define STATIC_PREFIX&#160;&#160;&#160;&quot;tccs_&quot;</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<dl class="section note"><dt>Note</dt><dd>WLA does not have file-local symbols, only section-local and global. Thus, everything that is file-local must be made global and given a unique name. Not knowing how to choose one deterministically, we use a random string, saved to STATIC_PREFIX. With WLA 9.X, if you have a label that begins with a _ and it is inside a section, then the name doesn't show outside of that section. If it is not inside a section it doesn't show outside of the object file... </dd></dl>
 
 </div>
 </div>
@@ -1290,8 +1279,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="ae72e0f03f4ad6f100d6e240f00fb6a4f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae72e0f03f4ad6f100d6e240f00fb6a4f">&#9670;&nbsp;</a></span>generate_token()</h2>
+<a id="a5f535605b5bd51f68bf95afd84f0ffb9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f535605b5bd51f68bf95afd84f0ffb9">&#9670;&nbsp;</a></span>generate_token()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1305,7 +1294,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="../../d3/dce/stddef_8h.html#aa9d55e2f20e580b7445617d0d12fff6e">size_t</a>&#160;</td>
+          <td class="paramtype">const int&#160;</td>
           <td class="paramname"><em>max_size</em>&#160;</td>
         </tr>
         <tr>
@@ -1328,8 +1317,8 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../d9/d87/816-gen_8c_ae72e0f03f4ad6f100d6e240f00fb6a4f_icgraph.png" border="0" usemap="#ad9/d87/816-gen_8c_ae72e0f03f4ad6f100d6e240f00fb6a4f_icgraph" alt=""/></div>
-<map name="ad9/d87/816-gen_8c_ae72e0f03f4ad6f100d6e240f00fb6a4f_icgraph" id="ad9/d87/816-gen_8c_ae72e0f03f4ad6f100d6e240f00fb6a4f_icgraph">
+<div class="center"><img src="../../d9/d87/816-gen_8c_a5f535605b5bd51f68bf95afd84f0ffb9_icgraph.png" border="0" usemap="#ad9/d87/816-gen_8c_a5f535605b5bd51f68bf95afd84f0ffb9_icgraph" alt=""/></div>
+<map name="ad9/d87/816-gen_8c_a5f535605b5bd51f68bf95afd84f0ffb9_icgraph" id="ad9/d87/816-gen_8c_a5f535605b5bd51f68bf95afd84f0ffb9_icgraph">
 <area shape="rect" title="Generates a random token of mixed&#45;case letters." alt="" coords="108,5,231,32"/>
 <area shape="rect" href="../../d7/de5/tcc_8c.html#a3c04138a5bfe5d72780bb7e82a18e627" title="The entry point of the program." alt="" coords="5,5,60,32"/>
 </map>
@@ -2101,21 +2090,21 @@ Here is the caller graph for this function:</div>
 <div class="line">    <a class="code" href="../../d9/d87/816-gen_8c.html#abef13e3578d765317de21f3a86d15c88">RC_FLOAT</a> | <a class="code" href="../../d9/d87/816-gen_8c.html#a14c290b894f0eb09d0fb807983c23e04">RC_F2</a>,</div>
 <div class="line">    <a class="code" href="../../d9/d87/816-gen_8c.html#abef13e3578d765317de21f3a86d15c88">RC_FLOAT</a> | <a class="code" href="../../d9/d87/816-gen_8c.html#aa6ff79b08b0930fbd62c597375f86bca">RC_F3</a>,</div>
 <div class="line">}</div>
-<div class="ttc" id="a816-gen_8c_html_a14c290b894f0eb09d0fb807983c23e04"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a14c290b894f0eb09d0fb807983c23e04">RC_F2</a></div><div class="ttdeci">#define RC_F2</div><div class="ttdef"><b>Definition:</b> 816-gen.c:46</div></div>
-<div class="ttc" id="a816-gen_8c_html_a1fd04125e860df7bf25f43e1802af4c2"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a1fd04125e860df7bf25f43e1802af4c2">RC_NONE</a></div><div class="ttdeci">#define RC_NONE</div><div class="ttdef"><b>Definition:</b> 816-gen.c:48</div></div>
-<div class="ttc" id="a816-gen_8c_html_a20be647bf752c40ec2ffe8976db0fed8"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a20be647bf752c40ec2ffe8976db0fed8">RC_R10</a></div><div class="ttdeci">#define RC_R10</div><div class="ttdef"><b>Definition:</b> 816-gen.c:43</div></div>
-<div class="ttc" id="a816-gen_8c_html_a284a4e8da8d261d39f04b78fe168e2e6"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a284a4e8da8d261d39f04b78fe168e2e6">RC_F0</a></div><div class="ttdeci">#define RC_F0</div><div class="ttdef"><b>Definition:</b> 816-gen.c:44</div></div>
-<div class="ttc" id="a816-gen_8c_html_a30e0bb1b7457ca3eac155fccac108a8b"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a30e0bb1b7457ca3eac155fccac108a8b">RC_R2</a></div><div class="ttdeci">#define RC_R2</div><div class="ttdef"><b>Definition:</b> 816-gen.c:38</div></div>
-<div class="ttc" id="a816-gen_8c_html_a4d8472b45d1335d3368a9c160ad65c13"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a4d8472b45d1335d3368a9c160ad65c13">RC_R4</a></div><div class="ttdeci">#define RC_R4</div><div class="ttdef"><b>Definition:</b> 816-gen.c:40</div></div>
-<div class="ttc" id="a816-gen_8c_html_a62ad39277340a9f95c1464e4a4b1b5a1"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a62ad39277340a9f95c1464e4a4b1b5a1">RC_INT</a></div><div class="ttdeci">#define RC_INT</div><div class="ttdef"><b>Definition:</b> 816-gen.c:34</div></div>
-<div class="ttc" id="a816-gen_8c_html_a67bad4c1a93ffe75655c6446d285ebb2"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a67bad4c1a93ffe75655c6446d285ebb2">RC_R3</a></div><div class="ttdeci">#define RC_R3</div><div class="ttdef"><b>Definition:</b> 816-gen.c:39</div></div>
-<div class="ttc" id="a816-gen_8c_html_a7f66c6a496ac29752fe1cdbff2ca5619"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a7f66c6a496ac29752fe1cdbff2ca5619">RC_R0</a></div><div class="ttdeci">#define RC_R0</div><div class="ttdef"><b>Definition:</b> 816-gen.c:36</div></div>
-<div class="ttc" id="a816-gen_8c_html_a8920ff2e7e8c247dd1e683a240c5a536"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a8920ff2e7e8c247dd1e683a240c5a536">RC_R5</a></div><div class="ttdeci">#define RC_R5</div><div class="ttdef"><b>Definition:</b> 816-gen.c:41</div></div>
-<div class="ttc" id="a816-gen_8c_html_a9080fe2cc25a2e503aa922b30ab3e9c9"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a9080fe2cc25a2e503aa922b30ab3e9c9">RC_F1</a></div><div class="ttdeci">#define RC_F1</div><div class="ttdef"><b>Definition:</b> 816-gen.c:45</div></div>
-<div class="ttc" id="a816-gen_8c_html_aa6ff79b08b0930fbd62c597375f86bca"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#aa6ff79b08b0930fbd62c597375f86bca">RC_F3</a></div><div class="ttdeci">#define RC_F3</div><div class="ttdef"><b>Definition:</b> 816-gen.c:47</div></div>
-<div class="ttc" id="a816-gen_8c_html_ab1a69f2635ed68e4d45b613f5e31ea23"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#ab1a69f2635ed68e4d45b613f5e31ea23">RC_R1</a></div><div class="ttdeci">#define RC_R1</div><div class="ttdef"><b>Definition:</b> 816-gen.c:37</div></div>
-<div class="ttc" id="a816-gen_8c_html_ab26ed66cb8e4d9dd2e4a2cb577a5f0c3"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#ab26ed66cb8e4d9dd2e4a2cb577a5f0c3">RC_R9</a></div><div class="ttdeci">#define RC_R9</div><div class="ttdef"><b>Definition:</b> 816-gen.c:42</div></div>
-<div class="ttc" id="a816-gen_8c_html_abef13e3578d765317de21f3a86d15c88"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#abef13e3578d765317de21f3a86d15c88">RC_FLOAT</a></div><div class="ttdeci">#define RC_FLOAT</div><div class="ttdef"><b>Definition:</b> 816-gen.c:35</div></div>
+<div class="ttc" id="a816-gen_8c_html_a14c290b894f0eb09d0fb807983c23e04"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a14c290b894f0eb09d0fb807983c23e04">RC_F2</a></div><div class="ttdeci">#define RC_F2</div><div class="ttdef"><b>Definition:</b> 816-gen.c:41</div></div>
+<div class="ttc" id="a816-gen_8c_html_a1fd04125e860df7bf25f43e1802af4c2"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a1fd04125e860df7bf25f43e1802af4c2">RC_NONE</a></div><div class="ttdeci">#define RC_NONE</div><div class="ttdef"><b>Definition:</b> 816-gen.c:43</div></div>
+<div class="ttc" id="a816-gen_8c_html_a20be647bf752c40ec2ffe8976db0fed8"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a20be647bf752c40ec2ffe8976db0fed8">RC_R10</a></div><div class="ttdeci">#define RC_R10</div><div class="ttdef"><b>Definition:</b> 816-gen.c:38</div></div>
+<div class="ttc" id="a816-gen_8c_html_a284a4e8da8d261d39f04b78fe168e2e6"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a284a4e8da8d261d39f04b78fe168e2e6">RC_F0</a></div><div class="ttdeci">#define RC_F0</div><div class="ttdef"><b>Definition:</b> 816-gen.c:39</div></div>
+<div class="ttc" id="a816-gen_8c_html_a30e0bb1b7457ca3eac155fccac108a8b"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a30e0bb1b7457ca3eac155fccac108a8b">RC_R2</a></div><div class="ttdeci">#define RC_R2</div><div class="ttdef"><b>Definition:</b> 816-gen.c:33</div></div>
+<div class="ttc" id="a816-gen_8c_html_a4d8472b45d1335d3368a9c160ad65c13"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a4d8472b45d1335d3368a9c160ad65c13">RC_R4</a></div><div class="ttdeci">#define RC_R4</div><div class="ttdef"><b>Definition:</b> 816-gen.c:35</div></div>
+<div class="ttc" id="a816-gen_8c_html_a62ad39277340a9f95c1464e4a4b1b5a1"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a62ad39277340a9f95c1464e4a4b1b5a1">RC_INT</a></div><div class="ttdeci">#define RC_INT</div><div class="ttdef"><b>Definition:</b> 816-gen.c:29</div></div>
+<div class="ttc" id="a816-gen_8c_html_a67bad4c1a93ffe75655c6446d285ebb2"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a67bad4c1a93ffe75655c6446d285ebb2">RC_R3</a></div><div class="ttdeci">#define RC_R3</div><div class="ttdef"><b>Definition:</b> 816-gen.c:34</div></div>
+<div class="ttc" id="a816-gen_8c_html_a7f66c6a496ac29752fe1cdbff2ca5619"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a7f66c6a496ac29752fe1cdbff2ca5619">RC_R0</a></div><div class="ttdeci">#define RC_R0</div><div class="ttdef"><b>Definition:</b> 816-gen.c:31</div></div>
+<div class="ttc" id="a816-gen_8c_html_a8920ff2e7e8c247dd1e683a240c5a536"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a8920ff2e7e8c247dd1e683a240c5a536">RC_R5</a></div><div class="ttdeci">#define RC_R5</div><div class="ttdef"><b>Definition:</b> 816-gen.c:36</div></div>
+<div class="ttc" id="a816-gen_8c_html_a9080fe2cc25a2e503aa922b30ab3e9c9"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#a9080fe2cc25a2e503aa922b30ab3e9c9">RC_F1</a></div><div class="ttdeci">#define RC_F1</div><div class="ttdef"><b>Definition:</b> 816-gen.c:40</div></div>
+<div class="ttc" id="a816-gen_8c_html_aa6ff79b08b0930fbd62c597375f86bca"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#aa6ff79b08b0930fbd62c597375f86bca">RC_F3</a></div><div class="ttdeci">#define RC_F3</div><div class="ttdef"><b>Definition:</b> 816-gen.c:42</div></div>
+<div class="ttc" id="a816-gen_8c_html_ab1a69f2635ed68e4d45b613f5e31ea23"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#ab1a69f2635ed68e4d45b613f5e31ea23">RC_R1</a></div><div class="ttdeci">#define RC_R1</div><div class="ttdef"><b>Definition:</b> 816-gen.c:32</div></div>
+<div class="ttc" id="a816-gen_8c_html_ab26ed66cb8e4d9dd2e4a2cb577a5f0c3"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#ab26ed66cb8e4d9dd2e4a2cb577a5f0c3">RC_R9</a></div><div class="ttdeci">#define RC_R9</div><div class="ttdef"><b>Definition:</b> 816-gen.c:37</div></div>
+<div class="ttc" id="a816-gen_8c_html_abef13e3578d765317de21f3a86d15c88"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#abef13e3578d765317de21f3a86d15c88">RC_FLOAT</a></div><div class="ttdeci">#define RC_FLOAT</div><div class="ttdef"><b>Definition:</b> 816-gen.c:30</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2172,21 +2161,6 @@ Here is the caller graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-</div>
-</div>
-<a id="a3d3b59fa5225d65b8904187ebe585db3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d3b59fa5225d65b8904187ebe585db3">&#9670;&nbsp;</a></span>static_prefix</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">char* static_prefix = &quot;tccs_&quot;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<dl class="section note"><dt>Note</dt><dd>WLA does not have file-local symbols, only section-local and global. Thus, everything that is file-local must be made global and given a unique name. Not knowing how to choose one deterministically, we use a random string, saved to static_prefix. With WLA 9.X, if you have a label that begins with a _ and it is inside a section, then the name doesn't show outside of that section. If it is not inside a section it doesn't show outside of the object file... </dd></dl>
 
 </div>
 </div>
