@@ -384,7 +384,7 @@ fi
 version=$(head $source_path/VERSION)
 echo "VERSION=$version" >>config.mak
 echo "#define TCC_VERSION \"$version\"" >>$TMPH
-echo "@set VERSION $version" >config.texi
+# echo "@set VERSION $version" >config.texi
 
 # build tree in object directory if source path is different from current one
 if test "$source_path_used" = "yes"; then
