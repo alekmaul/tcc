@@ -39,7 +39,6 @@ Non-C90 features currently in use, as revealed by:
 - very long string constants
 - assignment between function pointer and 'void *'
 - "//" comments
-- empty macro arguments (DEF_ASMTEST in i386-tok.h)
 - unnamed struct and union fields (in struct Sym), a C11 feature
   
 For more informations, see [CodingStyle](CodingStyle)

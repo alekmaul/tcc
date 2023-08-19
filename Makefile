@@ -131,6 +131,7 @@ docs: docs/html/index.html
 
 docs/html/index.html:
 	@rm -rf docs/html
+	@git submodule update --init 
 	@doxygen docs/Doxyfile
 
 # tar release (use 'make -k tar' on a checkouted tree)
@@ -150,6 +151,6 @@ clean:
 	rm -f $(PROGS) *.o lib/*.o *.a *.out
 
 distclean: clean
-	rm -rf config.h config.mak config.texi docs/html
+	rm -rf config.h config.mak docs/html
 
 endif # ifeq ($(TOP),.)
