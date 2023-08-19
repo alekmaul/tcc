@@ -67,7 +67,6 @@ void vsetc(CType *type, int r, CValue *vc)
  */
 void vpushi(int v)
 {
-
     CValue cval;
     cval.i = v;
 
@@ -3849,36 +3848,15 @@ tok_next:
     }
 }
 
-static void uneq(void)
-{
-    int t;
-
-    unary();
-    if (tok == '=' || (tok >= TOK_A_MOD && tok <= TOK_A_DIV) || tok == TOK_A_XOR || tok == TOK_A_OR
-        || tok == TOK_A_SHL || tok == TOK_A_SAR) {
-        test_lvalue();
-        t = tok;
-        next();
-        if (t == '=') {
-            expr_eq();
-        } else {
-            vdup();
-            expr_eq();
-            gen_op(t & 0x7f);
-        }
-        vstore();
-    }
-}
-
 static void expr_prod(void)
 {
     int t;
 
-    uneq();
+    unary();
     while (tok == '*' || tok == '/' || tok == '%') {
         t = tok;
         next();
-        uneq();
+        unary();
         gen_op(t);
     }
 }
@@ -4029,7 +4007,7 @@ static void expr_lor(void)
 }
 
 /* XXX: better constant handling */
-static void expr_eq(void)
+static void expr_cond(void)
 {
     int tt, u, r1, r2, rc, t1, t2, bt1, bt2;
     SValue sv;
@@ -4053,7 +4031,7 @@ static void expr_eq(void)
             if (!c)
                 vpop();
             skip(':');
-            expr_eq();
+            expr_cond();
             if (c)
                 vpop();
         }
@@ -4089,7 +4067,7 @@ static void expr_eq(void)
             skip(':');
             u = gjmp(0);
             gsym(tt);
-            expr_eq();
+            expr_cond();
             type2 = vtop->type;
 
             t1 = type1.t;
@@ -4169,6 +4147,27 @@ static void expr_eq(void)
     }
 }
 
+static void expr_eq(void)
+{
+    int t;
+
+    expr_cond();
+    if (tok == '=' || (tok >= TOK_A_MOD && tok <= TOK_A_DIV) || tok == TOK_A_XOR || tok == TOK_A_OR
+        || tok == TOK_A_SHL || tok == TOK_A_SAR) {
+        test_lvalue();
+        t = tok;
+        next();
+        if (t == '=') {
+            expr_eq();
+        } else {
+            vdup();
+            expr_eq();
+            gen_op(t & 0x7f);
+        }
+        vstore();
+    }
+}
+
 static void gexpr(void)
 {
     while (1) {
@@ -4213,7 +4212,7 @@ static void expr_const1(void)
     int a;
     a = const_wanted;
     const_wanted = 1;
-    expr_eq();
+    expr_cond();
     const_wanted = a;
 }
 
