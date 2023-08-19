@@ -4239,6 +4239,24 @@ static int is_label(void)
     }
 }
 
+static void label_or_decl(int l)
+{
+    int last_tok;
+
+    /* fast test first */
+    if (tok >= TOK_UIDENT) {
+        /* no need to save tokc because tok is an identifier */
+        last_tok = tok;
+        next();
+        if (tok == ':') {
+            unget_tok(last_tok);
+            return;
+        }
+        unget_tok(last_tok);
+    }
+    decl(l);
+}
+
 static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_reg, int is_expr)
 {
     int a, b, c, d;
@@ -4310,7 +4328,7 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
             }
         }
         while (tok != '}') {
-            decl(VT_LOCAL);
+            label_or_decl(VT_LOCAL);
             if (tok != '}') {
                 if (is_expr)
                     vpop();
