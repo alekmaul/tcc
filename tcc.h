@@ -791,7 +791,8 @@ enum tcc_token {
 #ifndef __GNUC__
 #define strtold (long double) strtod
 #define strtof (float) strtod
-#define strtoll (long long) strtol
+#define strtoll _strtoi64
+#define strtoull _strtoui64
 #endif
 #elif defined(TCC_UCLIBC) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__)
 /* currently incorrect */
