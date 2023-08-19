@@ -4015,6 +4015,10 @@ static void expr_cond(void)
 
     if (const_wanted) {
         expr_lor_const();
+    } else {
+        expr_lor();
+    }
+    if (const_wanted || ((vtop->r & (VT_VALMASK | VT_LVAL | VT_SYM)) == VT_CONST)) {
         if (tok == '?') {
             CType boolean;
             int c;
@@ -4036,7 +4040,6 @@ static void expr_cond(void)
                 vpop();
         }
     } else {
-        expr_lor();
         if (tok == '?') {
             next();
             if (vtop != vstack) {
