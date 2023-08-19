@@ -183,7 +183,6 @@ int ieee_finite(double d);
 void vpushi(int v);
 void vpushll(long long v);
 void vrott(int n);
-void vnrott(int n);
 void lexpand_nr(void);
 static void vpush_global_sym(CType *type, int v);
 void vset(CType *type, int r, int v);
