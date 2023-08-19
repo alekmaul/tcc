@@ -788,9 +788,9 @@ static void put_extern_sym2(
 #ifdef TCC_TARGET_816
         if (sym->type.t & VT_STATIC) {
             if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0)
-                sprintf(buf1, "%s_FUNC_%s_", static_prefix, current_fn);
+                sprintf(buf1, "%s_FUNC_%s_", STATIC_PREFIX, current_fn);
             else
-                strcpy(buf1, static_prefix);
+                strcpy(buf1, STATIC_PREFIX);
             strcat(buf1, name);
             name = buf1;
         }
@@ -1426,6 +1426,7 @@ TCCState *tcc_new(void)
 #endif
     s->output_type = TCC_OUTPUT_MEMORY;
     preprocess_new();
+    s->include_stack_ptr = s->include_stack;
 
     /* we add dummy defines for some special macros to speed up tests
        and to have working defined() */

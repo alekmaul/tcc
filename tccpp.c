@@ -758,6 +758,8 @@ redo_start:
                     a--;
                 else if (tok == TOK_ERROR || tok == TOK_WARNING)
                     in_warn_or_error = 1;
+                else if (tok == TOK_LINEFEED)
+                    goto redo_start;
             }
             break;
         _default:
@@ -1732,12 +1734,17 @@ redo:
         pragma_parse(s1);
         break;
     default:
-        if (tok == TOK_LINEFEED || tok == '!' || tok == TOK_CINT) {
+        if (tok == TOK_LINEFEED || tok == '!' || tok == TOK_PPNUM) {
             /* '!' is ignored to allow C scripts. numbers are ignored
                to emulate cpp behaviour */
         } else {
             if (!(saved_parse_flags & PARSE_FLAG_ASM_COMMENTS))
                 warning("Ignoring unknown preprocessing directive #%s", get_tok_str(tok, &tokc));
+            else {
+                /* this is a gas line comment in an 'S' file. */
+                file->buf_ptr = parse_line_comment(file->buf_ptr);
+                goto the_end;
+            }
         }
         break;
     }
@@ -2235,8 +2242,11 @@ redo_no_start:
             tok_flags |= TOK_FLAG_EOF;
             tok = TOK_LINEFEED;
             goto keep_tok_flags;
-        } else if (s1->include_stack_ptr == s1->include_stack
-                   || !(parse_flags & PARSE_FLAG_PREPROCESS)) {
+        } else if (!(parse_flags & PARSE_FLAG_PREPROCESS)) {
+            tok = TOK_EOF;
+        } else if (s1->ifdef_stack_ptr != file->ifdef_stack_ptr) {
+            error("missing #endif");
+        } else if (s1->include_stack_ptr == s1->include_stack) {
             /* no include left : end of file. */
             tok = TOK_EOF;
         } else {
