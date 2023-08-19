@@ -2276,6 +2276,8 @@ static void gen_assign_cast(CType *dt)
     st = &vtop->type; /* source type */
     dbt = dt->t & VT_BTYPE;
     sbt = st->t & VT_BTYPE;
+    if (sbt == VT_VOID)
+        error("Cannot assign void value");
     if (dt->t & VT_CONSTANT)
         warning("assignment of read-only location");
     switch (dbt) {
