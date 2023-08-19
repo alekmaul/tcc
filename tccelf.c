@@ -1780,15 +1780,15 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
     int i, j, k, size;
 
     /* include header */
-    fprintf(f, ".INCLUDE \"hdr.asm\"\n");
-    fprintf(f, ".ACCU 16\n.index 16\n");
-    fprintf(f, ".16BIT\n");
+    fprintf(f, ".include \"hdr.asm\"\n");
+    fprintf(f, ".accu 16\n.index 16\n");
+    fprintf(f, ".16bit\n");
 
     /* local variable size constants; used to be generated as part of the
        function epilog, but WLA DX barfed once in a while about missing
        symbols. putting them at the start of the file works around that. */
     for (i = 0; i < localno; i++) {
-        fprintf(f, ".DEFINE __%s_locals %d\n", locals[i], localnos[i]);
+        fprintf(f, ".define __%s_locals %d\n", locals[i], localnos[i]);
     }
 
     /* relocate sections
@@ -1970,12 +1970,12 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
                             if (relocptrs && relocptrs[((unsigned long) &s->data[j]) & 0xfffff]) {
                                 /* relocated -> print a symbolic pointer */
                                 char *ptrname = relocptrs[((unsigned long) &s->data[j]) & 0xfffff];
-                                fprintf(f, ".DW %s + %d, :%s", ptrname, ptr, ptrname);
+                                fprintf(f, ".dw %s + %d, :%s", ptrname, ptr, ptrname);
                                 j += 3; /* we have handled 3 more bytes than expected */
                                 deebeed = 0;
                             } else {
                                 /* any non-symbolic data; print one byte, then let the generic code take over */
-                                fprintf(f, ".DB $%x", ptrc);
+                                fprintf(f, ".db $%x", ptrc);
                                 deebeed = 1;
                             }
                         }
@@ -1986,7 +1986,7 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
                     if (k == 1 && relocptrs && relocptrs[((unsigned long) &s->data[j]) & 0xfffff]) {
                         /* unlabeled data may have been relocated, too */
                         fprintf(f,
-                                "\n.DW %s + %d\n.DW :%s",
+                                "\n.dw %s + %d\n.dw :%s",
                                 relocptrs[((unsigned long) &s->data[j]) & 0xfffff],
                                 *(unsigned int *) (&s->data[j]),
                                 relocptrs[((unsigned long) &s->data[j]) & 0xfffff]);
@@ -1997,7 +1997,7 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
 
                     if (!deebeed) {
                         if (k == 1)
-                            fprintf(f, "\n.DB ");
+                            fprintf(f, "\n.db ");
                         deebeed = 1;
                     } else if (k == 1)
                         fprintf(f, ",");
