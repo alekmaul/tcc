@@ -20,11 +20,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef STDDEF_H
-#define STDDEF_H
-#include <stddef.h>
-#endif
-
 #define LDOUBLE_SIZE 12 // not actually supported
 #define LDOUBLE_ALIGN 4
 #define MAX_ALIGN 8
@@ -120,9 +115,9 @@ char random_token[RS_MAX_SIZE + 1];
  * @param str Pointer to the output character array.
  * @param max_size The maximum size of the generated token, not including the null-terminator.
  */
-void generate_token(char *str, const size_t max_size)
+void generate_token(char *str, const int max_size)
 {
-    size_t i;
+    int i;
     int seed;
 
     // Generate a unique seed based on the current time
@@ -146,13 +141,13 @@ void generate_token(char *str, const size_t max_size)
  * @note WLA does not have file-local symbols, only section-local and global.
  * Thus, everything that is file-local must be made global and given a
  * unique name. Not knowing how to choose one deterministically, we use a
- * random string, saved to static_prefix.
+ * random string, saved to STATIC_PREFIX.
  * With WLA 9.X, if you have a label that begins with a _ and it is inside a section,
  * then the name doesn't show outside of that section.
  * If it is not inside a section it doesn't show outside of the object file...
  */
-char *static_prefix = "tccs_";
 
+#define STATIC_PREFIX "tccs_"
 char current_fn[MAXLEN] = "";
 
 // Variable relocate a given section
@@ -197,9 +192,9 @@ char *get_sym_str(Sym *sym)
     if (sym->type.t & VT_STATIC) {
         if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0
             && !((sym->type.t & VT_BTYPE) == VT_FUNC))
-            sprintf(name, "%s_FUNC_%s_", static_prefix, current_fn);
+            sprintf(name, "%s_FUNC_%s_", STATIC_PREFIX, current_fn);
         else
-            strcpy(name, static_prefix);
+            strcpy(name, STATIC_PREFIX);
     }
 
     /* add symbol name */

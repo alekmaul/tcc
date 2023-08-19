@@ -1459,11 +1459,14 @@ void gen_op(int op)
 #ifndef TCC_TARGET_816
             type1.t &= ~VT_ARRAY;
 #endif
+            u = pointed_size(&vtop[-1].type);
+            if (u < 0)
+                error("unknown array element size");
 #ifdef TCC_TARGET_X86_64
-            vpushll(pointed_size(&vtop[-1].type));
+            vpushll(u);
 #else
             /* XXX: cast to int ? (long long case) */
-            vpushi(pointed_size(&vtop[-1].type));
+            vpushi(u);
 #endif
             gen_op('*');
 #ifdef CONFIG_TCC_BCHECK
@@ -1876,7 +1879,7 @@ static int type_size(CType *type, int *a)
     if (bt == VT_STRUCT) {
         /* struct/union */
         s = type->ref;
-        *a = s->r;
+        *a = s->r & 0xffffff;
         return s->c;
     } else if (bt == VT_PTR) {
         if (type->t & VT_ARRAY) {
@@ -2511,6 +2514,25 @@ static void parse_attribute(AttributeDef *ad)
                 ad->func_call = FUNC_FASTCALLW;
                 break;
 #endif
+            case TOK_MODE:
+                skip('(');
+                switch (tok) {
+                case TOK_MODE_DI:
+                    ad->mode = VT_LLONG + 1;
+                    break;
+                case TOK_MODE_HI:
+                    ad->mode = VT_SHORT + 1;
+                    break;
+                case TOK_MODE_SI:
+                    ad->mode = VT_INT + 1;
+                    break;
+                default:
+                    warning("__mode__(%s) not supported\n", get_tok_str(tok, NULL));
+                    break;
+                }
+                next();
+                skip(')');
+                break;
             case TOK_DLLEXPORT:
                 ad->func_export = 1;
                 break;
@@ -2546,7 +2568,7 @@ static void parse_attribute(AttributeDef *ad)
 static void struct_decl(CType *type, int u)
 {
     int a, v, size, align, maxalign, c, offset;
-    int bit_size, bit_pos, bsize, bt, lbit_pos, prevbt;
+    int bit_size, bit_pos, bsize, bt, lbit_pos, prevbt, resize;
     Sym *s, *ss, *ass, **ps;
     AttributeDef ad;
     CType type1, btype;
@@ -2607,6 +2629,7 @@ do_decl:
             }
             skip('}');
         } else {
+            resize = 0;
             maxalign = 1;
             ps = &s->next;
             prevbt = VT_INT;
@@ -2727,7 +2750,7 @@ do_decl:
             skip('}');
             /* store size and alignment */
             s->c = (c + maxalign - 1) & -maxalign;
-            s->r = maxalign;
+            s->r = maxalign | (resize ? (1 << 31) : 0);
         }
     }
 }
@@ -2878,12 +2901,18 @@ static int parse_btype(CType *type, AttributeDef *ad)
         case TOK_ATTRIBUTE1:
         case TOK_ATTRIBUTE2:
             parse_attribute(ad);
+            if (ad->mode) {
+                u = ad->mode - 1;
+                t = (t & ~VT_BTYPE) | u;
+            }
             break;
             /* GNUC typeof */
         case TOK_TYPEOF1:
         case TOK_TYPEOF2:
         case TOK_TYPEOF3:
             next();
+            /* remove all storage modifiers except typedef */
+            type1.t &= ~(VT_STORAGE & ~VT_TYPEDEF);
             parse_expr_type(&type1);
             goto basic_type2;
         default:
@@ -3037,6 +3066,8 @@ static void post_type(CType *type, AttributeDef *ad)
         /* we push a anonymous symbol which will contain the array
            element type */
         s = sym_push(SYM_FIELD, type, 0, n);
+        if (n < 0)
+            ARRAY_RESIZE(s->r) = 1;
         type->t = t1 | VT_ARRAY | VT_PTR;
         type->ref = s;
     }
@@ -4686,7 +4717,7 @@ static void init_putz(CType *t, Section *sec, unsigned long c, int size)
    size only evaluation is wanted (only for arrays). */
 static void decl_initializer(CType *type, Section *sec, unsigned long c, int first, int size_only)
 {
-    int index, array_length, n, no_oblock, nb, parlevel, i;
+    int index, array_length, n, no_oblock, nb, parlevel, parlevel1, i;
     int size1, align1, expr_type;
     Sym *s, *f;
     CType *t1;
@@ -4700,6 +4731,9 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
 
         no_oblock = 1;
         if ((first && tok != TOK_LSTR && tok != TOK_STR) || tok == '{') {
+            if (tok != '{')
+                error("character array initializer must be a literal,"
+                      " optionally enclosed in braces");
             skip('{');
             no_oblock = 0;
         }
@@ -4765,7 +4799,7 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
                     error("index too large");
                 /* must put zero in holes (note that doing it that way
                    ensures that it even works with designators) */
-                if (!size_only && array_length < index) {
+                if (!size_only && n >= 0 && array_length < n) {
                     init_putz(t1, sec, c + array_length * size1, (index - array_length) * size1);
                 }
                 index++;
@@ -4889,18 +4923,24 @@ static void decl_initializer(CType *type, Section *sec, unsigned long c, int fir
             skip(')');
             par_count--;
         }
+        if (n < 0)
+            s->c = array_length;
     } else if (tok == '{') {
         next();
         decl_initializer(type, sec, c, first, size_only);
         skip('}');
     } else if (size_only) {
         /* just skip expression */
-        parlevel = 0;
-        while ((parlevel > 0 || (tok != '}' && tok != ',')) && tok != -1) {
+        parlevel = parlevel1 = 0;
+        while ((parlevel > 0 || parlevel1 > 0 || (tok != '}' && tok != ',')) && tok != -1) {
             if (tok == '(')
                 parlevel++;
             else if (tok == ')')
                 parlevel--;
+            else if (tok == '{')
+                parlevel1++;
+            else if (tok == '}')
+                parlevel1--;
             next();
         }
     } else {
@@ -4929,6 +4969,9 @@ static void decl_initializer_alloc(
     TokenString init_str;
     Section *sec;
 
+    /* resize the struct */
+    if ((type->t & VT_BTYPE) == VT_STRUCT && (type->ref->r & (1 << 31)) != 0)
+        type->ref->c = -1;
     size = type_size(type, &align);
     /* If unknown size, we must evaluate it before
        evaluating initializers because
@@ -5049,7 +5092,8 @@ static void decl_initializer_alloc(
                         goto no_alloc;
                 }
             } else if ((type->t & VT_EXTERN) == 0 && (r & VT_CONST)) {
-                if ((type->t & VT_CONSTANT) || ((type->t & VT_ARRAY) && type->ref && (type->ref->type.t & VT_CONSTANT)))
+                if ((type->t & VT_CONSTANT)
+                    || ((type->t & VT_ARRAY) && type->ref && (type->ref->type.t & VT_CONSTANT)))
                     is_const_var = 1;
             }
         }

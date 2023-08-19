@@ -1821,7 +1821,7 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
             for (j = 0; j < size; j++) {
                 for (k = 0; k < labels; k++) {
                     if (label[k].pos == j)
-                        fprintf(f, "%s%s:\n", static_prefix /* "__local_" */, label[k].name);
+                        fprintf(f, "%s%s:\n", STATIC_PREFIX /* "__local_" */, label[k].name);
                 }
                 /* insert jump labels */
                 if (next_jump_pos == j) {
@@ -1853,10 +1853,9 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
                 {
                     /* looks like these are the symbols that need to go here,
                        but that is merely an educated guess. works for me, though. */
-                    // fprintf(stderr,"COM symbol %s: value %d size %d\n",get_tok_str(ps->v, NULL),esym->st_value,esym->st_size);
                     fprintf(f,
                             "%s%s dsb %d\n",
-                            /*ELF32_ST_BIND(esym->st_info) == STB_LOCAL ? static_prefix:*/ "",
+                            /*ELF32_ST_BIND(esym->st_info) == STB_LOCAL ? STATIC_PREFIX:*/ "",
                             symtab_section->link->data + esym->st_name,
                             esym->st_size);
                     empty = 0;
@@ -1866,9 +1865,9 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
             fprintf(f, ".ENDS\n");
         } else { /* .data, .rodata, user-defined sections */
 
-            int deebeed = 0; /* remembers whether we have printed ".db"
+            int deebeed = 0; /* remembers whether we have printed ".DB"
                                   before; reset after a newline or a
-                                  different sized prefix, e.g. ".dw" */
+                                  different sized prefix, e.g. ".DW" */
             int startk = 0;  /* 0 == .ramsection, 1 == .section */
             int endk = 2;    /* do both by default */
 
@@ -1939,7 +1938,7 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
                         /* if this is a local (static) symbol, prefix it so the assembler knows this
                             is file-local. */
                         /* FIXME: breaks for local static variables (name collision) */
-                        // if(ELF32_ST_BIND(esym->st_info) == STB_LOCAL) { symprefix = static_prefix; }
+                        // if(ELF32_ST_BIND(esym->st_info) == STB_LOCAL) { symprefix = STATIC_PREFIX; }
 
                         /* if this is a ramsection, we now know how large the _previous_ symbol was; print it. */
                         /* if we already printed a symbol in this section, define this symbol as size 0 so it
@@ -1962,7 +1961,6 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
                     if (symbol_printed) {
                         /* pointers and arrays may have a symbolic name. find out if that's the case.
                              everything else is literal and handled later */
-                        // if((ps->type.t & (VT_PTR|VT_ARRAY)) /* == VT_PTR */) {
                         unsigned int ptr = *((unsigned int *) &s->data[j]);
                         unsigned char ptrc = *((unsigned char *) &s->data[j]);
 
@@ -2009,8 +2007,6 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
                 }
 
                 if (k == 0) {
-                    if (!bytecount) {
-                    }
                     if (bytecount) // 07/06/2023, added because of previous test removed
                         fprintf(f, "dsb %d\n", bytecount);
                     bytecount = 0;
