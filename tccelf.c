@@ -1139,8 +1139,6 @@ static void put_got_offset(TCCState *s1, int index, unsigned long val)
         while (index >= n)
             n *= 2;
         tab = tcc_realloc(s1->got_offsets, n * sizeof(unsigned long));
-        if (!tab)
-            error("memory full");
         s1->got_offsets = tab;
         memset(s1->got_offsets + s1->nb_got_offsets,
                0,
