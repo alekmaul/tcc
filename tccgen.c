@@ -73,6 +73,17 @@ void vpushi(int v)
     vsetc(&int_type, VT_CONST, &cval);
 }
 
+/* push a pointer sized constant */
+static void vpushs(long long v)
+{
+    CValue cval;
+    if (PTR_SIZE == 4)
+        cval.i = (int) v;
+    else
+        cval.ull = v;
+    vsetc(&size_type, VT_CONST, &cval);
+}
+
 /**
  * @brief Pushes a long long constant onto the virtual stack.
  *
@@ -3590,9 +3601,9 @@ tok_next:
         if (t == TOK_SIZEOF) {
             if (size < 0)
                 error("sizeof applied to an incomplete type");
-            vpushi(size);
+            vpushs(size);
         } else {
-            vpushi(align);
+            vpushs(align);
         }
         vtop->type.t |= VT_UNSIGNED;
         break;

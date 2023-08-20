@@ -109,9 +109,9 @@ static int nb_sym_pools;
 static SValue vstack[VSTACK_SIZE], *vtop;
 /* some predefined types */
 #ifdef TCC_TARGET_816
-static CType char_pointer_type, func_old_type, int_type, ptr_type;
+static CType char_pointer_type, func_old_type, int_type, ptr_type, size_type;
 #else
-static CType char_pointer_type, func_old_type, int_type;
+static CType char_pointer_type, func_old_type, int_type, size_type;
 #endif
 
 /* use GNU C extensions */
@@ -1246,6 +1246,12 @@ static int tcc_compile(TCCState *s1)
 
     char_pointer_type.t = VT_BYTE;
     mk_pointer(&char_pointer_type);
+
+#if PTR_SIZE == 4
+    size_type.t = VT_INT;
+#else
+    size_type.t = VT_LLONG;
+#endif
 
     func_old_type.t = VT_FUNC;
     func_old_type.ref = sym_push(SYM_FIELD, &int_type, FUNC_CDECL, FUNC_OLD);
