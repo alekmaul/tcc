@@ -503,12 +503,15 @@ void gbound(void)
    register value (such as structures). */
 int gv(int rc)
 {
+    int r, bit_pos, bit_size, size, align;
+
 #ifndef TCC_TARGET_816
-    int r, rc2, bit_pos, bit_size, size, align, i;
-#else
-    int r, rc2, bit_pos, bit_size, size, align;
+    int i;
 #endif
 
+#ifndef TCC_TARGET_X86_64
+    int rc2;
+#endif
     /* NOTE: get_reg can modify vstack[] */
     if (vtop->type.t & VT_BITFIELD) {
         CType type;

@@ -1365,7 +1365,7 @@ static void put_got_entry(TCCState *s1, int reloc_type, unsigned long size, int 
  */
 static void build_got_entries(TCCState *s1)
 {
-    Section *s, *symtab;
+    Section *s;
     ElfW_Rel *rel, *rel_end;
     ElfW(Sym) * sym;
     int i, type, reloc_type, sym_index;
@@ -2069,7 +2069,9 @@ int elf_output_file(TCCState *s1, const char *filename)
     ElfW(Sym) * sym;
     int type, file_type;
     unsigned long rel_addr, rel_size;
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
     unsigned long bss_addr, bss_size;
+#endif
 
     file_type = s1->output_type;
     s1->nb_errors = 0;
@@ -2412,7 +2414,9 @@ int elf_output_file(TCCState *s1, const char *filename)
         rel_size = 0;
         rel_addr = 0;
 
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
         bss_addr = bss_size = 0;
+#endif
         /* leave one program header for the program interpreter */
         ph = &phdr[0];
         if (interp)
