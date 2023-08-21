@@ -29,6 +29,7 @@ var tccgen_8c =
     [ "type_to_str", "d7/dd0/tccgen_8c.html#a5b65f629f57ed5a2e09478b16419595f", null ],
     [ "vdup", "d7/dd0/tccgen_8c.html#a7eaa4bd129f4bc1303ccf1729af4ad61", null ],
     [ "vpop", "d7/dd0/tccgen_8c.html#ae4794cd3e49260ef887975325d7439a3", null ],
+    [ "vpush", "d7/dd0/tccgen_8c.html#afa318393fb493bf87aae1e12dc61c472", null ],
     [ "vpushi", "d7/dd0/tccgen_8c.html#ae37b71ac4e78a9ae1d9e5f575fe7fa3a", null ],
     [ "vpushll", "d7/dd0/tccgen_8c.html#a2ead9737a1023bae41f646b07214239f", null ],
     [ "vpushv", "d7/dd0/tccgen_8c.html#a96b3f9a5aeca2908d5f5f3650c6296aa", null ],

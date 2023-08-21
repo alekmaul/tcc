@@ -248,6 +248,8 @@ Macros</h2></td></tr>
 <tr class="separator:a5c1176cf71a57a88cff4788967706250"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae369607b51b882bada1b691c7019d4db"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d29/tcc_8h.html#ae369607b51b882bada1b691c7019d4db">FUNC_ARGS</a>(r)&#160;&#160;&#160;(((<a class="el" href="../../d0/d94/structAttributeDef.html">AttributeDef</a> *) &amp;(r))-&gt;func_args)</td></tr>
 <tr class="separator:ae369607b51b882bada1b691c7019d4db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af49a7797e117ee8a56a62370cf62861d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d29/tcc_8h.html#af49a7797e117ee8a56a62370cf62861d">FUNC_PROTO</a>(r)&#160;&#160;&#160;(((<a class="el" href="../../d0/d94/structAttributeDef.html">AttributeDef</a> *) &amp;(r))-&gt;func_proto)</td></tr>
+<tr class="separator:af49a7797e117ee8a56a62370cf62861d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d28bd66f1c84a62249223002d5457b1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d29/tcc_8h.html#a8d28bd66f1c84a62249223002d5457b1">FUNC_ALIGN</a>(r)&#160;&#160;&#160;(((<a class="el" href="../../d0/d94/structAttributeDef.html">AttributeDef</a> *) &amp;(r))-&gt;aligned)</td></tr>
 <tr class="separator:a8d28bd66f1c84a62249223002d5457b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a017efc55ca8762dcbf904ed85bcd5500"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d29/tcc_8h.html#a017efc55ca8762dcbf904ed85bcd5500">FUNC_PACKED</a>(r)&#160;&#160;&#160;(((<a class="el" href="../../d0/d94/structAttributeDef.html">AttributeDef</a> *) &amp;(r))-&gt;packed)</td></tr>
@@ -893,7 +895,7 @@ Functions</h2></td></tr>
 <div class="line">    DEF_ASM(x##<a class="code" href="../../d9/d87/816-gen_8c.html#ad4f41ed4eda48092da9ba611614f8915">g</a>)</div>
 <div class="ttc" id="a816-gen_8c_html_ad4f41ed4eda48092da9ba611614f8915"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#ad4f41ed4eda48092da9ba611614f8915">g</a></div><div class="ttdeci">void g(int c)</div><div class="ttdoc">Adds a character into the current text section and increments the index.</div><div class="ttdef"><b>Definition:</b> 816-gen.c:216</div></div>
 <div class="ttc" id="a816-gen_8c_html_af8949ab607ac917f40f1b3100eed0436"><div class="ttname"><a href="../../d9/d87/816-gen_8c.html#af8949ab607ac917f40f1b3100eed0436">s</a></div><div class="ttdeci">void s(char *str)</div><div class="ttdoc">Adds each character from the input string into the current text section.</div><div class="ttdef"><b>Definition:</b> 816-gen.c:240</div></div>
-<div class="ttc" id="atcc_8h_html_ab20bc377af7c92b314478d46e7f02ea2"><div class="ttname"><a href="../../d3/d29/tcc_8h.html#ab20bc377af7c92b314478d46e7f02ea2">DEF_ASM</a></div><div class="ttdeci">#define DEF_ASM(x)</div><div class="ttdef"><b>Definition:</b> tcc.h:692</div></div>
+<div class="ttc" id="atcc_8h_html_ab20bc377af7c92b314478d46e7f02ea2"><div class="ttname"><a href="../../d3/d29/tcc_8h.html#ab20bc377af7c92b314478d46e7f02ea2">DEF_ASM</a></div><div class="ttdeci">#define DEF_ASM(x)</div><div class="ttdef"><b>Definition:</b> tcc.h:697</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -916,7 +918,7 @@ Functions</h2></td></tr>
 <div class="line">    DEF(TOK_ASM_##x##w, #x <span class="stringliteral">&quot;w&quot;</span>) \</div>
 <div class="line">    DEF(TOK_ASM_##x##l, #x <span class="stringliteral">&quot;l&quot;</span>) \</div>
 <div class="line">    DEF(TOK_ASM_##x, #x)</div>
-<div class="ttc" id="atcc_8h_html_a3260c8cdf916048be8ce14d1e0d7733b"><div class="ttname"><a href="../../d3/d29/tcc_8h.html#a3260c8cdf916048be8ce14d1e0d7733b">DEF</a></div><div class="ttdeci">#define DEF(id, str)</div><div class="ttdef"><b>Definition:</b> tcc.h:776</div></div>
+<div class="ttc" id="atcc_8h_html_a3260c8cdf916048be8ce14d1e0d7733b"><div class="ttname"><a href="../../d3/d29/tcc_8h.html#a3260c8cdf916048be8ce14d1e0d7733b">DEF</a></div><div class="ttdeci">#define DEF(id, str)</div><div class="ttdef"><b>Definition:</b> tcc.h:781</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1254,6 +1256,24 @@ Functions</h2></td></tr>
           <td class="paramtype">&#160;</td>
           <td class="paramname">r</td><td>)</td>
           <td>&#160;&#160;&#160;(((<a class="el" href="../../d0/d94/structAttributeDef.html">AttributeDef</a> *) &amp;(r))-&gt;packed)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af49a7797e117ee8a56a62370cf62861d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af49a7797e117ee8a56a62370cf62861d">&#9670;&nbsp;</a></span>FUNC_PROTO</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define FUNC_PROTO</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">r</td><td>)</td>
+          <td>&#160;&#160;&#160;(((<a class="el" href="../../d0/d94/structAttributeDef.html">AttributeDef</a> *) &amp;(r))-&gt;func_proto)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3629,10 +3649,8 @@ Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d3/d29/tcc_8h_ac33c8a42a58a6379397850b60be22028_icgraph.png" border="0" usemap="#ad3/d29/tcc_8h_ac33c8a42a58a6379397850b60be22028_icgraph" alt=""/></div>
 <map name="ad3/d29/tcc_8h_ac33c8a42a58a6379397850b60be22028_icgraph" id="ad3/d29/tcc_8h_ac33c8a42a58a6379397850b60be22028_icgraph">
-<area shape="rect" title=" " alt="" coords="305,31,359,57"/>
-<area shape="rect" href="../../da/d5b/libtcc_8c.html#a3b4e12b1f1c9dbd0b1904f8ac595a2b8" title=" " alt="" coords="147,5,257,32"/>
-<area shape="rect" href="../../d9/d87/816-gen_8c.html#aa1e5ea813ce5d1a14b6feae09449bc73" title="Throws an error for unsupported conversion between floating point types." alt="" coords="151,56,253,83"/>
-<area shape="rect" href="../../d7/de5/tcc_8c.html#a4775c397908c0fb0c76f6528d0845613" title="The function parses command line arguments and sets various options and flags accordingly." alt="" coords="5,5,99,32"/>
+<area shape="rect" title=" " alt="" coords="156,5,209,32"/>
+<area shape="rect" href="../../d9/d87/816-gen_8c.html#aa1e5ea813ce5d1a14b6feae09449bc73" title="Throws an error for unsupported conversion between floating point types." alt="" coords="5,5,108,32"/>
 </map>
 </div>
 

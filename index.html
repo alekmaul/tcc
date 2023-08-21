@@ -118,17 +118,7 @@ About</h1>
 </ul>
 <h2><a class="anchor" id="autotoc_md11"></a>
 Some considerations</h2>
-<p>TCC is mostly implemented in C90. <b>Do not use any non-C90 features</b> that are not already in use.</p>
-<p>Non-C90 features currently in use, as revealed by:</p>
-<div class="fragment"><div class="line">./configure --extra-cflags=&quot;-std=c90 -Wpedantic&quot;</div>
-</div><!-- fragment --><ul>
-<li>long long (including "LL" constants)</li>
-<li>inline</li>
-<li>very long string constants</li>
-<li>assignment between function pointer and 'void *'</li>
-<li>"//" comments</li>
-<li>unnamed struct and union fields (in struct <a class="el" href="d0/dc6/structSym.html">Sym</a>), a C11 feature</li>
-</ul>
+<p>TCC is a ANSI C compiler, mostly implemented in C90. <b>Do not use any non-C90 features</b> that are not already in use.</p>
 <p>For more informations, see [CodingStyle](CodingStyle)</p>
 <h1><a class="anchor" id="autotoc_md12"></a>
 Getting Started</h1>

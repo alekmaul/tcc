@@ -53,6 +53,7 @@ var tcc_8h =
     [ "FUNC_NEW", "d3/d29/tcc_8h.html#a04b1273aa7887ea580f2f09baddd5e3e", null ],
     [ "FUNC_OLD", "d3/d29/tcc_8h.html#a189e9227e37b3d4ed1f4105b1a556856", null ],
     [ "FUNC_PACKED", "d3/d29/tcc_8h.html#a017efc55ca8762dcbf904ed85bcd5500", null ],
+    [ "FUNC_PROTO", "d3/d29/tcc_8h.html#af49a7797e117ee8a56a62370cf62861d", null ],
     [ "FUNC_STDCALL", "d3/d29/tcc_8h.html#ab9306e80e9590fe675d61481ad53b69d", null ],
     [ "IFDEF_STACK_SIZE", "d3/d29/tcc_8h.html#a5c474b2857bcc43c2ec31a8aca95e709", null ],
     [ "INCLUDE_STACK_SIZE", "d3/d29/tcc_8h.html#a526f8db187efdc88fd9e627ca57f4f22", null ],

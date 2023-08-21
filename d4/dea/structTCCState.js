@@ -54,6 +54,7 @@ var structTCCState =
     [ "seg_size", "d4/dea/structTCCState.html#aa5b0cb8851b937613d4f0b85346f6024", null ],
     [ "soname", "d4/dea/structTCCState.html#a326c08252909944ddca1daefac732552", null ],
     [ "static_link", "d4/dea/structTCCState.html#a0d640ad029c39d9754e6814fc5b04797", null ],
+    [ "symtab", "d4/dea/structTCCState.html#a81fe83edc1624258d723734b9eba4b42", null ],
     [ "symtab_to_dynsym", "d4/dea/structTCCState.html#afdef33e571d681b9ce86cefda1647f11", null ],
     [ "sysinclude_paths", "d4/dea/structTCCState.html#a38cafca2d7c1eb891826ad3a3e44c5e0", null ],
     [ "tcc_lib_path", "d4/dea/structTCCState.html#aaf95317817df94ba69e9c3281111cb01", null ],
