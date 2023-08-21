@@ -60,6 +60,13 @@ void vsetc(CType *type, int r, CValue *vc)
     vtop->c = *vc;
 }
 
+/* push constant of type "type" with useless value */
+void vpush(CType *type)
+{
+    CValue cval;
+    vsetc(type, VT_CONST, &cval);
+}
+
 /**
  * @brief Pushes an integer constant onto the virtual stack.
  *
@@ -3610,12 +3617,16 @@ tok_next:
         break;
     case '+':
         next();
-        /* in order to force cast, we add zero */
         unary();
         if ((vtop->type.t & VT_BTYPE) == VT_PTR)
             error("pointer not accepted for unary plus");
-        vpushi(0);
-        gen_op('+');
+        /* In order to force cast, we add zero, except for floating point
+          where we really need an noop (otherwise -0.0 will be transformed
+          into +0.0).  */
+        if (!is_float(vtop->type.t)) {
+            vpushi(0);
+            gen_op('+');
+        }
         break;
     case TOK_SIZEOF:
     case TOK_ALIGNOF1:
@@ -3698,19 +3709,20 @@ tok_next:
         next();
         unary();
         t = vtop->type.t & VT_BTYPE;
-        /* handle (-)0.0 */
-        if ((vtop->r & (VT_VALMASK | VT_LVAL | VT_SYM)) == VT_CONST && is_float(t)) {
+        if (is_float(t)) {
+            /* In IEEE negate(x) isn't subtract(0,x), but rather
+              subtract(-0, x).  */
+            vpush(&vtop->type);
             if (t == VT_FLOAT)
-                vtop->c.f = -vtop->c.f;
+                vtop->c.f = -0.0f;
             else if (t == VT_DOUBLE)
-                vtop->c.d = -vtop->c.d;
+                vtop->c.d = -0.0;
             else
-                vtop->c.ld = -vtop->c.ld;
-        } else {
+                vtop->c.ld = -0.0;
+        } else
             vpushi(0);
-            vswap();
-            gen_op('-');
-        }
+        vswap();
+        gen_op('-');
         break;
     case TOK_LAND:
         if (!gnu_ext)
