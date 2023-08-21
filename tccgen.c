@@ -2729,7 +2729,7 @@ static void parse_attribute(AttributeDef *ad)
 /* enum/struct/union declaration. u is either VT_ENUM or VT_STRUCT */
 static void struct_decl(CType *type, int u, int tdef)
 {
-    int a, v, size, align, maxalign, c, offset;
+    int a, v, size, align, maxalign, c, offset, flexible;
     int bit_size, bit_pos, bsize, bt, lbit_pos, prevbt, resize;
     Sym *s, *ss, *ass, **ps;
     AttributeDef ad;
@@ -2802,9 +2802,13 @@ do_decl:
             prevbt = VT_INT;
             bit_pos = 0;
             offset = 0;
+            flexible = 0;
             while (tok != '}') {
                 parse_btype(&btype, &ad);
                 while (1) {
+                    if (flexible)
+                        error("flexible array member '%s' not at the end of struct",
+                              get_tok_str(v, NULL));
                     bit_size = -1;
                     v = 0;
                     type1 = btype;
@@ -2812,6 +2816,12 @@ do_decl:
                         type_decl(&type1, &ad, &v, TYPE_DIRECT | TYPE_ABSTRACT);
                         if (v == 0 && (type1.t & VT_BTYPE) != VT_STRUCT)
                             expect("identifier");
+                        if (type_size(&type1, &align) < 0) {
+                            if ((a == TOK_STRUCT) && (type1.t & VT_ARRAY) && c)
+                                flexible = 1;
+                            else
+                                error("field '%s' has incomplete type", get_tok_str(v, NULL));
+                        }
                         if ((type1.t & VT_BTYPE) == VT_FUNC
                             || (type1.t & (VT_TYPEDEF | VT_STATIC | VT_EXTERN | VT_INLINE)))
                             error("invalid type for '%s'", get_tok_str(v, NULL));
