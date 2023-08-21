@@ -2450,16 +2450,15 @@ void vstore(void)
 #else
     } else if (ft & VT_BITFIELD) {
 #endif
+
+        /* save lvalue as expression result (example: s.b = s.a = n;) */
+        vdup(), vtop[-1] = vtop[-2];
+
         /* bitfield store handling */
         bit_pos = (ft >> VT_STRUCT_SHIFT) & 0x3f;
         bit_size = (ft >> (VT_STRUCT_SHIFT + 6)) & 0x3f;
         /* remove bit field info to avoid loops */
         vtop[-1].type.t = ft & ~(VT_BITFIELD | (-1 << VT_STRUCT_SHIFT));
-
-        /* duplicate source into other register */
-        gv_dup();
-        vswap();
-        vrott(3);
 
         if ((ft & VT_BTYPE) == VT_BOOL) {
             gen_cast(&vtop[-1].type);
@@ -2496,7 +2495,7 @@ void vstore(void)
         /* store result */
         vstore();
 
-        /* pop off shifted source from "duplicate source..." above */
+        /* ..." above */
         vpop();
 
 #ifdef TCC_TARGET_816
