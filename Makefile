@@ -17,7 +17,9 @@ CFLAGS+=-Wno-unused-but-set-variable  \
 		-Wno-format-overflow \
 		-Wno-array-bounds \
 		-Wno-format-truncation \
-		-Wno-pointer-sign
+		-Wno-pointer-sign \
+    -Wno-maybe-uninitialized \
+    -Wno-unused-result
 CFLAGS_P=$(CFLAGS) -pg -static -DCONFIG_TCC_STATIC
 LIBS_P=
 
