@@ -3233,6 +3233,8 @@ static void post_type(CType *type, AttributeDef *ad)
         t1 = type->t & VT_STORAGE;
         type->t &= ~VT_STORAGE;
         post_type(type, ad);
+        if (type->t == VT_FUNC)
+            error("declaration of an array of functions");
 
         /* we push a anonymous symbol which will contain the array
            element type */
