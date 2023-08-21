@@ -2784,7 +2784,7 @@ do_decl:
                     expect("identifier");
                 next();
                 ss = sym_find(v);
-                if (ss)
+                if (ss && !local_stack)
                     error("redefinition of enumerator '%s'", get_tok_str(v, NULL));
                 if (tok == '=') {
                     next();
