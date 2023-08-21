@@ -27,19 +27,7 @@ The produced code is:
 
 ### Some considerations
 
-TCC is mostly implemented in C90. **Do not use any non-C90 features** that are not already in use.
-
-Non-C90 features currently in use, as revealed by:
-
-```bash
-./configure --extra-cflags="-std=c90 -Wpedantic"
-```
-- long long (including "LL" constants)
-- inline
-- very long string constants
-- assignment between function pointer and 'void *'
-- "//" comments
-- unnamed struct and union fields (in struct Sym), a C11 feature
+TCC is a ANSI C compiler, mostly implemented in C90. **Do not use any non-C90 features** that are not already in use.
   
 For more informations, see [CodingStyle](CodingStyle)
 
