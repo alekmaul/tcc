@@ -44,7 +44,7 @@ void vsetc(CType *type, int r, CValue *vc)
     int v;
 
     if (vtop >= vstack + (VSTACK_SIZE - 1))
-        error("memory full");
+        error("memory full (vstack)");
     /* cannot let cpu flags if other instruction are generated. Also
        avoid leaving VT_JMP anywhere except on the top of the stack
        because it would complicate the code generator. */
@@ -269,7 +269,7 @@ void vswap(void)
 void vpushv(SValue *v)
 {
     if (vtop >= vstack + (VSTACK_SIZE - 1))
-        error("memory full");
+        error("memory full (vstack)");
     vtop++;
     *vtop = *v;
 }
@@ -2306,8 +2306,8 @@ static void gen_assign_cast(CType *dt)
     st = &vtop->type; /* source type */
     dbt = dt->t & VT_BTYPE;
     sbt = st->t & VT_BTYPE;
-    if (sbt == VT_VOID)
-        error("Cannot assign void value");
+    if (sbt == VT_VOID || dbt == VT_VOID)
+        error("cannot cast from/to void");
     if (dt->t & VT_CONSTANT)
         warning("assignment of read-only location");
     switch (dbt) {
