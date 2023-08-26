@@ -76,8 +76,6 @@ static TokenSym *tok_alloc_new(TokenSym **pts, const char *str, int len)
     i = tok_ident - TOK_IDENT;
     if ((i % TOK_ALLOC_INCR) == 0) {
         ptable = tcc_realloc(table_ident, (i + TOK_ALLOC_INCR) * sizeof(TokenSym *));
-        if (!ptable)
-            error("memory full");
         table_ident = ptable;
     }
 
@@ -153,8 +151,14 @@ char *get_tok_str(int v, CValue *cv)
     static char buf[STRING_MAX_SIZE + 1];
     static CString cstr_buf;
     CString *cstr;
+    CValue cval;
     char *p;
     int i, len;
+
+    if (!cv) {
+        cval.ull = 0;
+        cv = &cval;
+    }
 
     /* NOTE: to go faster, we give a fixed buffer for small strings */
     cstr_reset(&cstr_buf);
@@ -899,8 +903,6 @@ static int *tok_str_realloc(TokenString *s)
         len = s->allocated_len * 2;
     }
     str = tcc_realloc(s->str, len * sizeof(int));
-    if (!str)
-        error("memory full");
     s->allocated_len = len;
     s->str = str;
     return str;
@@ -1952,7 +1954,7 @@ void parse_number(const char *p)
             if (b == 16)
                 shift = 4;
             else
-                shift = 2;
+                shift = 1;
             bn_zero(bn);
             q = token_buf;
             while (1) {
@@ -2854,13 +2856,29 @@ static int macro_subst_tok(TokenString *tok_str,
                         ml->p = NULL;
                         *can_read_stream = ml->prev;
                     }
+                    /* also, end of scope for nested defined symbol */
+                    (*nested_list)->v = -1;
                     goto redo;
                 }
             } else {
-                /* XXX: incorrect with comments */
                 ch = file->buf_ptr[0];
-                while (is_space(ch) || ch == '\n')
+
+                while (is_space(ch) || ch == '\n' || ch == '/') {
+                    if (ch == '/') {
+                        int c;
+                        uint8_t *p = file->buf_ptr;
+                        PEEKC(c, p);
+                        if (c == '*') {
+                            p = parse_comment(p);
+                            file->buf_ptr = p - 1;
+                        } else if (c == '/') {
+                            p = parse_line_comment(p);
+                            file->buf_ptr = p - 1;
+                        } else
+                            break;
+                    }
                     cinp();
+                }
                 t = ch;
             }
             if (t != '(') /* no macro subst */
@@ -3154,7 +3172,6 @@ void preprocess_new()
 {
     int i, c;
     const char *p, *r;
-    TokenSym *ts;
 
     /* init isid table */
     for (i = CH_EOF; i < 256; i++)
@@ -3173,7 +3190,7 @@ void preprocess_new()
             if (c == '\0')
                 break;
         }
-        ts = tok_alloc(p, r - p - 1);
+        tok_alloc(p, r - p - 1);
         p = r;
     }
 }
