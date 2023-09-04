@@ -119,6 +119,13 @@ void generate_token(char *str, const int max_size)
 {
     int i;
     int seed;
+    time_t startsr, endsr;
+
+    //  wait 0.01 seconds for srand been ok
+    time(&startsr);
+    do
+        time(&endsr);
+    while (difftime(endsr, startsr) <= 0.01);
 
     // Generate a unique seed based on the current time
     seed = (unsigned int) time(NULL);
