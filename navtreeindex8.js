@@ -1,8 +1,5 @@
 var NAVTREEINDEX8 =
 {
-"de/dc9/tcclib_8h.html#a59adc4c82490d23754cd39c2fb99b0da":[3,0,0,4,0],
-"de/dc9/tcclib_8h.html#a5c83709ee3bd7d316f8f47e122f3be20":[3,0,0,4,2],
-"de/dc9/tcclib_8h.html#a5fe0fc8fe920b640d488856c5ca43cb5":[3,0,0,4,12],
 "de/dc9/tcclib_8h.html#a61171f829f6067fa0c9936fc4e0cbb82":[3,0,0,4,19],
 "de/dc9/tcclib_8h.html#a62b7798461bd461da64c5f9d35feddf7":[3,0,0,4,7],
 "de/dc9/tcclib_8h.html#a6320f411d4e29b6a0399e7de0864197c":[3,0,0,4,11],
@@ -130,8 +127,8 @@ var NAVTREEINDEX8 =
 "functions_t.html":[2,2,0,18],
 "functions_u.html":[2,2,0,19],
 "functions_v.html":[2,2,0,20],
-"functions_vars.html":[2,2,1,0],
 "functions_vars.html":[2,2,1],
+"functions_vars.html":[2,2,1,0],
 "functions_vars_b.html":[2,2,1,1],
 "functions_vars_c.html":[2,2,1,2],
 "functions_vars_d.html":[2,2,1,3],
