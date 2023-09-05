@@ -1879,14 +1879,14 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
                 if (k == 0) { /* .ramsection */
                     fprintf(f,
                             ".RAMSECTION \"ram%s%s\" APPENDTO \"globram.data\"\n",
-                            random_token,
+                            "{WLA_FILENAME}",
                             s->name);
                 } else { /* (ROM) .section */
                     // check for .data section to append to global one
                     if (!strcmp(s->name, ".data"))
                         fprintf(f,
                                 ".SECTION \"%s%s\" APPENDTO \"glob.data\"\n",
-                                random_token,
+                                "{WLA_FILENAME}",
                                 s->name);
                     else
                         fprintf(f, ".SECTION \"%s\" SUPERFREE\n", s->name); // 09042021

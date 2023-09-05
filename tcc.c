@@ -564,9 +564,6 @@ int main(int argc, char **argv)
 
     s = tcc_new();
 
-#ifdef TCC_TARGET_816
-    generate_token(random_token, RS_MAX_SIZE);
-#endif
 #ifdef _WIN32
     tcc_set_lib_path_w32(s);
 #endif

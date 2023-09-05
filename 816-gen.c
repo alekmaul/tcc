@@ -101,49 +101,6 @@ int reg_classes[NB_REGS] = {
 
 #define MAX_LABELS 1000
 
-// Define random string maximum size (token usage)
-#define RS_MAX_SIZE 10
-
-char random_token[RS_MAX_SIZE + 1];
-
-/**
- * @brief Generates a random token of mixed-case letters.
- *
- * This function generates a random token of mixed-case letters. The size of the
- * token is specified by the caller. The token is null-terminated.
- *
- * @param str Pointer to the output character array.
- * @param max_size The maximum size of the generated token, not including the null-terminator.
- */
-void generate_token(char *str, const int max_size)
-{
-    int i;
-    int seed;
-    time_t startsr, endsr;
-
-    //  wait 0.01 seconds for srand been ok
-    time(&startsr);
-    do
-        time(&endsr);
-    while (difftime(endsr, startsr) <= 0.01);
-
-    // Generate a unique seed based on the current time
-    seed = (unsigned int) time(NULL);
-    srand(seed);
-
-    // Generate random mixed case letters
-    for (i = 0; i < max_size; i++) {
-        if (rand() % 2 == 0) {
-            str[i] = 'a' + (rand() % 26);
-        } else {
-            str[i] = 'A' + (rand() % 26);
-        }
-    }
-
-    // Null-terminate the string
-    str[max_size] = '\0';
-}
-
 /**
  * @note WLA does not have file-local symbols, only section-local and global.
  * Thus, everything that is file-local must be made global and given a
