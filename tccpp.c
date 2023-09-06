@@ -95,7 +95,7 @@ static TokenSym *tok_alloc_new(TokenSym **pts, const char *str, int len)
 }
 
 #define TOK_HASH_INIT 1
-#define TOK_HASH_FUNC(h, c) ((h) *263 + (c))
+#define TOK_HASH_FUNC(h, c) ((h) * 263 + (c))
 
 /**
  * @brief Allocate a new TokenSym structure or retrieve an existing one from the token table.
@@ -246,10 +246,7 @@ char *get_tok_str(int v, CValue *cv)
         } else if (v >= SYM_FIRST_ANOM) {
             /* special name for anonymous symbol */
 #ifdef TCC_TARGET_816
-            sprintf(p,
-                    "L.%s%d",
-                    random_token,
-                    v - SYM_FIRST_ANOM); // Alekmaul 201125, add temp file name to token name
+            sprintf(p, "L.%s%d", unique_token, v - SYM_FIRST_ANOM);
 #else
             sprintf(p, "L.%u", v - SYM_FIRST_ANOM);
 #endif
@@ -2238,7 +2235,7 @@ redo_no_start:
             p = file->buf_ptr;
             goto redo_no_start;
         }
-    parse_eof : {
+    parse_eof: {
         TCCState *s1 = tcc_state;
         if ((parse_flags & PARSE_FLAG_LINEFEED) && !(tok_flags & TOK_FLAG_EOF)) {
             tok_flags |= TOK_FLAG_EOF;
@@ -2477,7 +2474,7 @@ redo_no_start:
     case '\'':
     case '\"':
         is_long = 0;
-    str_const : {
+    str_const: {
         CString str;
         int sep;
 
