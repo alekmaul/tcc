@@ -101,6 +101,8 @@ int reg_classes[NB_REGS] = {
 
 #define MAX_LABELS 1000
 
+char unique_token[] = "{WLA_FILENAME}";
+
 /**
  * @note WLA does not have file-local symbols, only section-local and global.
  * Thus, everything that is file-local must be made global and given a
