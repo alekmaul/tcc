@@ -83,5 +83,6 @@ var 816_gen_8c =
     [ "relocptrs", "d9/d87/816-gen_8c.html#a325b4b156e4c807d34765adce1c52915", null ],
     [ "section_closed", "d9/d87/816-gen_8c.html#a62c5092632cea5b8d65cbbb79c8243c8", null ],
     [ "section_count", "d9/d87/816-gen_8c.html#a9f0e9a968a860f1189c022ee38ef015e", null ],
-    [ "stack_back", "d9/d87/816-gen_8c.html#a16fc9bf4a0de81f9e22858be45c047da", null ]
+    [ "stack_back", "d9/d87/816-gen_8c.html#a16fc9bf4a0de81f9e22858be45c047da", null ],
+    [ "unique_token", "d9/d87/816-gen_8c.html#a05b73e89c01a7c8470930fda2f960de2", null ]
 ];
