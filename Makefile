@@ -68,7 +68,7 @@ all: $(PROGS) $(LIBTCC1)
 
 # Cross Tiny C Compilers
 816-tcc$(EXESUF): $(816_FILES)
-	$(CC) -o $@ $< -DTCC_TARGET_816 $(CFLAGS) $(LIBS)
+	$(CC) -o $@ $< $(CROSS_TARGET) $(CFLAGS) $(LIBS)
 
 # libtcc generation
 libtcc.o: $(CROSS_FILES)
@@ -86,7 +86,7 @@ LIBTCC1_OBJS=lib/libtcc1.o
 LIBTCC1_CC=$(CC)
 
 %.o: %.c
-	$(LIBTCC1_CC) -o $@ -c $< -O2 -Wall
+	$(LIBTCC1_CC) -o $@ -c $< -O2 -Wall $(CROSS_TARGET)
 
 %.o: %.S
 	$(LIBTCC1_CC) -o $@ -c $<
@@ -133,7 +133,7 @@ docs: docs/html/index.html
 
 docs/html/index.html:
 	@rm -rf docs/html
-	@git submodule update --init 
+	@git submodule update --init
 	@doxygen docs/Doxyfile
 
 # tar release (use 'make -k tar' on a checkouted tree)

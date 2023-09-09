@@ -55,9 +55,9 @@ typedef long double XFtype;
 #define EXCESS 126
 #define SIGNBIT 0x80000000
 #define HIDDEN (1 << 23)
-#define SIGN(fp) ((fp) &SIGNBIT)
+#define SIGN(fp) ((fp) & SIGNBIT)
 #define EXP(fp) (((fp) >> 23) & 0xFF)
-#define MANT(fp) (((fp) &0x7FFFFF) | HIDDEN)
+#define MANT(fp) (((fp) & 0x7FFFFF) | HIDDEN)
 #define PACK(s, e, m) ((s) | ((e) << 23) | (m))
 
 /* the following deal with IEEE double-precision numbers */
@@ -109,7 +109,7 @@ union float_long {
 };
 
 /* XXX: we don't support several builtin supports for now */
-#ifndef __x86_64__
+#if !defined(__x86_64__) && !defined(TCC_TARGET_816)
 
 /* XXX: use gcc/tcc intrinsic ? */
 #if defined(__i386__)
