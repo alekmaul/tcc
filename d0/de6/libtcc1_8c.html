@@ -123,11 +123,11 @@ Macros</h2></td></tr>
 <tr class="separator:a42a77040405a72adfb018432a69d0249"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab42ef41116f8f2fe447484e2844cf0df"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/libtcc1_8c.html#ab42ef41116f8f2fe447484e2844cf0df">HIDDEN</a>&#160;&#160;&#160;(1 &lt;&lt; 23)</td></tr>
 <tr class="separator:ab42ef41116f8f2fe447484e2844cf0df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1554fd2221cc260875fcd66af1340e0a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/libtcc1_8c.html#a1554fd2221cc260875fcd66af1340e0a">SIGN</a>(fp)&#160;&#160;&#160;((fp) &amp;<a class="el" href="../../d0/de6/libtcc1_8c.html#a42a77040405a72adfb018432a69d0249">SIGNBIT</a>)</td></tr>
+<tr class="memitem:a1554fd2221cc260875fcd66af1340e0a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/libtcc1_8c.html#a1554fd2221cc260875fcd66af1340e0a">SIGN</a>(fp)&#160;&#160;&#160;((fp) &amp; <a class="el" href="../../d0/de6/libtcc1_8c.html#a42a77040405a72adfb018432a69d0249">SIGNBIT</a>)</td></tr>
 <tr class="separator:a1554fd2221cc260875fcd66af1340e0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2cd1ca4afdce6802503b41a237d3498b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/libtcc1_8c.html#a2cd1ca4afdce6802503b41a237d3498b">EXP</a>(fp)&#160;&#160;&#160;(((fp) &gt;&gt; 23) &amp; 0xFF)</td></tr>
 <tr class="separator:a2cd1ca4afdce6802503b41a237d3498b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9aec0cf8b9bac304d86eed1dff161460"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/libtcc1_8c.html#a9aec0cf8b9bac304d86eed1dff161460">MANT</a>(fp)&#160;&#160;&#160;(((fp) &amp;0x7FFFFF) | <a class="el" href="../../d0/de6/libtcc1_8c.html#ab42ef41116f8f2fe447484e2844cf0df">HIDDEN</a>)</td></tr>
+<tr class="memitem:a9aec0cf8b9bac304d86eed1dff161460"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/libtcc1_8c.html#a9aec0cf8b9bac304d86eed1dff161460">MANT</a>(fp)&#160;&#160;&#160;(((fp) &amp; 0x7FFFFF) | <a class="el" href="../../d0/de6/libtcc1_8c.html#ab42ef41116f8f2fe447484e2844cf0df">HIDDEN</a>)</td></tr>
 <tr class="separator:a9aec0cf8b9bac304d86eed1dff161460"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac27a434642016a6ad5f1b66681f133f9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de6/libtcc1_8c.html#ac27a434642016a6ad5f1b66681f133f9">PACK</a>(<a class="el" href="../../d9/d87/816-gen_8c.html#af8949ab607ac917f40f1b3100eed0436">s</a>,  e,  m)&#160;&#160;&#160;((<a class="el" href="../../d9/d87/816-gen_8c.html#af8949ab607ac917f40f1b3100eed0436">s</a>) | ((e) &lt;&lt; 23) | (m))</td></tr>
 <tr class="separator:ac27a434642016a6ad5f1b66681f133f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -396,7 +396,7 @@ Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">fp</td><td>)</td>
-          <td>&#160;&#160;&#160;(((fp) &amp;0x7FFFFF) | <a class="el" href="../../d0/de6/libtcc1_8c.html#ab42ef41116f8f2fe447484e2844cf0df">HIDDEN</a>)</td>
+          <td>&#160;&#160;&#160;(((fp) &amp; 0x7FFFFF) | <a class="el" href="../../d0/de6/libtcc1_8c.html#ab42ef41116f8f2fe447484e2844cf0df">HIDDEN</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -518,7 +518,7 @@ Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">fp</td><td>)</td>
-          <td>&#160;&#160;&#160;((fp) &amp;<a class="el" href="../../d0/de6/libtcc1_8c.html#a42a77040405a72adfb018432a69d0249">SIGNBIT</a>)</td>
+          <td>&#160;&#160;&#160;((fp) &amp; <a class="el" href="../../d0/de6/libtcc1_8c.html#a42a77040405a72adfb018432a69d0249">SIGNBIT</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
