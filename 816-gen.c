@@ -1632,14 +1632,14 @@ void float_to_woz(float f, unsigned char *w)
  */
 void gen_opf(int op)
 {
-    int ir;
+    int ir, align;
 
     // get the actual values
     gv2(RC_F1, RC_F0);
 
     vtop--;
 
-    pr("; gen_opf len %d op 0x%x ('%c')\n", type_size(&vtop[0].type, NULL), op, op);
+    pr("; gen_opf len %d op 0x%x ('%c')\n", type_size(&vtop[0].type, &align), op, op);
 
     switch (op) {
     case '*':
