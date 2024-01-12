@@ -786,7 +786,7 @@ static void put_extern_sym2(
             if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0)
                 sprintf(buf1, "%s_FUNC_%s_", STATIC_PREFIX, current_fn);
             else
-                strcpy(buf1, STATIC_PREFIX);
+                sprintf(buf1, "%s%s_", STATIC_PREFIX, unique_token);
             strcat(buf1, name);
             name = buf1;
         }

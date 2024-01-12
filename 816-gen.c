@@ -160,7 +160,7 @@ char *get_sym_str(Sym *sym)
             && !((sym->type.t & VT_BTYPE) == VT_FUNC))
             sprintf(name, "%s_FUNC_%s_", STATIC_PREFIX, current_fn);
         else
-            strcpy(name, STATIC_PREFIX);
+            sprintf(name, "%s%s_", STATIC_PREFIX, unique_token);
     }
 
     /* add symbol name */
