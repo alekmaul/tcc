@@ -160,7 +160,7 @@ char *get_sym_str(Sym *sym)
             && !((sym->type.t & VT_BTYPE) == VT_FUNC))
             sprintf(name, "%s_FUNC_%s_", STATIC_PREFIX, current_fn);
         else
-            strcpy(name, STATIC_PREFIX);
+            sprintf(name, "%s%s_", STATIC_PREFIX, unique_token);
     }
 
     /* add symbol name */
@@ -1632,14 +1632,14 @@ void float_to_woz(float f, unsigned char *w)
  */
 void gen_opf(int op)
 {
-    int ir;
+    int ir, align;
 
     // get the actual values
     gv2(RC_F1, RC_F0);
 
     vtop--;
 
-    pr("; gen_opf len %d op 0x%x ('%c')\n", type_size(&vtop[0].type, NULL), op, op);
+    pr("; gen_opf len %d op 0x%x ('%c')\n", type_size(&vtop[0].type, &align), op, op);
 
     switch (op) {
     case '*':
