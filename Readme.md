@@ -28,7 +28,7 @@ The produced code is:
 ### Some considerations
 
 TCC is a ANSI C compiler, mostly implemented in C90. **Do not use any non-C90 features** that are not already in use.
-  
+
 For more informations, see [CodingStyle](CodingStyle)
 
 ## Getting Started
@@ -58,11 +58,13 @@ See the help option.
 ```bash
 ./816-tcc -h
 
-usage: 816-tcc [-v] [-c] [-o outfile] [-Idir] [-Wwarn] [infile1 infile2...]
+usage: 816-tcc [-v] [-c] [-H] [-F] [-o outfile] [-Idir] [-Wwarn] [infile1 infile2...]
 
 General options:
   -v          display current version, increase verbosity
   -c          compile only - generate an object file
+  -H          hiRom (Mode 21) Memory Map compilation
+  -F          FastRom compilation
   -o outfile  set output filename
   -Wwarning   set or reset (with 'no-' prefix) 'warning' (see man page)
   -w          disable all warnings
