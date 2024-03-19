@@ -1,5 +1,7 @@
 var NAVTREEINDEX7 =
 {
+"da/d5b/libtcc_8c.html#a1a684a7bdfd73a0b441960754ba5f286":[3,0,5,87],
+"da/d5b/libtcc_8c.html#a1d196fe2b90356baaff0a92ae91f24d2":[3,0,5,33],
 "da/d5b/libtcc_8c.html#a1db317505c7287546d86f5e1cf40a8b1":[3,0,5,52],
 "da/d5b/libtcc_8c.html#a1e715aeb96b4f0bf2183fabf14583cc7":[3,0,5,16],
 "da/d5b/libtcc_8c.html#a20bc7d3bfbb507831f4dd0d27bb04a5c":[3,0,5,84],
@@ -247,7 +249,5 @@ var NAVTREEINDEX7 =
 "de/dc9/tcclib_8h.html#a3082155ec11e7229f7a20439b31a169e":[3,0,0,4,36],
 "de/dc9/tcclib_8h.html#a317d5eb3bcd77341b0c2d5ba95859410":[3,0,0,4,23],
 "de/dc9/tcclib_8h.html#a3e29caa20f7cffe18f410f01278905a8":[3,0,0,4,26],
-"de/dc9/tcclib_8h.html#a54efa95b6d5b41adec98e5b8a1a9f27b":[3,0,0,4,44],
-"de/dc9/tcclib_8h.html#a59adc4c82490d23754cd39c2fb99b0da":[3,0,0,4,0],
-"de/dc9/tcclib_8h.html#a5c83709ee3bd7d316f8f47e122f3be20":[3,0,0,4,2]
+"de/dc9/tcclib_8h.html#a54efa95b6d5b41adec98e5b8a1a9f27b":[3,0,0,4,44]
 };
