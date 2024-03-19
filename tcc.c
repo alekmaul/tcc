@@ -40,12 +40,15 @@ void help(void)
 #ifdef TCC_TARGET_816
         "\n- WDC 65816 ASM code generator for Tiny C Compiler - Copyright (C) 2007 Ulrich Hecht\n"
         "- Modified for PVSneslib by Alekmaul in 2021\n"
-        "- Updated by Kobenairb in 2022\n\n"
-        "usage: 816-tcc [-v] [-c] [-o outfile] [-Idir] [-Wwarn] [infile1 infile2...]\n"
+        "- Updated by Kobenairb in 2022\n"
+        "- Added support for Mode 21 (HiRom) Memory Mapping and FastRom by DigiDwrf in 2024\n\n"
+        "usage: 816-tcc [-v] [-c] [-H] [-F] [-o outfile] [-Idir] [-Wwarn] [infile1 infile2...]\n"
         "\n"
         "General options:\n"
         "  -v          display current version, increase verbosity\n"
         "  -c          compile only - generate an object file\n"
+        "  -H          hiRom (Mode 21) Memory Map compilation\n"
+        "  -F          FastRom compilation\n"
         "  -o outfile  set output filename\n"
         "  -Wwarning   set or reset (with 'no-' prefix) 'warning' (see man page)\n"
         "  -w          disable all warnings\n"
@@ -53,13 +56,16 @@ void help(void)
         "  -E          preprocess only\n"
         "  -Idir       add include path 'dir'\n"
 #else
-        "usage: tcc [-v] [-c] [-o outfile] [-Bdir] [-bench] [-Idir] [-Dsym[=val]] [-Usym]\n"
+        "usage: tcc [-v] [-c] [-H] [-F] [-o outfile] [-Bdir] [-bench] [-Idir] [-Dsym[=val]] "
+        "[-Usym]\n"
         "           [-Wwarn] [-g] [-b] [-bt N] [-Ldir] [-llib] [-shared] [-soname name]\n"
         "           [-static] [infile1 infile2...] [-run infile args...]\n"
         "\n"
         "General options:\n"
         "  -v          display current version, increase verbosity\n"
         "  -c          compile only - generate an object file\n"
+        "  -H          hiRom (Mode 21) Memory Map compilation\n"
+        "  -F          FastRom compilation\n"
         "  -o outfile  set output filename\n"
         "  -Bdir       set tcc internal library path\n"
         "  -bench      output compilation statistics\n"
@@ -151,6 +157,8 @@ enum {
     TCC_OPTION_pipe,
     TCC_OPTION_E,
     TCC_OPTION_x,
+    TCC_OPTION_H,
+    TCC_OPTION_F,
 };
 
 /**
@@ -192,6 +200,8 @@ static const TCCOption tcc_options[] = {
     {"pipe", TCC_OPTION_pipe, 0},            /**< Use pipes for intermediate output */
     {"E", TCC_OPTION_E, 0},                  /**< Preprocess only */
     {"x", TCC_OPTION_x, TCC_OPTION_HAS_ARG}, /**< Specify input language */
+    {"H", TCC_OPTION_H, 0},                  /**< HiRom compiler */
+    {"F", TCC_OPTION_F, 0},                  /**< FastRom compiler */
     {NULL},                                  /**< Null-terminated option */
 };
 
@@ -400,6 +410,12 @@ int parse_args(TCCState *s, int argc, char **argv)
             case TCC_OPTION_c:
                 multiple_files = 1;
                 output_type = TCC_OUTPUT_OBJ;
+                break;
+            case TCC_OPTION_H:
+                s->hirom_comp = 1;
+                break;
+            case TCC_OPTION_F:
+                s->fastrom_comp = 1;
                 break;
             case TCC_OPTION_static:
                 s->static_link = 1;

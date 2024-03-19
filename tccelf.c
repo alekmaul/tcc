@@ -1781,6 +1781,13 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
     fprintf(f, ".include \"hdr.asm\"\n");
     fprintf(f, ".accu 16\n.index 16\n");
     fprintf(f, ".16bit\n");
+    if (s1->hirom_comp) {
+        if (s1->fastrom_comp)
+            fprintf(f, ".BASE $C0\n"); /* HiRom - FastROM */
+        else
+            fprintf(f, ".BASE $40\n"); /* HiRom - slowROM */
+    } else if (s1->fastrom_comp)
+        fprintf(f, ".BASE $80\n"); /* LoRom - FastROM */
 
     /* local variable size constants; used to be generated as part of the
        function epilog, but WLA DX barfed once in a while about missing
@@ -1841,6 +1848,8 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
             /* uninitialized data, we only need a .ramsection */
             ElfW(Sym) * esym;
             int empty = 1;
+            if (s1->hirom_comp || s1->fastrom_comp)
+                fprintf(f, ".BASE $00\n"); /* Return to base $00 */
             fprintf(f, ".RAMSECTION \".bss\" BANK $7e SLOT 2\n");
             for (j = 0, esym = (ElfW(Sym) *) symtab_section->data;
                  j < symtab_section->sh_size / sizeof(ElfW(Sym));
@@ -1877,6 +1886,8 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
             /* k == 0: output .ramsection; k == 1: output .section */
             for (k = startk; k < endk; k++) {
                 if (k == 0) { /* .ramsection */
+                    if (s1->hirom_comp || s1->fastrom_comp)
+                        fprintf(f, ".BASE $00\n"); /* Return to base $00 */
                     fprintf(f,
                             ".RAMSECTION \"ram%s%s\" APPENDTO \"globram.data\"\n",
                             unique_token,
@@ -1888,8 +1899,14 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
                                 ".SECTION \"%s%s\" APPENDTO \"glob.data\"\n",
                                 unique_token,
                                 s->name);
-                    else
-                        fprintf(f, ".SECTION \"%s\" SUPERFREE\n", s->name); // 09042021
+                    else {
+                        if (s1->hirom_comp)
+                            fprintf(f, ".SECTION \"%s\" SEMIFREE ORG $8000\n",
+                                    s->name); // 09042021
+                        else
+                            fprintf(f, ".SECTION \"%s\" SUPERFREE\n",
+                                    s->name); // 09042021
+                    }
                 }
 
                 // int next_symbol_pos = 0; /* position inside the section at which to look for the next symbol */

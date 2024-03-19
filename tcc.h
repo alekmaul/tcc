@@ -488,6 +488,11 @@ struct TCCState
     int verbose;
     /* compile with debug symbol (and use them if error during execution) */
     int do_debug;
+
+    /* if true, compile Mode 21 (HiRom) Memory mapped libraries, Mode 20 (LoRom) by default */
+    int hirom_comp;
+    /* if true, compile FastRom libraries */
+    int fastrom_comp;
 #ifdef CONFIG_TCC_BCHECK
     /* compile with built-in memory and bounds checker */
     int do_bounds_check;
