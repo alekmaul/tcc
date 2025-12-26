@@ -158,13 +158,21 @@ char *get_sym_str(Sym *sym)
     if (sym->type.t & VT_STATIC) {
         if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0
             && !((sym->type.t & VT_BTYPE) == VT_FUNC))
-            sprintf(name, "%s_FUNC_%s_", STATIC_PREFIX, current_fn);
+            snprintf(name, MAXLEN, "%s_FUNC_%s_", STATIC_PREFIX, current_fn);
         else
-            sprintf(name, "%s%s_", STATIC_PREFIX, unique_token);
+            snprintf(name, MAXLEN, "%s%s_", STATIC_PREFIX, unique_token);
     }
 
-    /* add symbol name */
-    strcat(name, symname);
+    /* add symbol name (with bounds checking) */
+    size_t current_len = strlen(name);
+    size_t symname_len = strlen(symname);
+    if (current_len + symname_len < MAXLEN) {
+        strcat(name, symname);
+    } else {
+        /* truncate to fit within buffer */
+        strncat(name, symname, MAXLEN - current_len - 1);
+        name[MAXLEN - 1] = '\0';
+    }
 
     return name;
 }
@@ -1877,7 +1885,8 @@ void gfunc_prolog(CType *func_type)
     }
 
     /* super-dirty hack to get the function name */
-    strcpy(current_fn, get_sym_str((Sym *) (((void *) func_type) - offsetof(Sym, type))));
+    strncpy(current_fn, get_sym_str((Sym *) (((void *) func_type) - offsetof(Sym, type))), MAXLEN - 1);
+    current_fn[MAXLEN - 1] = '\0';
 
     /* wlalink does not cut up sections, so it is desirable to have a section
        for each function to keep the amount of unused memory in the ROM banks
@@ -1942,7 +1951,8 @@ void gfunc_epilog(void)
        works, but this has to be done by the output code, so we have to save
        the various locals sizes somewhere */
     if (localno < MAX_LOCALS) {
-        strcpy(locals[localno], current_fn);
+        strncpy(locals[localno], current_fn, MAXLEN - 1);
+        locals[localno][MAXLEN - 1] = '\0';
         localnos[localno] = -loc;
         localno++;
     } else {
