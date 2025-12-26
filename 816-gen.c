@@ -99,7 +99,9 @@ int reg_classes[NB_REGS] = {
 
 #define MAXLEN 512
 
-#define MAX_LABELS 1000
+#define INITIAL_LABELS_CAPACITY 64
+#define INITIAL_JUMPS_CAPACITY 256
+#define INITIAL_LOCALS_CAPACITY 64
 
 char unique_token[] = "{WLA_FILENAME}";
 
@@ -134,9 +136,20 @@ struct labels_816
     int pos;    /**< @brief The position of the label in the code. */
 };
 
-struct labels_816 label[MAX_LABELS]; /**< @brief Array to store multiple label structures. */
-
+struct labels_816 *label = NULL; /**< @brief Dynamic array to store label structures. */
 int labels = 0;
+int labels_capacity = 0;
+
+/** @brief Ensures the label array has enough capacity */
+static void ensure_label_capacity(void)
+{
+    if (labels >= labels_capacity) {
+        labels_capacity = labels_capacity ? labels_capacity * 2 : INITIAL_LABELS_CAPACITY;
+        label = realloc(label, labels_capacity * sizeof(*label));
+        if (!label)
+            error("out of memory allocating labels");
+    }
+}
 
 /**
  * @brief Constructs and returns a symbol string from a given symbol.
@@ -245,8 +258,21 @@ void pr(const char *format, ...)
     s(line);
 }
 
-// update from mic_to have more space
-int jump[20000][2], jumps = 0;
+// Dynamic jump array (replaces static int jump[20000][2])
+int (*jump)[2] = NULL;
+int jumps = 0;
+int jumps_capacity = 0;
+
+/** @brief Ensures the jump array has enough capacity */
+static void ensure_jump_capacity(void)
+{
+    if (jumps >= jumps_capacity) {
+        jumps_capacity = jumps_capacity ? jumps_capacity * 2 : INITIAL_JUMPS_CAPACITY;
+        jump = realloc(jump, jumps_capacity * sizeof(*jump));
+        if (!jump)
+            error("out of memory allocating jumps");
+    }
+}
 
 /**
  * @brief Handles the association between a jump instruction and its target address.
@@ -268,6 +294,7 @@ void gsym_addr(int t, int a)
        and position so the output code can insert it correctly */
     if (label_workaround) {
         // fprintf("setting label %s to a %d (t %d)\n", label_workaround, a, t);
+        ensure_label_capacity();
         label[labels].name = label_workaround;
         label[labels].pos = a;
         labels++;
@@ -1044,6 +1071,7 @@ int gjmp(int t)
     pr("; gjmp_addr %d at %d\n", t, ind);
     pr("jmp.w " LOCAL_LABEL "\n", jumps);
 
+    ensure_jump_capacity();
     jump[jumps][0] = r;
 
     for (int i = 0; i < jumps; i++) {
@@ -1097,6 +1125,7 @@ int gtst(int inv, int t)
         switch (vtop->c.i) {
         case TOK_NE:
             // remember that we need a label to jump to
+            ensure_jump_capacity();
             jump[jumps][0] = r;
             pr("; cmp ne\n");
             // branches (too short) pr("b%s " LOCAL_LABEL "\n", inv?"eq":"ne", jumps++);
@@ -1914,12 +1943,25 @@ void gfunc_prolog(CType *func_type)
     loc = 0; // huh squared?
 }
 
-#define MAX_LOCALS 1000
 #define STACK_SIZE_LIMIT 0x1f00
 
-char locals[MAX_LOCALS][MAXLEN];
-int localnos[MAX_LOCALS];
+// Dynamic locals arrays (replaces static char locals[MAX_LOCALS][MAXLEN] and int localnos[MAX_LOCALS])
+char (*locals)[MAXLEN] = NULL;
+int *localnos = NULL;
 int localno = 0;
+int locals_capacity = 0;
+
+/** @brief Ensures the locals arrays have enough capacity */
+static void ensure_locals_capacity(void)
+{
+    if (localno >= locals_capacity) {
+        locals_capacity = locals_capacity ? locals_capacity * 2 : INITIAL_LOCALS_CAPACITY;
+        locals = realloc(locals, locals_capacity * sizeof(*locals));
+        localnos = realloc(localnos, locals_capacity * sizeof(*localnos));
+        if (!locals || !localnos)
+            error("out of memory allocating locals");
+    }
+}
 
 /**
  * @brief Generates the function epilog.
@@ -1950,14 +1992,11 @@ void gfunc_epilog(void)
        complains about unresolved symbols); putting them before the reference
        works, but this has to be done by the output code, so we have to save
        the various locals sizes somewhere */
-    if (localno < MAX_LOCALS) {
-        strncpy(locals[localno], current_fn, MAXLEN - 1);
-        locals[localno][MAXLEN - 1] = '\0';
-        localnos[localno] = -loc;
-        localno++;
-    } else {
-        error("maximum number of local variables exceeded");
-    }
+    ensure_locals_capacity();
+    strncpy(locals[localno], current_fn, MAXLEN - 1);
+    locals[localno][MAXLEN - 1] = '\0';
+    localnos[localno] = -loc;
+    localno++;
 
     current_fn[0] = '\0';
 }
