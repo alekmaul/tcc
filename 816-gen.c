@@ -1310,6 +1310,42 @@ void gen_opi(int op)
         else
             div = 0;
 
+        // power-of-2 optimization for unsigned division/modulo
+        // check if fc is a power of 2 (fc > 0 and only one bit set)
+        if (isconst && !sign && fc > 0 && (fc & (fc - 1)) == 0) {
+            int shift_count = 0;
+            int temp_fc = fc;
+            while (temp_fc > 1) {
+                shift_count++;
+                temp_fc >>= 1;
+            }
+            if (div) {
+                // unsigned division by power of 2: use right shifts
+                pr("; udiv #%d (power of 2), tcc__r%d => %d shifts\n", fc, r, shift_count);
+                if (shift_count == 0) {
+                    // division by 1, nothing to do
+                } else if (shift_count <= 4) {
+                    // unroll small shift counts
+                    pr("lda.b tcc__r%d\n", r);
+                    for (i = 0; i < shift_count; i++) {
+                        pr("lsr a\n");
+                    }
+                    pr("sta.b tcc__r%d\n", r);
+                } else if (shift_count == 8) {
+                    // special case: swap bytes and mask
+                    pr("lda.b tcc__r%d\nxba\nand #$00ff\nsta.b tcc__r%d\n", r, r);
+                } else {
+                    // use loop for larger shift counts
+                    pr("lda.b tcc__r%d\nldy.w #%d\n-\nlsr a\ndey\nbne -\nsta.b tcc__r%d\n", r, shift_count, r);
+                }
+            } else {
+                // unsigned modulo by power of 2: use AND with (fc - 1)
+                pr("; umod #%d (power of 2), tcc__r%d => and #%d\n", fc, r, fc - 1);
+                pr("lda.b tcc__r%d\nand #%d\nsta.b tcc__r%d\n", r, fc - 1, r);
+            }
+            break;
+        }
+
         if (isconst) {
             pr("; div #%d, tcc__r%d\n", fc, r);
             pr("ldx.b tcc__r%d\n", r);
