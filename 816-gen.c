@@ -1252,19 +1252,157 @@ void gen_opi(int op)
     case '*':
         skipcall = 0;
         if (isconst) {
-            // optimize for 8 bits computations
+            // optimize multiplication by constants using shifts and add/sub
+            // patterns: 2^n (shifts), 2^n+1 (shift+add), 2^n-1 (shift-sub)
             switch (fc) {
-            case 3:
+            // powers of 2: just shifts
+            case 2:
                 skipcall = 1;
+                pr("; mul #2 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\n", r);
+                break;
+            case 4:
+                skipcall = 1;
+                pr("; mul #4 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\n", r);
+                break;
+            case 8:
+                skipcall = 1;
+                pr("; mul #8 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\n", r);
+                break;
+            case 16:
+                skipcall = 1;
+                pr("; mul #16 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\n", r);
+                break;
+            case 32:
+                skipcall = 1;
+                pr("; mul #32 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\n", r);
+                break;
+            case 64:
+                skipcall = 1;
+                pr("; mul #64 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\n", r);
+                break;
+            case 128:
+                skipcall = 1;
+                pr("; mul #128 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\n", r);
+                break;
+            case 256:
+                skipcall = 1;
+                pr("; mul #256 (optimized)\n");
+                pr("lda.b tcc__r%d\nxba\nand #$ff00\n", r);
+                break;
+            // 2^n + 1: shift then add original
+            case 3:  // 2 + 1
+                skipcall = 1;
+                pr("; mul #3 (optimized: x*2+x)\n");
                 pr("lda.b tcc__r%d\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
                 break;
-            case 5:
+            case 5:  // 4 + 1
                 skipcall = 1;
+                pr("; mul #5 (optimized: x*4+x)\n");
                 pr("lda.b tcc__r%d\nasl a\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
                 break;
-            case 7:
+            case 9:  // 8 + 1
                 skipcall = 1;
+                pr("; mul #9 (optimized: x*8+x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
+                break;
+            case 17: // 16 + 1
+                skipcall = 1;
+                pr("; mul #17 (optimized: x*16+x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
+                break;
+            case 33: // 32 + 1
+                skipcall = 1;
+                pr("; mul #33 (optimized: x*32+x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
+                break;
+            case 65: // 64 + 1
+                skipcall = 1;
+                pr("; mul #65 (optimized: x*64+x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
+                break;
+            // 2^n - 1: shift then subtract original
+            case 7:  // 8 - 1
+                skipcall = 1;
+                pr("; mul #7 (optimized: x*8-x)\n");
                 pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            case 15: // 16 - 1
+                skipcall = 1;
+                pr("; mul #15 (optimized: x*16-x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            case 31: // 32 - 1
+                skipcall = 1;
+                pr("; mul #31 (optimized: x*32-x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            case 63: // 64 - 1
+                skipcall = 1;
+                pr("; mul #63 (optimized: x*64-x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            case 127: // 128 - 1
+                skipcall = 1;
+                pr("; mul #127 (optimized: x*128-x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            case 255: // 256 - 1
+                skipcall = 1;
+                pr("; mul #255 (optimized: x*256-x)\n");
+                pr("lda.b tcc__r%d\nxba\nand #$ff00\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            // composite: 2^n + 2^m (using temp storage)
+            case 6:  // 4 + 2 = x*2 + x*4
+                skipcall = 1;
+                pr("; mul #6 (optimized: x*2+x*4)\n");
+                pr("lda.b tcc__r%d\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
+                break;
+            case 10: // 8 + 2 = x*2 + x*8
+                skipcall = 1;
+                pr("; mul #10 (optimized: x*2+x*8)\n");
+                pr("lda.b tcc__r%d\nasl a\nsta.b tcc__r9\nasl a\nasl a\nclc\nadc.b tcc__r9\n", r);
+                break;
+            case 12: // 8 + 4 = x*4 + x*8
+                skipcall = 1;
+                pr("; mul #12 (optimized: x*4+x*8)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
+                break;
+            case 20: // 16 + 4 = x*4 + x*16
+                skipcall = 1;
+                pr("; mul #20 (optimized: x*4+x*16)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nsta.b tcc__r9\nasl a\nasl a\nclc\nadc.b tcc__r9\n", r);
+                break;
+            case 24: // 16 + 8 = x*8 + x*16
+                skipcall = 1;
+                pr("; mul #24 (optimized: x*8+x*16)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
+                break;
+            case 40: // 32 + 8 = x*8 + x*32
+                skipcall = 1;
+                pr("; mul #40 (optimized: x*8+x*32)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nsta.b tcc__r9\nasl a\nasl a\nclc\nadc.b tcc__r9\n", r);
+                break;
+            case 48: // 32 + 16 = x*16 + x*32
+                skipcall = 1;
+                pr("; mul #48 (optimized: x*16+x*32)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
+                break;
+            case 96: // 64 + 32 = x*32 + x*64
+                skipcall = 1;
+                pr("; mul #96 (optimized: x*32+x*64)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
+                break;
+            case 192: // 128 + 64 = x*64 + x*128
+                skipcall = 1;
+                pr("; mul #192 (optimized: x*64+x*128)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
                 break;
             default:
                 pr("; mul #%d, tcc__r%d\n", fc, r);
