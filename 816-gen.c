@@ -1253,7 +1253,10 @@ void gen_opi(int op)
         skipcall = 0;
         if (isconst) {
             // optimize multiplication by constants using shifts and add/sub
-            // patterns: 2^n (shifts), 2^n+1 (shift+add), 2^n-1 (shift-sub)
+            // SAFE patterns only: 2^n (shifts), 2^n+1 (shift+add), 2^n-1 (shift-sub)
+            // NOTE: Composite patterns (6, 10, 12, etc.) NOT optimized because
+            // they require temporary storage in tcc__r9 which may conflict with
+            // other operations in complex expressions.
             switch (fc) {
             // powers of 2: just shifts
             case 2:
@@ -1296,7 +1299,7 @@ void gen_opi(int op)
                 pr("; mul #256 (optimized)\n");
                 pr("lda.b tcc__r%d\nxba\nand #$ff00\n", r);
                 break;
-            // 2^n + 1: shift then add original
+            // 2^n + 1: shift then add original (no temp needed)
             case 3:  // 2 + 1
                 skipcall = 1;
                 pr("; mul #3 (optimized: x*2+x)\n");
@@ -1327,7 +1330,7 @@ void gen_opi(int op)
                 pr("; mul #65 (optimized: x*64+x)\n");
                 pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
                 break;
-            // 2^n - 1: shift then subtract original
+            // 2^n - 1: shift then subtract original (no temp needed)
             case 7:  // 8 - 1
                 skipcall = 1;
                 pr("; mul #7 (optimized: x*8-x)\n");
@@ -1357,52 +1360,6 @@ void gen_opi(int op)
                 skipcall = 1;
                 pr("; mul #255 (optimized: x*256-x)\n");
                 pr("lda.b tcc__r%d\nxba\nand #$ff00\nsec\nsbc.b tcc__r%d\n", r, r);
-                break;
-            // composite: 2^n + 2^m (using temp storage)
-            case 6:  // 4 + 2 = x*2 + x*4
-                skipcall = 1;
-                pr("; mul #6 (optimized: x*2+x*4)\n");
-                pr("lda.b tcc__r%d\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
-                break;
-            case 10: // 8 + 2 = x*2 + x*8
-                skipcall = 1;
-                pr("; mul #10 (optimized: x*2+x*8)\n");
-                pr("lda.b tcc__r%d\nasl a\nsta.b tcc__r9\nasl a\nasl a\nclc\nadc.b tcc__r9\n", r);
-                break;
-            case 12: // 8 + 4 = x*4 + x*8
-                skipcall = 1;
-                pr("; mul #12 (optimized: x*4+x*8)\n");
-                pr("lda.b tcc__r%d\nasl a\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
-                break;
-            case 20: // 16 + 4 = x*4 + x*16
-                skipcall = 1;
-                pr("; mul #20 (optimized: x*4+x*16)\n");
-                pr("lda.b tcc__r%d\nasl a\nasl a\nsta.b tcc__r9\nasl a\nasl a\nclc\nadc.b tcc__r9\n", r);
-                break;
-            case 24: // 16 + 8 = x*8 + x*16
-                skipcall = 1;
-                pr("; mul #24 (optimized: x*8+x*16)\n");
-                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
-                break;
-            case 40: // 32 + 8 = x*8 + x*32
-                skipcall = 1;
-                pr("; mul #40 (optimized: x*8+x*32)\n");
-                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nsta.b tcc__r9\nasl a\nasl a\nclc\nadc.b tcc__r9\n", r);
-                break;
-            case 48: // 32 + 16 = x*16 + x*32
-                skipcall = 1;
-                pr("; mul #48 (optimized: x*16+x*32)\n");
-                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
-                break;
-            case 96: // 64 + 32 = x*32 + x*64
-                skipcall = 1;
-                pr("; mul #96 (optimized: x*32+x*64)\n");
-                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
-                break;
-            case 192: // 128 + 64 = x*64 + x*128
-                skipcall = 1;
-                pr("; mul #192 (optimized: x*64+x*128)\n");
-                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nsta.b tcc__r9\nasl a\nclc\nadc.b tcc__r9\n", r);
                 break;
             default:
                 pr("; mul #%d, tcc__r%d\n", fc, r);
