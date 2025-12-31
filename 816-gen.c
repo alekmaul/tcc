@@ -443,9 +443,10 @@ void load(int r, SValue *sv)
                     }
                 } else {
                     pr("; ld%d [%s + %d], tcc__r%d\n", length, sy, fc, r);
-                    // FIXME: This implementation is moronic
+                    // Large offsets may cross bank boundaries on 65816
+                    // lda.l supports 24-bit addressing, assembler will compute full address
                     if (fc > 65535)
-                        error("index too big");
+                        warning("large index %d may cross bank boundary", fc);
                     switch (length) {
                     case 1:
                         pr("lda.w #0\nsep #$20\nlda.l %s + %d\nrep #$20\n", sy, fc);
