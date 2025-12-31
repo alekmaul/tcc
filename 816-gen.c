@@ -308,9 +308,10 @@ void gsym_addr(int t, int a)
     int i;
 
     for (i = 0; i < jumps; i++) {
-        if (jump[i][0] == t)
+        if (jump[i][0] == t) {
             jump[i][1] = a;
-        found = 1;
+            found = 1;
+        }
     }
     if (!found)
         pr("; ERROR no jump found to patch\n");
