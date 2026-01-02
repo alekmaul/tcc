@@ -99,7 +99,9 @@ int reg_classes[NB_REGS] = {
 
 #define MAXLEN 512
 
-#define MAX_LABELS 1000
+#define INITIAL_LABELS_CAPACITY 64
+#define INITIAL_JUMPS_CAPACITY 256
+#define INITIAL_LOCALS_CAPACITY 64
 
 char unique_token[] = "{WLA_FILENAME}";
 
@@ -134,9 +136,20 @@ struct labels_816
     int pos;    /**< @brief The position of the label in the code. */
 };
 
-struct labels_816 label[MAX_LABELS]; /**< @brief Array to store multiple label structures. */
-
+struct labels_816 *label = NULL; /**< @brief Dynamic array to store label structures. */
 int labels = 0;
+int labels_capacity = 0;
+
+/** @brief Ensures the label array has enough capacity */
+static void ensure_label_capacity(void)
+{
+    if (labels >= labels_capacity) {
+        labels_capacity = labels_capacity ? labels_capacity * 2 : INITIAL_LABELS_CAPACITY;
+        label = realloc(label, labels_capacity * sizeof(*label));
+        if (!label)
+            error("out of memory allocating labels");
+    }
+}
 
 /**
  * @brief Constructs and returns a symbol string from a given symbol.
@@ -158,13 +171,21 @@ char *get_sym_str(Sym *sym)
     if (sym->type.t & VT_STATIC) {
         if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0
             && !((sym->type.t & VT_BTYPE) == VT_FUNC))
-            sprintf(name, "%s_FUNC_%s_", STATIC_PREFIX, current_fn);
+            snprintf(name, MAXLEN, "%s_FUNC_%s_", STATIC_PREFIX, current_fn);
         else
-            sprintf(name, "%s%s_", STATIC_PREFIX, unique_token);
+            snprintf(name, MAXLEN, "%s%s_", STATIC_PREFIX, unique_token);
     }
 
-    /* add symbol name */
-    strcat(name, symname);
+    /* add symbol name (with bounds checking) */
+    size_t current_len = strlen(name);
+    size_t symname_len = strlen(symname);
+    if (current_len + symname_len < MAXLEN) {
+        strcat(name, symname);
+    } else {
+        /* truncate to fit within buffer */
+        strncat(name, symname, MAXLEN - current_len - 1);
+        name[MAXLEN - 1] = '\0';
+    }
 
     return name;
 }
@@ -237,8 +258,21 @@ void pr(const char *format, ...)
     s(line);
 }
 
-// update from mic_to have more space
-int jump[20000][2], jumps = 0;
+// Dynamic jump array (replaces static int jump[20000][2])
+int (*jump)[2] = NULL;
+int jumps = 0;
+int jumps_capacity = 0;
+
+/** @brief Ensures the jump array has enough capacity */
+static void ensure_jump_capacity(void)
+{
+    if (jumps >= jumps_capacity) {
+        jumps_capacity = jumps_capacity ? jumps_capacity * 2 : INITIAL_JUMPS_CAPACITY;
+        jump = realloc(jump, jumps_capacity * sizeof(*jump));
+        if (!jump)
+            error("out of memory allocating jumps");
+    }
+}
 
 /**
  * @brief Handles the association between a jump instruction and its target address.
@@ -260,6 +294,7 @@ void gsym_addr(int t, int a)
        and position so the output code can insert it correctly */
     if (label_workaround) {
         // fprintf("setting label %s to a %d (t %d)\n", label_workaround, a, t);
+        ensure_label_capacity();
         label[labels].name = label_workaround;
         label[labels].pos = a;
         labels++;
@@ -273,9 +308,10 @@ void gsym_addr(int t, int a)
     int i;
 
     for (i = 0; i < jumps; i++) {
-        if (jump[i][0] == t)
+        if (jump[i][0] == t) {
             jump[i][1] = a;
-        found = 1;
+            found = 1;
+        }
     }
     if (!found)
         pr("; ERROR no jump found to patch\n");
@@ -408,9 +444,10 @@ void load(int r, SValue *sv)
                     }
                 } else {
                     pr("; ld%d [%s + %d], tcc__r%d\n", length, sy, fc, r);
-                    // FIXME: This implementation is moronic
+                    // Large offsets may cross bank boundaries on 65816
+                    // lda.l supports 24-bit addressing, assembler will compute full address
                     if (fc > 65535)
-                        error("index too big");
+                        warning("large index %d may cross bank boundary", fc);
                     switch (length) {
                     case 1:
                         pr("lda.w #0\nsep #$20\nlda.l %s + %d\nrep #$20\n", sy, fc);
@@ -1036,6 +1073,7 @@ int gjmp(int t)
     pr("; gjmp_addr %d at %d\n", t, ind);
     pr("jmp.w " LOCAL_LABEL "\n", jumps);
 
+    ensure_jump_capacity();
     jump[jumps][0] = r;
 
     for (int i = 0; i < jumps; i++) {
@@ -1089,6 +1127,7 @@ int gtst(int inv, int t)
         switch (vtop->c.i) {
         case TOK_NE:
             // remember that we need a label to jump to
+            ensure_jump_capacity();
             jump[jumps][0] = r;
             pr("; cmp ne\n");
             // branches (too short) pr("b%s " LOCAL_LABEL "\n", inv?"eq":"ne", jumps++);
@@ -1215,19 +1254,114 @@ void gen_opi(int op)
     case '*':
         skipcall = 0;
         if (isconst) {
-            // optimize for 8 bits computations
+            // optimize multiplication by constants using shifts and add/sub
+            // SAFE patterns only: 2^n (shifts), 2^n+1 (shift+add), 2^n-1 (shift-sub)
+            // NOTE: Composite patterns (6, 10, 12, etc.) NOT optimized because
+            // they require temporary storage in tcc__r9 which may conflict with
+            // other operations in complex expressions.
             switch (fc) {
-            case 3:
+            // powers of 2: just shifts
+            case 2:
                 skipcall = 1;
+                pr("; mul #2 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\n", r);
+                break;
+            case 4:
+                skipcall = 1;
+                pr("; mul #4 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\n", r);
+                break;
+            case 8:
+                skipcall = 1;
+                pr("; mul #8 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\n", r);
+                break;
+            case 16:
+                skipcall = 1;
+                pr("; mul #16 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\n", r);
+                break;
+            case 32:
+                skipcall = 1;
+                pr("; mul #32 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\n", r);
+                break;
+            case 64:
+                skipcall = 1;
+                pr("; mul #64 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\n", r);
+                break;
+            case 128:
+                skipcall = 1;
+                pr("; mul #128 (optimized)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\n", r);
+                break;
+            case 256:
+                skipcall = 1;
+                pr("; mul #256 (optimized)\n");
+                pr("lda.b tcc__r%d\nxba\nand #$ff00\n", r);
+                break;
+            // 2^n + 1: shift then add original (no temp needed)
+            case 3:  // 2 + 1
+                skipcall = 1;
+                pr("; mul #3 (optimized: x*2+x)\n");
                 pr("lda.b tcc__r%d\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
                 break;
-            case 5:
+            case 5:  // 4 + 1
                 skipcall = 1;
+                pr("; mul #5 (optimized: x*4+x)\n");
                 pr("lda.b tcc__r%d\nasl a\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
                 break;
-            case 7:
+            case 9:  // 8 + 1
                 skipcall = 1;
+                pr("; mul #9 (optimized: x*8+x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
+                break;
+            case 17: // 16 + 1
+                skipcall = 1;
+                pr("; mul #17 (optimized: x*16+x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
+                break;
+            case 33: // 32 + 1
+                skipcall = 1;
+                pr("; mul #33 (optimized: x*32+x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
+                break;
+            case 65: // 64 + 1
+                skipcall = 1;
+                pr("; mul #65 (optimized: x*64+x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
+                break;
+            // 2^n - 1: shift then subtract original (no temp needed)
+            case 7:  // 8 - 1
+                skipcall = 1;
+                pr("; mul #7 (optimized: x*8-x)\n");
                 pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            case 15: // 16 - 1
+                skipcall = 1;
+                pr("; mul #15 (optimized: x*16-x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            case 31: // 32 - 1
+                skipcall = 1;
+                pr("; mul #31 (optimized: x*32-x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            case 63: // 64 - 1
+                skipcall = 1;
+                pr("; mul #63 (optimized: x*64-x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            case 127: // 128 - 1
+                skipcall = 1;
+                pr("; mul #127 (optimized: x*128-x)\n");
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            case 255: // 256 - 1
+                skipcall = 1;
+                pr("; mul #255 (optimized: x*256-x)\n");
+                pr("lda.b tcc__r%d\nxba\nand #$ff00\nsec\nsbc.b tcc__r%d\n", r, r);
                 break;
             default:
                 pr("; mul #%d, tcc__r%d\n", fc, r);
@@ -1272,6 +1406,42 @@ void gen_opi(int op)
             div = 1;
         else
             div = 0;
+
+        // power-of-2 optimization for unsigned division/modulo
+        // check if fc is a power of 2 (fc > 0 and only one bit set)
+        if (isconst && !sign && fc > 0 && (fc & (fc - 1)) == 0) {
+            int shift_count = 0;
+            int temp_fc = fc;
+            while (temp_fc > 1) {
+                shift_count++;
+                temp_fc >>= 1;
+            }
+            if (div) {
+                // unsigned division by power of 2: use right shifts
+                pr("; udiv #%d (power of 2), tcc__r%d => %d shifts\n", fc, r, shift_count);
+                if (shift_count == 0) {
+                    // division by 1, nothing to do
+                } else if (shift_count <= 4) {
+                    // unroll small shift counts
+                    pr("lda.b tcc__r%d\n", r);
+                    for (i = 0; i < shift_count; i++) {
+                        pr("lsr a\n");
+                    }
+                    pr("sta.b tcc__r%d\n", r);
+                } else if (shift_count == 8) {
+                    // special case: swap bytes and mask
+                    pr("lda.b tcc__r%d\nxba\nand #$00ff\nsta.b tcc__r%d\n", r, r);
+                } else {
+                    // use loop for larger shift counts
+                    pr("lda.b tcc__r%d\nldy.w #%d\n-\nlsr a\ndey\nbne -\nsta.b tcc__r%d\n", r, shift_count, r);
+                }
+            } else {
+                // unsigned modulo by power of 2: use AND with (fc - 1)
+                pr("; umod #%d (power of 2), tcc__r%d => and #%d\n", fc, r, fc - 1);
+                pr("lda.b tcc__r%d\nand #%d\nsta.b tcc__r%d\n", r, fc - 1, r);
+            }
+            break;
+        }
 
         if (isconst) {
             pr("; div #%d, tcc__r%d\n", fc, r);
@@ -1877,7 +2047,8 @@ void gfunc_prolog(CType *func_type)
     }
 
     /* super-dirty hack to get the function name */
-    strcpy(current_fn, get_sym_str((Sym *) (((void *) func_type) - offsetof(Sym, type))));
+    strncpy(current_fn, get_sym_str((Sym *) (((void *) func_type) - offsetof(Sym, type))), MAXLEN - 1);
+    current_fn[MAXLEN - 1] = '\0';
 
     /* wlalink does not cut up sections, so it is desirable to have a section
        for each function to keep the amount of unused memory in the ROM banks
@@ -1905,12 +2076,25 @@ void gfunc_prolog(CType *func_type)
     loc = 0; // huh squared?
 }
 
-#define MAX_LOCALS 1000
 #define STACK_SIZE_LIMIT 0x1f00
 
-char locals[MAX_LOCALS][MAXLEN];
-int localnos[MAX_LOCALS];
+// Dynamic locals arrays (replaces static char locals[MAX_LOCALS][MAXLEN] and int localnos[MAX_LOCALS])
+char (*locals)[MAXLEN] = NULL;
+int *localnos = NULL;
 int localno = 0;
+int locals_capacity = 0;
+
+/** @brief Ensures the locals arrays have enough capacity */
+static void ensure_locals_capacity(void)
+{
+    if (localno >= locals_capacity) {
+        locals_capacity = locals_capacity ? locals_capacity * 2 : INITIAL_LOCALS_CAPACITY;
+        locals = realloc(locals, locals_capacity * sizeof(*locals));
+        localnos = realloc(localnos, locals_capacity * sizeof(*localnos));
+        if (!locals || !localnos)
+            error("out of memory allocating locals");
+    }
+}
 
 /**
  * @brief Generates the function epilog.
@@ -1941,13 +2125,11 @@ void gfunc_epilog(void)
        complains about unresolved symbols); putting them before the reference
        works, but this has to be done by the output code, so we have to save
        the various locals sizes somewhere */
-    if (localno < MAX_LOCALS) {
-        strcpy(locals[localno], current_fn);
-        localnos[localno] = -loc;
-        localno++;
-    } else {
-        error("maximum number of local variables exceeded");
-    }
+    ensure_locals_capacity();
+    strncpy(locals[localno], current_fn, MAXLEN - 1);
+    locals[localno][MAXLEN - 1] = '\0';
+    localnos[localno] = -loc;
+    localno++;
 
     current_fn[0] = '\0';
 }
