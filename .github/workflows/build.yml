@@ -110,7 +110,7 @@ jobs:
           name: tcc Release for ${{ matrix.name }}
           path: 816-tcc
       - name: Upload tcc release
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: matrix.name == 'windows'
         with:
           name: tcc Release for ${{ matrix.name }}
