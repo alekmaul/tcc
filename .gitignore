@@ -5,6 +5,7 @@ config.texi
 tcc-doc.html
 816-tcc
 816-tcc.exe
+816-tcc.dSYM/
 tcc.1
 tcc.pod
 backup/
