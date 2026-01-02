@@ -1,0 +1,10 @@
+<map id="tcc_realloc" name="tcc_realloc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="408,29,500,55"/>
+<area shape="rect" id="Node000002" href="$da/d5b/libtcc_8c.html#a3b4e12b1f1c9dbd0b1904f8ac595a2b8" title=" " alt="" coords="249,29,360,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="394,45,360,45,360,39,394,39"/>
+<area shape="rect" id="Node000003" href="$d7/de5/tcc_8c.html#a4775c397908c0fb0c76f6528d0845613" title="The function parses command line arguments and sets various options and flags accordingly." alt="" coords="108,29,201,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="236,45,202,45,202,39,236,39"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="175,18,169,11,155,8,143,10,136,14,135,20,139,28,134,30,130,21,132,11,140,5,155,3,171,6,179,14"/>
+<area shape="rect" id="Node000004" href="$d7/de5/tcc_8c.html#a3c04138a5bfe5d72780bb7e82a18e627" title="The entry point of the program." alt="" coords="5,29,60,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,45,60,45,60,39,94,39"/>
+</map>

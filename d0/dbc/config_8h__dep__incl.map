@@ -1,6 +1,9 @@
 <map id="config.h" name="config.h">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,79,32"/>
-<area shape="rect" id="node2" href="$d3/d29/tcc_8h.html" title=" " alt="" coords="15,80,69,107"/>
-<area shape="rect" id="node3" href="$da/d5b/libtcc_8c.html" title=" " alt="" coords="8,155,76,181"/>
-<area shape="rect" id="node4" href="$d7/de5/tcc_8c.html" title=" " alt="" coords="16,229,68,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,79,31"/>
+<area shape="rect" id="Node000002" href="$d3/d29/tcc_8h.html" title=" " alt="" coords="15,79,69,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="45,44,45,79,39,79,39,44"/>
+<area shape="rect" id="Node000003" href="$da/d5b/libtcc_8c.html" title=" " alt="" coords="8,152,76,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="45,118,45,152,39,152,39,118"/>
+<area shape="rect" id="Node000004" href="$d7/de5/tcc_8c.html" title=" " alt="" coords="16,225,68,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="45,191,45,225,39,225,39,191"/>
 </map>

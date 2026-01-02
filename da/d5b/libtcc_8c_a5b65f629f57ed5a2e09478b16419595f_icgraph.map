@@ -1,3 +1,4 @@
 <map id="type_to_str" name="type_to_str">
-<area shape="rect" id="node1" title=" " alt="" coords="5,29,100,56"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,100,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="68,18,63,11,53,8,44,10,39,14,38,20,41,28,36,30,33,21,34,12,41,5,53,3,66,6,72,15"/>
 </map>

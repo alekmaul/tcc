@@ -1,0 +1,9 @@
+<map id="fwrite" name="fwrite">
+<area shape="rect" id="Node000001" title=" " alt="" coords="436,5,495,31"/>
+<area shape="rect" id="Node000002" href="$d6/da0/tccelf_8c.html#a4d68af513339fb707d7d7f9c60dbbaea" title="Output an ELF file." alt="" coords="273,5,388,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="422,21,388,21,388,15,422,15"/>
+<area shape="rect" id="Node000003" href="$d6/da0/tccelf_8c.html#abec5a6a24b03ab9bbdb03ae6527f4e49" title="Output the compiled code to a file." alt="" coords="108,5,225,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="259,21,226,21,226,15,259,15"/>
+<area shape="rect" id="Node000004" href="$d7/de5/tcc_8c.html#a3c04138a5bfe5d72780bb7e82a18e627" title="The entry point of the program." alt="" coords="5,5,60,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,21,60,21,60,15,94,15"/>
+</map>

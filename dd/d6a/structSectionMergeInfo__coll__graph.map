@@ -1,4 +1,6 @@
 <map id="SectionMergeInfo" name="SectionMergeInfo">
-<area shape="rect" id="node1" title="Information about section merging during linking." alt="" coords="12,351,148,457"/>
-<area shape="rect" id="node2" href="$d7/dce/structSection.html" title=" " alt="" coords="5,5,155,288"/>
+<area shape="rect" id="Node000001" title="Information about section merging during linking." alt="" coords="12,413,140,519"/>
+<area shape="rect" id="Node000002" href="$d7/dce/structSection.html" title=" " alt="" coords="5,5,147,351"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,351,79,397,73,397,73,351"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="149,140,166,152,173,178,171,195,163,207,159,204,166,193,168,178,162,155,145,144"/>
 </map>

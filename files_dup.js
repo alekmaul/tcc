@@ -15,5 +15,5 @@ var files_dup =
     [ "tccgen.c", "d7/dd0/tccgen_8c.html", "d7/dd0/tccgen_8c" ],
     [ "tccpp.c", "df/d5f/tccpp_8c.html", "df/d5f/tccpp_8c" ],
     [ "tccrun.c", "d8/dc7/tccrun_8c.html", "d8/dc7/tccrun_8c" ],
-    [ "tcctok.h", "da/d34/tcctok_8h.html", "da/d34/tcctok_8h" ]
+    [ "tcctok.h", "da/d34/tcctok_8h.html", null ]
 ];

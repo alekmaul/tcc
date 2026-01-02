@@ -25,19 +25,7 @@
 var NAVTREE =
 [
   [ "816-tcc", "index.html", [
-    [ "TinyCC Compiler for the WDC 65816", "index.html", [
-      [ "About", "index.html#autotoc_md10", [
-        [ "Some considerations", "index.html#autotoc_md11", null ]
-      ] ],
-      [ "Getting Started", "index.html#autotoc_md12", [
-        [ "Build it", "index.html#autotoc_md13", null ],
-        [ "Generate the documentation", "index.html#autotoc_md14", null ],
-        [ "Use it", "index.html#autotoc_md15", null ]
-      ] ],
-      [ "License", "index.html#autotoc_md16", null ],
-      [ "Contributing", "index.html#autotoc_md17", null ],
-      [ "Acknowledgements", "index.html#autotoc_md18", null ]
-    ] ],
+    [ "TinyCC Compiler for the WDC 65816", "index.html", "index" ],
     [ "Contributing to the project", "d2/dc1/md_CONTRIBUTING.html", [
       [ "We Develop with Github", "d2/dc1/md_CONTRIBUTING.html#autotoc_md1", null ],
       [ "We Use Github Flow", "d2/dc1/md_CONTRIBUTING.html#autotoc_md2", null ],
@@ -79,9 +67,9 @@ var NAVTREEINDEX =
 "d1/d9e/elf_8h.html#ab77da073a07d6a452ce9e9a05d4fe17b",
 "d1/d9e/elf_8h.html#afa8cfd579492b34304c9a44d2f2ac59c",
 "d3/d29/tcc_8h.html#ae86d59fd6d963f7fe501da2a30ebd455",
-"d7/dc1/structElf64__Rela.html",
-"da/d5b/libtcc_8c.html#a1a684a7bdfd73a0b441960754ba5f286",
-"de/dc9/tcclib_8h.html#a59adc4c82490d23754cd39c2fb99b0da"
+"d7/db3/structInlineFunc.html#aa13fe1a72e260945a86eed3e7122de0b",
+"da/d5b/libtcc_8c.html#a04018d8ea10ab32bc67ced7dc6e2c19f",
+"de/dc9/tcclib_8h.html#a313175102214d45434bf045db18dddf0"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

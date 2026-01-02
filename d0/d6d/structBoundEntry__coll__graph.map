@@ -1,3 +1,4 @@
 <map id="BoundEntry" name="BoundEntry">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,104,112"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,96,111"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="97,36,115,42,121,49,123,58,120,68,114,75,110,71,115,66,117,58,116,51,112,46,95,41"/>
 </map>

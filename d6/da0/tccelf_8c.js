@@ -14,7 +14,7 @@ var tccelf_8c =
     [ "ArchiveHeader", "d6/da0/tccelf_8c.html#a161f076721b0ceee75d823f848929b3e", null ],
     [ "SectionMergeInfo", "d6/da0/tccelf_8c.html#a32d8602e361d3cf4ea81c588b412b420", null ],
     [ "elf_output_file", "d6/da0/tccelf_8c.html#a4d68af513339fb707d7d7f9c60dbbaea", null ],
-    [ "tcc_get_symbol", "d6/da0/tccelf_8c.html#ab275e024203c0e18835dac3d4e32b263", null ],
-    [ "tcc_get_symbol_err", "d6/da0/tccelf_8c.html#a8e8a3e4ae5ee32c8a7a44e6ccad650df", null ],
+    [ "tcc_get_symbol", "d6/da0/tccelf_8c.html#af344db6aede6c7c512d5e85c8459582b", null ],
+    [ "tcc_get_symbol_err", "d6/da0/tccelf_8c.html#a194193acfbf5f7acb28ed1e33a631911", null ],
     [ "tcc_output_file", "d6/da0/tccelf_8c.html#abec5a6a24b03ab9bbdb03ae6527f4e49", null ]
 ];

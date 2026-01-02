@@ -1,4 +1,5 @@
 <map id="DWunion" name="DWunion">
-<area shape="rect" id="node1" title=" " alt="" coords="6,160,87,237"/>
-<area shape="rect" id="node2" href="$d0/d56/structDWstruct.html" title=" " alt="" coords="5,5,88,97"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="6,153,79,219"/>
+<area shape="rect" id="Node000002" href="$d0/d56/structDWstruct.html" title=" " alt="" coords="5,5,80,91"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="45,91,45,137,40,137,40,91"/>
 </map>

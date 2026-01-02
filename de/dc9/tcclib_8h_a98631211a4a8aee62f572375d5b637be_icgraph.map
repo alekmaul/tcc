@@ -1,6 +1,33 @@
 <map id="printf" name="printf">
-<area shape="rect" id="node1" title=" " alt="" coords="185,56,243,83"/>
-<area shape="rect" id="node2" href="$dc/d8f/bcheck_8c.html#af0f4734199333e28dc98900a0392f8ae" title=" " alt="" coords="5,5,137,32"/>
-<area shape="rect" id="node3" href="$d7/de5/tcc_8c.html#a0bed8474bd33a912769360766f6b10d4" title="Display help information." alt="" coords="46,56,97,83"/>
-<area shape="rect" id="node4" href="$da/d5b/libtcc_8c.html#a18062db883e70b16c94490c9ee76580c" title=" " alt="" coords="31,107,111,133"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="584,253,641,279"/>
+<area shape="rect" id="Node000002" href="$dc/d8f/bcheck_8c.html#a2a43f21ed5146915eef0f617ccfd158b" title=" " alt="" coords="377,104,536,129"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="600,242,575,191,557,165,534,143,515,132,518,127,538,139,561,162,580,188,605,239"/>
+<area shape="rect" id="Node000008" href="$dc/d8f/bcheck_8c.html#ad8e18522dd98cc23d5beadbbc5eb6dee" title=" " alt="" coords="391,153,523,179"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="592,245,566,217,535,192,511,181,513,176,537,188,570,213,595,241"/>
+<area shape="rect" id="Node000009" href="$d6/da0/tccelf_8c.html#a4d68af513339fb707d7d7f9c60dbbaea" title="Output an ELF file." alt="" coords="399,203,514,228"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="570,255,496,231,498,226,572,250"/>
+<area shape="rect" id="Node000011" href="$d7/de5/tcc_8c.html#a3c04138a5bfe5d72780bb7e82a18e627" title="The entry point of the program." alt="" coords="41,279,96,304"/>
+<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="570,271,96,293,96,287,570,265"/>
+<area shape="rect" id="Node000012" href="$d7/de5/tcc_8c.html#a0bed8474bd33a912769360766f6b10d4" title="Display help information." alt="" coords="229,304,280,329"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="571,280,536,287,391,307,280,318,280,312,391,302,536,282,570,274"/>
+<area shape="rect" id="Node000013" href="$d7/de5/tcc_8c.html#a4775c397908c0fb0c76f6528d0845613" title="The function parses command line arguments and sets various options and flags accordingly." alt="" coords="410,379,503,404"/>
+<area shape="poly" id="edge14_Node000001_Node000013" title=" " alt="" coords="591,290,538,337,479,381,475,376,534,333,587,286"/>
+<area shape="rect" id="Node000014" href="$da/d5b/libtcc_8c.html#a18062db883e70b16c94490c9ee76580c" title=" " alt="" coords="417,428,497,453"/>
+<area shape="poly" id="edge17_Node000001_Node000014" title=" " alt="" coords="608,293,584,356,564,390,538,419,518,431,498,438,496,433,516,426,534,415,560,386,579,354,603,291"/>
+<area shape="rect" id="Node000003" href="$dc/d8f/bcheck_8c.html#a35fe59f2ac3e74bae48a6d5c831cc90e" title=" " alt="" coords="203,5,307,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,99,380,71,328,44,299,33,301,28,330,40,382,67,427,94"/>
+<area shape="rect" id="Node000004" href="$dc/d8f/bcheck_8c.html#aa771e7a1336d1297c3dd750d74284c1d" title=" " alt="" coords="181,55,329,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="390,103,307,83,308,77,391,98"/>
+<area shape="rect" id="Node000005" href="$dc/d8f/bcheck_8c.html#af1129cc9f0228bee991af4b7220ca704" title=" " alt="" coords="191,104,318,129"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="364,119,319,119,319,114,364,114"/>
+<area shape="rect" id="Node000007" href="$dc/d8f/bcheck_8c.html#a1585345dfa801d3dccd4056aef360b1e" title=" " alt="" coords="180,153,329,179"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="391,135,308,156,307,151,390,130"/>
+<area shape="rect" id="Node000006" href="$dc/d8f/bcheck_8c.html#ae52b65de77037a82b0790ab66ac9d303" title=" " alt="" coords="5,104,132,129"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="178,119,132,119,132,114,178,114"/>
+<area shape="rect" id="Node000010" href="$d6/da0/tccelf_8c.html#abec5a6a24b03ab9bbdb03ae6527f4e49" title="Output the compiled code to a file." alt="" coords="196,203,313,228"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="386,218,313,218,313,213,386,213"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="211,236,97,283,95,278,209,231"/>
+<area shape="poly" id="edge12_Node000012_Node000011" title=" " alt="" coords="215,314,96,298,97,292,216,309"/>
+<area shape="poly" id="edge15_Node000013_Node000011" title=" " alt="" coords="396,387,294,371,179,343,133,325,93,306,95,302,135,320,181,338,295,366,397,382"/>
+<area shape="poly" id="edge16_Node000013_Node000013" title=" " alt="" coords="483,368,476,360,457,357,441,359,432,364,430,370,435,377,431,380,425,370,428,361,439,354,457,352,478,355,487,364"/>
 </map>

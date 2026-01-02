@@ -1,8 +1,13 @@
 <map id="include/stdarg.h" name="include/stdarg.h">
-<area shape="rect" id="node1" title=" " alt="" coords="87,5,213,32"/>
-<area shape="rect" id="node2" href="$d3/d29/tcc_8h.html" title=" " alt="" coords="13,80,66,107"/>
-<area shape="rect" id="node5" href="$de/dc9/tcclib_8h.html" title=" " alt="" coords="90,80,210,107"/>
-<area shape="rect" id="node6" href="$dc/d8f/bcheck_8c.html" title=" " alt="" coords="234,80,333,107"/>
-<area shape="rect" id="node3" href="$da/d5b/libtcc_8c.html" title=" " alt="" coords="5,155,73,181"/>
-<area shape="rect" id="node4" href="$d7/de5/tcc_8c.html" title=" " alt="" coords="13,229,65,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="135,5,262,31"/>
+<area shape="rect" id="Node000002" href="$de/dc9/tcclib_8h.html" title=" " alt="" coords="5,79,125,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,39,88,81,86,76,164,35"/>
+<area shape="rect" id="Node000003" href="$dc/d8f/bcheck_8c.html" title=" " alt="" coords="149,79,248,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,44,201,79,196,79,196,44"/>
+<area shape="rect" id="Node000004" href="$d3/d29/tcc_8h.html" title=" " alt="" coords="272,79,325,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="227,36,284,76,281,81,224,41"/>
+<area shape="rect" id="Node000005" href="$da/d5b/libtcc_8c.html" title=" " alt="" coords="265,152,333,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="301,118,301,152,296,152,296,118"/>
+<area shape="rect" id="Node000006" href="$d7/de5/tcc_8c.html" title=" " alt="" coords="273,225,325,251"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="301,191,301,225,296,225,296,191"/>
 </map>

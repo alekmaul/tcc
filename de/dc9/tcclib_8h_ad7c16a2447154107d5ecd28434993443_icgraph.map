@@ -1,0 +1,11 @@
+<map id="strchr" name="strchr">
+<area shape="rect" id="Node000001" title=" " alt="" coords="272,55,331,80"/>
+<area shape="rect" id="Node000002" href="$d7/de5/tcc_8c.html#a4775c397908c0fb0c76f6528d0845613" title="The function parses command line arguments and sets various options and flags accordingly." alt="" coords="119,29,213,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="258,62,213,53,214,48,259,57"/>
+<area shape="rect" id="Node000004" href="$da/d5b/libtcc_8c.html#a40bee59c93d653088ac46b72b159070f" title=" " alt="" coords="108,79,224,104"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="259,77,225,84,224,78,258,72"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="189,18,182,11,166,8,152,10,145,14,144,20,148,28,143,30,138,21,141,11,150,5,166,3,184,6,192,14"/>
+<area shape="rect" id="Node000003" href="$d7/de5/tcc_8c.html#a3c04138a5bfe5d72780bb7e82a18e627" title="The entry point of the program." alt="" coords="5,55,60,80"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,56,61,65,60,60,106,51"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="94,81,60,75,60,69,95,76"/>
+</map>

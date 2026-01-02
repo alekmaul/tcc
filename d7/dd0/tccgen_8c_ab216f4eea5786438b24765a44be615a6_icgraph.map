@@ -1,0 +1,5 @@
+<map id="reg_fret" name="reg_fret">
+<area shape="rect" id="Node000001" title="Returns a register by type." alt="" coords="164,5,237,31"/>
+<area shape="rect" id="Node000002" href="$d7/dd0/tccgen_8c.html#a863e01a1b65ebbb231cce9b9618a52e2" title=" " alt="" coords="5,5,116,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,21,116,21,116,15,150,15"/>
+</map>

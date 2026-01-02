@@ -12,7 +12,7 @@ var tccpp_8c =
     [ "TOK_HASH_INIT", "df/d5f/tccpp_8c.html#a9cf2d003ae669511e15fbc63d4d6cc29", null ],
     [ "bn_lshift", "df/d5f/tccpp_8c.html#a9d2fd354878c39e276795512e2050d9c", null ],
     [ "bn_zero", "df/d5f/tccpp_8c.html#a007e16ad15e5a57fa71a1e2f0653e522", null ],
-    [ "get_tok_str", "df/d5f/tccpp_8c.html#a1d196fe2b90356baaff0a92ae91f24d2", null ],
+    [ "get_tok_str", "df/d5f/tccpp_8c.html#af03002096672264d49f97c3e5bb5001a", null ],
     [ "parse_number", "df/d5f/tccpp_8c.html#afd5a5826bf9d6a64404c6b404355b5c2", null ],
     [ "preprocess_new", "df/d5f/tccpp_8c.html#a9f755e22274e7f8a27059d2650fcfa23", null ],
     [ "preprocess_skip", "df/d5f/tccpp_8c.html#ac7503d83ae760508a47a108a3d6084bf", null ],

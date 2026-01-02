@@ -1,3 +1,4 @@
 <map id="macro_level" name="macro_level">
-<area shape="rect" id="node1" title="Represents a level in the macro expansion stack." alt="" coords="5,5,108,83"/>
+<area shape="rect" id="Node000001" title="Represents a level in the macro expansion stack." alt="" coords="5,5,100,71"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="101,23,119,27,127,38,118,49,114,45,121,38,116,32,100,29"/>
 </map>
