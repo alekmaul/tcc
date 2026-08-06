@@ -357,7 +357,6 @@ void save_reg(int r)
 }
 
 /**
- * @brief Finds a register of class 'rc2' with at most one reference on the stack. 
  * If none, calls get_reg(rc).
  *
  * @param rc The register class to search for.
@@ -3236,7 +3235,6 @@ static void post_type(CType *type, AttributeDef *ad)
            meaning in gcc / C++ */
         type->t &= ~VT_CONSTANT;
         /* some ancient pre-K&R C allows a function to return an array
-            and the array brackets to be put after the arguments, such 
            that "int c()[]" means something like "int[] c()" */
         if (tok == '[') {
             next();
@@ -4653,6 +4651,8 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
         skip(';');
     } else if (tok == TOK_ASM1 || tok == TOK_ASM2 || tok == TOK_ASM3) {
         asm_instr();
+    } else if (tok == TOK_ASMRAW1 || tok == TOK_ASMRAW2 || tok == TOK_ASMRAW3) {
+        asmraw_instr();
     } else {
         b = is_label();
         if (b) {

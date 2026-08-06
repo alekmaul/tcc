@@ -337,6 +337,7 @@ static inline int toup(int c)
 
 #include "tccpp.c"
 #include "tccgen.c"
+#include "tccasmraw.c"
 
 #ifdef CONFIG_TCC_ASM
 
