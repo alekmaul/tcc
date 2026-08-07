@@ -18,6 +18,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/* discarded-expression context for post-inc optimization */
+typedef struct DiscardedExprContext
+{
+    int terminator; /* ';' or ')' */
+} DiscardedExprContext;
+
 /**
  * @brief Swaps the values of two integers.
  *
@@ -357,6 +363,7 @@ void save_reg(int r)
 }
 
 /**
+ * @brief Finds a register of class 'rc2' with at most one reference on the stack.
  * If none, calls get_reg(rc).
  *
  * @param rc The register class to search for.
@@ -2590,11 +2597,11 @@ void vstore(void)
 }
 
 /* post defines POST/PRE add. c is the token ++ or -- */
-void inc(int post, int c)
+void inc(int post, int c, int preserve_old_value)
 {
     test_lvalue();
     vdup(); /* save lvalue */
-    if (post) {
+    if (post && preserve_old_value) {
         gv_dup(); /* duplicate value */
         vrotb(3);
         vrotb(3);
@@ -2603,7 +2610,7 @@ void inc(int post, int c)
     vpushi(c - TOK_MID);
     gen_op('+');
     vstore(); /* store value */
-    if (post)
+    if (post && preserve_old_value)
         vpop(); /* if post op, return saved value */
 }
 
@@ -3235,6 +3242,7 @@ static void post_type(CType *type, AttributeDef *ad)
            meaning in gcc / C++ */
         type->t &= ~VT_CONSTANT;
         /* some ancient pre-K&R C allows a function to return an array
+            and the array brackets to be put after the arguments, such
            that "int c()[]" means something like "int[] c()" */
         if (tok == '[') {
             next();
@@ -3456,7 +3464,7 @@ static void vpush_tokc(int t)
     vsetc(&type, VT_CONST, &tokc);
 }
 
-static void unary(void)
+static void unary(DiscardedExprContext *dctx)
 {
     int n, t, align, size, r;
     CType type;
@@ -3565,7 +3573,7 @@ tok_next:
                 memset(&ad, 0, sizeof(AttributeDef));
                 decl_initializer_alloc(&type, &ad, r, 1, 0, 0);
             } else {
-                unary();
+                unary(NULL);
                 gen_cast(&type);
             }
         } else if (tok == '{') {
@@ -3576,18 +3584,18 @@ tok_next:
             block(NULL, NULL, NULL, NULL, 0, 1);
             skip(')');
         } else {
-            gexpr();
+            gexpr(NULL);
             skip(')');
         }
         break;
     case '*':
         next();
-        unary();
+        unary(NULL);
         indir();
         break;
     case '&':
         next();
-        unary();
+        unary(NULL);
         /* functions names must be treated as function pointers,
            except for unary '&' and sizeof. Since we consider that
            functions are not lvalues, we only have to handle it
@@ -3601,7 +3609,7 @@ tok_next:
         break;
     case '!':
         next();
-        unary();
+        unary(NULL);
         if ((vtop->r & (VT_VALMASK | VT_LVAL | VT_SYM)) == VT_CONST) {
             CType boolean;
             boolean.t = VT_BOOL;
@@ -3621,13 +3629,13 @@ tok_next:
         break;
     case '~':
         next();
-        unary();
+        unary(NULL);
         vpushi(-1);
         gen_op('^');
         break;
     case '+':
         next();
-        unary();
+        unary(NULL);
         if ((vtop->type.t & VT_BTYPE) == VT_PTR)
             error("pointer not accepted for unary plus");
         /* In order to force cast, we add zero, except for floating point
@@ -3677,7 +3685,7 @@ tok_next:
         skip('(');
         saved_nocode_wanted = nocode_wanted;
         nocode_wanted = 1;
-        gexpr();
+        gexpr(NULL);
         res = (vtop->r & (VT_VALMASK | VT_LVAL | VT_SYM)) == VT_CONST;
         vpop();
         nocode_wanted = saved_nocode_wanted;
@@ -3712,12 +3720,12 @@ tok_next:
     case TOK_DEC:
         t = tok;
         next();
-        unary();
-        inc(0, t);
+        unary(NULL);
+        inc(0, t, 1);
         break;
     case '-':
         next();
-        unary();
+        unary(NULL);
         t = vtop->type.t & VT_BTYPE;
         if (is_float(t)) {
             /* In IEEE negate(x) isn't subtract(0,x), but rather
@@ -3797,8 +3805,12 @@ tok_next:
     /* post operations */
     while (1) {
         if (tok == TOK_INC || tok == TOK_DEC) {
-            inc(1, tok);
+            int op = tok;
             next();
+            if (dctx && (tok == dctx->terminator || tok == ','))
+                inc(1, op, 0);
+            else
+                inc(1, op, 1);
         } else if (tok == '.' || tok == TOK_ARROW) {
             int qualifiers;
             /* field */
@@ -3839,7 +3851,7 @@ tok_next:
             next();
         } else if (tok == '[') {
             next();
-            gexpr();
+            gexpr(NULL);
             gen_op('+');
             indir();
             skip(']');
@@ -3898,7 +3910,7 @@ tok_next:
             }
             if (tok != ')') {
                 for (;;) {
-                    expr_eq();
+                    expr_eq(NULL);
                     gfunc_param_typed(s, sa);
                     nb_args++;
                     if (sa)
@@ -3925,97 +3937,97 @@ tok_next:
     }
 }
 
-static void expr_prod(void)
+static void expr_prod(DiscardedExprContext *dctx)
 {
     int t;
 
-    unary();
+    unary(dctx);
     while (tok == '*' || tok == '/' || tok == '%') {
         t = tok;
         next();
-        unary();
+        unary(NULL);
         gen_op(t);
     }
 }
 
-static void expr_sum(void)
+static void expr_sum(DiscardedExprContext *dctx)
 {
     int t;
 
-    expr_prod();
+    expr_prod(dctx);
     while (tok == '+' || tok == '-') {
         t = tok;
         next();
-        expr_prod();
+        expr_prod(NULL);
         gen_op(t);
     }
 }
 
-static void expr_shift(void)
+static void expr_shift(DiscardedExprContext *dctx)
 {
     int t;
 
-    expr_sum();
+    expr_sum(dctx);
     while (tok == TOK_SHL || tok == TOK_SAR) {
         t = tok;
         next();
-        expr_sum();
+        expr_sum(NULL);
         gen_op(t);
     }
 }
 
-static void expr_cmp(void)
+static void expr_cmp(DiscardedExprContext *dctx)
 {
     int t;
 
-    expr_shift();
+    expr_shift(dctx);
     while ((tok >= TOK_ULE && tok <= TOK_GT) || tok == TOK_ULT || tok == TOK_UGE) {
         t = tok;
         next();
-        expr_shift();
+        expr_shift(NULL);
         gen_op(t);
     }
 }
 
-static void expr_cmpeq(void)
+static void expr_cmpeq(DiscardedExprContext *dctx)
 {
     int t;
 
-    expr_cmp();
+    expr_cmp(dctx);
     while (tok == TOK_EQ || tok == TOK_NE) {
         t = tok;
         next();
-        expr_cmp();
+        expr_cmp(NULL);
         gen_op(t);
     }
 }
 
-static void expr_and(void)
+static void expr_and(DiscardedExprContext *dctx)
 {
-    expr_cmpeq();
+    expr_cmpeq(dctx);
     while (tok == '&') {
         next();
-        expr_cmpeq();
+        expr_cmpeq(NULL);
         gen_op('&');
     }
 }
 
-static void expr_xor(void)
+static void expr_xor(DiscardedExprContext *dctx)
 {
-    expr_and();
+    expr_and(dctx);
     while (tok == '^') {
         next();
-        expr_and();
+        expr_and(NULL);
         gen_op('^');
     }
 }
 
-static void expr_or(void)
+static void expr_or(DiscardedExprContext *dctx)
 {
-    expr_xor();
+    expr_xor(dctx);
     while (tok == '|') {
         next();
-        expr_xor();
+        expr_xor(NULL);
         gen_op('|');
     }
 }
@@ -4023,10 +4035,10 @@ static void expr_or(void)
 /* XXX: fix this mess */
 static void expr_land_const(void)
 {
-    expr_or();
+    expr_or(NULL);
     while (tok == TOK_LAND) {
         next();
-        expr_or();
+        expr_or(NULL);
         gen_op(TOK_LAND);
     }
 }
@@ -4043,11 +4055,11 @@ static void expr_lor_const(void)
 }
 
 /* only used if non constant */
-static void expr_land(void)
+static void expr_land(DiscardedExprContext *dctx)
 {
     int t;
 
-    expr_or();
+    expr_or(dctx);
     if (tok == TOK_LAND) {
         t = 0;
         save_regs(1);
@@ -4058,16 +4070,16 @@ static void expr_land(void)
                 break;
             }
             next();
-            expr_or();
+            expr_or(NULL);
         }
     }
 }
 
-static void expr_lor(void)
+static void expr_lor(DiscardedExprContext *dctx)
 {
     int t;
 
-    expr_land();
+    expr_land(dctx);
     if (tok == TOK_LOR) {
         t = 0;
         save_regs(1);
@@ -4078,13 +4090,13 @@ static void expr_lor(void)
                 break;
             }
             next();
-            expr_land();
+            expr_land(NULL);
         }
     }
 }
 
 /* XXX: better constant handling */
-static void expr_cond(void)
+static void expr_cond(DiscardedExprContext *dctx)
 {
     int tt, u, r1, r2, rc, t1, t2, bt1, bt2;
     SValue sv;
@@ -4103,17 +4115,17 @@ static void expr_cond(void)
             next();
             if (tok != ':' || !gnu_ext) {
                 vpop();
-                gexpr();
+                gexpr(NULL);
             }
             if (!c)
                 vpop();
             skip(':');
-            expr_cond();
+            expr_cond(NULL);
             if (c)
                 vpop();
         }
     } else {
-        expr_lor();
+        expr_lor(dctx);
         if (tok == '?') {
             next();
             if (vtop != vstack) {
@@ -4136,7 +4148,7 @@ static void expr_cond(void)
                 tt = gtst(1, 0);
             } else {
                 tt = gtst(1, 0);
-                gexpr();
+                gexpr(NULL);
             }
             type1 = vtop->type;
             sv = *vtop; /* save value to handle it later */
@@ -4144,7 +4156,7 @@ static void expr_cond(void)
             skip(':');
             u = gjmp(0);
             gsym(tt);
-            expr_cond();
+            expr_cond(NULL);
             type2 = vtop->type;
 
             t1 = type1.t;
@@ -4232,35 +4244,37 @@ static void expr_cond(void)
     }
 }
 
-static void expr_eq(void)
+static void expr_eq(DiscardedExprContext *dctx)
 {
     int t;
 
-    expr_cond();
+    expr_cond(dctx);
     if (tok == '=' || (tok >= TOK_A_MOD && tok <= TOK_A_DIV) || tok == TOK_A_XOR || tok == TOK_A_OR
         || tok == TOK_A_SHL || tok == TOK_A_SAR) {
         test_lvalue();
         t = tok;
         next();
         if (t == '=') {
-            expr_eq();
+            expr_eq(NULL);
         } else {
             vdup();
-            expr_eq();
+            expr_eq(NULL);
             gen_op(t & 0x7f);
         }
         vstore();
     }
 }
 
-static void gexpr(void)
+static void gexpr(DiscardedExprContext *dctx)
 {
     while (1) {
-        expr_eq();
+        expr_eq(dctx);
         if (tok != ',')
             break;
         vpop();
         next();
+        /* keep dctx: every operand of a discarded comma expression
+           is itself discarded */
     }
 }
 
@@ -4271,7 +4285,7 @@ static void expr_type(CType *type)
 
     saved_nocode_wanted = nocode_wanted;
     nocode_wanted = 1;
-    gexpr();
+    gexpr(NULL);
     *type = vtop->type;
     vpop();
     nocode_wanted = saved_nocode_wanted;
@@ -4285,7 +4299,7 @@ static void unary_type(CType *type)
 
     a = nocode_wanted;
     nocode_wanted = 1;
-    unary();
+    unary(NULL);
     *type = vtop->type;
     vpop();
     nocode_wanted = a;
@@ -4297,7 +4311,7 @@ static void expr_const1(void)
     int a;
     a = const_wanted;
     const_wanted = 1;
-    expr_cond();
+    expr_cond(NULL);
     const_wanted = a;
 }
 
@@ -4374,7 +4388,7 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
         /* if test */
         next();
         skip('(');
-        gexpr();
+        gexpr(NULL);
         skip(')');
         a = gtst(1, 0);
         block(bsym, csym, case_sym, def_sym, case_reg, 0);
@@ -4391,7 +4405,7 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
         next();
         d = ind;
         skip('(');
-        gexpr();
+        gexpr(NULL);
         skip(')');
         a = gtst(1, 0);
         b = 0;
@@ -4452,7 +4466,7 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
     } else if (tok == TOK_RETURN) {
         next();
         if (tok != ';') {
-            gexpr();
+            gexpr(NULL);
             gen_assign_cast(&func_vt);
             if ((func_vt.t & VT_BTYPE) == VT_STRUCT) {
                 CType type;
@@ -4514,7 +4528,8 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
         next();
         skip('(');
         if (tok != ';') {
-            gexpr();
+            DiscardedExprContext for_init_cand = {';'};
+            gexpr(&for_init_cand);
             vpop();
         }
         skip(';');
@@ -4523,14 +4538,15 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
         a = 0;
         b = 0;
         if (tok != ';') {
-            gexpr();
+            gexpr(NULL);
             a = gtst(1, 0);
         }
         skip(';');
         if (tok != ')') {
             e = gjmp(0);
             c = ind;
-            gexpr();
+            DiscardedExprContext for_incr_cand = {')'};
+            gexpr(&for_incr_cand);
             vpop();
             gjmp_addr(d);
             gsym(e);
@@ -4549,7 +4565,7 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
         skip(TOK_WHILE);
         skip('(');
         gsym(b);
-        gexpr();
+        gexpr(NULL);
         c = gtst(0, 0);
         gsym_addr(c, d);
         skip(')');
@@ -4558,7 +4574,7 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
     } else if (tok == TOK_SWITCH) {
         next();
         skip('(');
-        gexpr();
+        gexpr(NULL);
         /* XXX: other types than integer */
         case_reg = gv(RC_INT);
         vpop();
@@ -4622,7 +4638,7 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
         if (tok == '*' && gnu_ext) {
             /* computed goto */
             next();
-            gexpr();
+            gexpr(NULL);
             if ((vtop->type.t & VT_BTYPE) != VT_PTR)
                 expect("pointer");
             ggoto();
@@ -4699,9 +4715,10 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
             if (tok != ';') {
                 if (is_expr) {
                     vpop();
-                    gexpr();
+                    gexpr(NULL);
                 } else {
-                    gexpr();
+                    DiscardedExprContext stmt_cand = {';'};
+                    gexpr(&stmt_cand);
                     vpop();
                 }
             }
@@ -4854,7 +4871,7 @@ static void init_putv(CType *type, Section *sec, unsigned long c, int v, int exp
             error("initializer element is not constant");
         break;
     case EXPR_ANY:
-        expr_eq();
+        expr_eq(NULL);
         break;
     }
 

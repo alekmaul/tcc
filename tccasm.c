@@ -844,7 +844,7 @@ static void parse_asm_operands(ASMOperand *operands, int *nb_operands_ptr, int i
             strcpy(op->constraint, tokc.cstr->data);
             next();
             skip('(');
-            gexpr();
+            gexpr(NULL);
             if (is_output) {
                 test_lvalue();
             } else {
