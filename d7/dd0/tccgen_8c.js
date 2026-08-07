@@ -1,8 +1,10 @@
 var tccgen_8c =
 [
+    [ "DiscardedExprContext", "d4/dd5/structDiscardedExprContext.html", "d4/dd5/structDiscardedExprContext" ],
     [ "EXPR_ANY", "d7/dd0/tccgen_8c.html#a6935615b625bcc20297e4b62c458883f", null ],
     [ "EXPR_CONST", "d7/dd0/tccgen_8c.html#a27284c692e2f4b5b0b369ae4b567ca7f", null ],
     [ "EXPR_VAL", "d7/dd0/tccgen_8c.html#aabf53cca1a8a85b0d5b1de20f63dd2da", null ],
+    [ "DiscardedExprContext", "d7/dd0/tccgen_8c.html#adb07db2d0f32d3c8fe6aa372b2fefaaa", null ],
     [ "force_charshort_cast", "d7/dd0/tccgen_8c.html#a27545c290786f497a2df728a2e315834", null ],
     [ "gaddrof", "d7/dd0/tccgen_8c.html#a700e4d8e777a68389e0c9ea8bfb96118", null ],
     [ "gen_cvt_ftoi1", "d7/dd0/tccgen_8c.html#af1cf24cd3af173450df6216b0355adf8", null ],
@@ -16,7 +18,7 @@ var tccgen_8c =
     [ "gv", "d7/dd0/tccgen_8c.html#aadf15017bf176edf097cd9abdfecd4d3", null ],
     [ "gv2", "d7/dd0/tccgen_8c.html#a4ad59565d03f9ca30c49da5215993c4e", null ],
     [ "gv_dup", "d7/dd0/tccgen_8c.html#a4c9d1c92191be3b4e993f01344f426e1", null ],
-    [ "inc", "d7/dd0/tccgen_8c.html#a7cffa61fd4fe2c24d08b36c7a4d9b521", null ],
+    [ "inc", "d7/dd0/tccgen_8c.html#a0391fa18ebb38e830b8b37a9cb0e7589", null ],
     [ "lbuild", "d7/dd0/tccgen_8c.html#a885f0b6cf2ba18b67f86e982cf305ce1", null ],
     [ "lexpand", "d7/dd0/tccgen_8c.html#a29f6da35d76e129d0adeb230a14643cf", null ],
     [ "move_reg", "d7/dd0/tccgen_8c.html#af0fb34b48e0e77892613681e305b3378", null ],

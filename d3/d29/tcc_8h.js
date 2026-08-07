@@ -202,6 +202,7 @@ var tcc_8h =
     [ "CString", "d3/d29/tcc_8h.html#ad40765205a3790f823090b225a357272", null ],
     [ "CType", "d3/d29/tcc_8h.html#a95712a2e2b84b4b79dd53974d8b28dc5", null ],
     [ "CValue", "d3/d29/tcc_8h.html#aec4a5c7cdbff0b07bc307cce6310edbb", null ],
+    [ "DiscardedExprContext", "d3/d29/tcc_8h.html#adb07db2d0f32d3c8fe6aa372b2fefaaa", null ],
     [ "DLLReference", "d3/d29/tcc_8h.html#a6995079913e6239374ee3a8bc5989000", null ],
     [ "ExprValue", "d3/d29/tcc_8h.html#a7b812a3630fa7b3a442ba2d6d9ce2b39", null ],
     [ "InlineFunc", "d3/d29/tcc_8h.html#a8717142ea805c075e399046ec02921a3", null ],

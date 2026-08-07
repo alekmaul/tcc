@@ -350,7 +350,7 @@ var searchData=
   ['references_347',['References',['../d2/dc1/md_CONTRIBUTING.html#autotoc_md8',1,'']]],
   ['reg_348',['reg',['../db/d75/structASMOperand.html#ab4714a8184ef52e1c86e3ca6b2ef3ee0',1,'ASMOperand']]],
   ['reg_5fclasses_349',['reg_classes',['../d9/d87/816-gen_8c.html#ab60683898e02aa1fca032475795c23b2',1,'816-gen.c']]],
-  ['reg_5ffret_350',['reg_fret',['../d7/dd0/tccgen_8c.html#ab216f4eea5786438b24765a44be615a6',1,'reg_fret(int t):&#160;tccgen.c'],['../d9/d87/816-gen_8c.html#ac58daa3429ea5b3d07c39241f1d78641',1,'REG_FRET:&#160;816-gen.c']]],
+  ['reg_5ffret_350',['reg_fret',['../d9/d87/816-gen_8c.html#ac58daa3429ea5b3d07c39241f1d78641',1,'REG_FRET:&#160;816-gen.c'],['../d7/dd0/tccgen_8c.html#ab216f4eea5786438b24765a44be615a6',1,'reg_fret(int t):&#160;tccgen.c']]],
   ['reg_5firet_351',['REG_IRET',['../d9/d87/816-gen_8c.html#a84c23766316346b429944281a44ba72c',1,'816-gen.c']]],
   ['reg_5flret_352',['REG_LRET',['../d9/d87/816-gen_8c.html#a6c1e747052de7149734bae05e09fc768',1,'816-gen.c']]],
   ['rel_5fsection_5ffmt_353',['REL_SECTION_FMT',['../d6/da0/tccelf_8c.html#a46e7891c93aab7f9f1d60b4d9ce6d534',1,'tccelf.c']]],

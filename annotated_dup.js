@@ -9,6 +9,7 @@ var annotated_dup =
     [ "CString", "d9/d7b/structCString.html", "d9/d7b/structCString" ],
     [ "CType", "df/d80/structCType.html", "df/d80/structCType" ],
     [ "CValue", "df/d14/unionCValue.html", "df/d14/unionCValue" ],
+    [ "DiscardedExprContext", "d4/dd5/structDiscardedExprContext.html", "d4/dd5/structDiscardedExprContext" ],
     [ "DLLReference", "d1/d81/structDLLReference.html", "d1/d81/structDLLReference" ],
     [ "double_long", "d5/d03/uniondouble__long.html", "d5/d03/uniondouble__long" ],
     [ "DWstruct", "d0/d56/structDWstruct.html", "d0/d56/structDWstruct" ],
