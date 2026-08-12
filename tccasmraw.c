@@ -3,6 +3,7 @@ static void asmraw_instr(void)
     CString cstr;
     int has_quote = 0;
     int line_start = 1;
+    int paren_depth = 1;
 
     next();
     if (tok != '(') {
@@ -29,12 +30,22 @@ static void asmraw_instr(void)
             }
         }
 
-        /* Stop at closing quote or closing parenthesis */
-        if (has_quote && ch == '"') {
-            break;
-        }
-        if (!has_quote && ch == ')') {
-            break;
+        /* Check exit conditions */
+        if (has_quote) {
+            /* Quoted mode: stop ONLY on closing quote */
+            if (ch == '"') {
+                break;
+            }
+        } else {
+            /* Unquoted mode: track parentheses depth */
+            if (ch == '(') {
+                paren_depth++;
+            } else if (ch == ')') {
+                paren_depth--;
+                if (paren_depth == 0) {
+                    break;
+                }
+            }
         }
 
         if (ch == '\r') {
@@ -82,5 +93,11 @@ static void asmraw_instr(void)
     if (ch == ')') {
         inp();
     }
+
     next();
+
+    /* Consume optional semicolon */
+    if (tok == ';') {
+        next();
+    }
 }
