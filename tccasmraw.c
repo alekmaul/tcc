@@ -2,7 +2,6 @@ static void asmraw_instr(void)
 {
     CString cstr;
     int has_quote = 0;
-    int line_start = 1;
     int paren_depth = 0; /* tracks nested '(' in the unquoted case */
 
     next();
@@ -23,6 +22,8 @@ static void asmraw_instr(void)
 
     /* Skip whitespace after the opening parenthesis */
     while (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') {
+        if (ch == '\n')
+            file->line_num++;
         inp();
     }
 
@@ -34,21 +35,10 @@ static void asmraw_instr(void)
 
     cstr_new(&cstr);
 
-    while (ch != CH_EOB) {
-        /* Trim leading whitespace on each new line */
-        if (line_start) {
-            while (ch == ' ' || ch == '\t') {
-                inp();
-            }
-        }
-
-        /* End of quoted block */
+    while (ch != CH_EOF) {
         if (has_quote && ch == '"') {
             break;
         }
-        /* Unquoted block: track parenthesis nesting so inner '(' ')'
-           pairs (e.g. addressing modes like (ptr),y) don't terminate
-           the block early; only an unmatched ')' ends it */
         if (!has_quote) {
             if (ch == '(') {
                 paren_depth++;
@@ -65,13 +55,12 @@ static void asmraw_instr(void)
             continue;
         }
         if (ch == '\n') {
-            line_start = 1;
+            file->line_num++;
             cstr_ccat(&cstr, '\n');
             inp();
             continue;
         }
 
-        line_start = 0;
         cstr_ccat(&cstr, ch);
         inp();
     }
@@ -87,9 +76,14 @@ static void asmraw_instr(void)
         p[--len] = '\0';
     }
 
-    /* Emit the collected raw assembly text as-is */
+    /* Emit the collected raw assembly text as-is.
+       NOTE: pr()'s internal buffer (char line[MAXLEN], 512 bytes) would
+       silently truncate long __asmraw__ blocks. Since p is already a
+       complete, fully-formed string, write it directly instead of
+       routing it through pr()'s fixed-size vsnprintf buffer. */
     if (len > 0) {
-        pr("%s\n", p);
+        s(p);
+        s("\n");
     }
 
     cstr_free(&cstr);
@@ -100,7 +94,9 @@ static void asmraw_instr(void)
     }
 
     /* Skip any trailing junk up to the closing ')' */
-    while (ch != ')' && ch != CH_EOB) {
+    while (ch != ')' && ch != CH_EOF) {
+        if (ch == '\n')
+            file->line_num++;
         inp();
     }
 
