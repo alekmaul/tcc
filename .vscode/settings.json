@@ -1,6 +1,7 @@
 {
     "files.trimTrailingWhitespace": true,
     "editor.tabSize": 4,
+    "editor.mouseWheelZoom": true,
     "editor.formatOnSave": true,
     "[makefile]": {
         "editor.insertSpaces": false,

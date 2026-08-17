@@ -58,6 +58,9 @@ DEF(TOK_LABEL, "__label__")
 DEF(TOK_ASM1, "asm")
 DEF(TOK_ASM2, "__asm")
 DEF(TOK_ASM3, "__asm__")
+DEF(TOK_ASMRAW1, "asmraw")
+DEF(TOK_ASMRAW2, "__asmraw")
+DEF(TOK_ASMRAW3, "__asmraw__")
 
 /*********************************************************************/
 /* the following are not keywords. They are included to ease parsing */

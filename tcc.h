@@ -868,3 +868,4 @@ static inline int is_space(int ch)
 {
     return ch == ' ' || ch == '\t' || ch == '\v' || ch == '\f' || ch == '\r';
 }
+static void asmraw_instr(void);

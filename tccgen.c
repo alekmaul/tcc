@@ -4667,6 +4667,8 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
         skip(';');
     } else if (tok == TOK_ASM1 || tok == TOK_ASM2 || tok == TOK_ASM3) {
         asm_instr();
+    } else if (tok == TOK_ASMRAW1 || tok == TOK_ASMRAW2 || tok == TOK_ASMRAW3) {
+        asmraw_instr();
     } else {
         b = is_label();
         if (b) {
