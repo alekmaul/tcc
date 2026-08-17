@@ -1,23 +1,25 @@
 <map id="tcc.c" name="tcc.c">
-<area shape="rect" id="Node000001" title=" " alt="" coords="1735,5,1787,31"/>
-<area shape="rect" id="Node000002" href="$da/d5b/libtcc_8c.html" title=" " alt="" coords="1727,79,1795,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1763,31,1763,65,1758,65,1758,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="1729,5,1781,31"/>
+<area shape="rect" id="Node000002" href="$da/d5b/libtcc_8c.html" title=" " alt="" coords="1721,79,1789,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1758,31,1758,65,1753,65,1753,31"/>
 <area shape="rect" id="Node000003" href="$d3/d29/tcc_8h.html" title=" " alt="" coords="911,152,965,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1727,98,978,163,978,157,1726,93"/>
-<area shape="rect" id="Node000025" title=" " alt="" coords="1461,152,1551,177"/>
-<area shape="poly" id="edge24_Node000002_Node000025" title=" " alt="" coords="1727,105,1561,151,1559,146,1726,100"/>
-<area shape="rect" id="Node000026" href="$df/d5f/tccpp_8c.html" title=" " alt="" coords="1576,152,1644,177"/>
-<area shape="poly" id="edge25_Node000002_Node000026" title=" " alt="" coords="1738,106,1648,148,1646,144,1735,102"/>
-<area shape="rect" id="Node000027" href="$d7/dd0/tccgen_8c.html" title=" " alt="" coords="1668,152,1744,177"/>
-<area shape="poly" id="edge27_Node000002_Node000027" title=" " alt="" coords="1754,106,1725,143,1721,140,1750,103"/>
-<area shape="rect" id="Node000028" title=" " alt="" coords="1768,152,1863,177"/>
-<area shape="poly" id="edge28_Node000002_Node000028" title=" " alt="" coords="1772,103,1800,140,1796,143,1768,106"/>
-<area shape="rect" id="Node000029" href="$d4/d41/tccasm_8c.html" title=" " alt="" coords="1887,152,1967,177"/>
-<area shape="poly" id="edge29_Node000002_Node000029" title=" " alt="" coords="1788,102,1889,144,1887,149,1786,106"/>
-<area shape="rect" id="Node000030" href="$d6/da0/tccelf_8c.html" title=" " alt="" coords="1992,152,2060,177"/>
-<area shape="poly" id="edge30_Node000002_Node000030" title=" " alt="" coords="1795,99,1980,148,1978,153,1794,104"/>
-<area shape="rect" id="Node000031" href="$d8/dc7/tccrun_8c.html" title=" " alt="" coords="2084,152,2157,177"/>
-<area shape="poly" id="edge31_Node000002_Node000031" title=" " alt="" coords="1795,96,2071,149,2070,154,1794,101"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1721,98,978,163,978,157,1721,93"/>
+<area shape="rect" id="Node000025" title=" " alt="" coords="1397,152,1487,177"/>
+<area shape="poly" id="edge24_Node000002_Node000025" title=" " alt="" coords="1722,103,1502,153,1500,147,1721,98"/>
+<area shape="rect" id="Node000026" href="$df/d5f/tccpp_8c.html" title=" " alt="" coords="1512,152,1580,177"/>
+<area shape="poly" id="edge25_Node000002_Node000026" title=" " alt="" coords="1723,107,1594,150,1592,145,1721,101"/>
+<area shape="rect" id="Node000027" href="$d7/dd0/tccgen_8c.html" title=" " alt="" coords="1604,152,1680,177"/>
+<area shape="poly" id="edge27_Node000002_Node000027" title=" " alt="" coords="1739,106,1673,147,1670,142,1736,102"/>
+<area shape="rect" id="Node000028" href="$d4/db3/tccasmraw_8c.html" title=" " alt="" coords="1704,152,1807,177"/>
+<area shape="poly" id="edge28_Node000002_Node000028" title=" " alt="" coords="1758,104,1758,138,1753,138,1753,104"/>
+<area shape="rect" id="Node000029" title=" " alt="" coords="1831,152,1925,177"/>
+<area shape="poly" id="edge29_Node000002_Node000029" title=" " alt="" coords="1776,102,1848,143,1845,147,1774,106"/>
+<area shape="rect" id="Node000030" href="$d4/d41/tccasm_8c.html" title=" " alt="" coords="1950,152,2030,177"/>
+<area shape="poly" id="edge30_Node000002_Node000030" title=" " alt="" coords="1790,100,1940,146,1939,151,1789,105"/>
+<area shape="rect" id="Node000031" href="$d6/da0/tccelf_8c.html" title=" " alt="" coords="2055,152,2123,177"/>
+<area shape="poly" id="edge31_Node000002_Node000031" title=" " alt="" coords="1790,97,2042,149,2041,155,1789,102"/>
+<area shape="rect" id="Node000032" href="$d8/dc7/tccrun_8c.html" title=" " alt="" coords="2147,152,2220,177"/>
+<area shape="poly" id="edge32_Node000002_Node000032" title=" " alt="" coords="1790,94,1936,115,2133,149,2132,154,1935,121,1789,100"/>
 <area shape="rect" id="Node000004" href="$db/d16/config_8h.html" title=" " alt="" coords="5,225,79,251"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="911,169,786,172,586,181,345,198,93,228,92,223,344,193,586,175,785,167,911,164"/>
 <area shape="rect" id="Node000005" title=" " alt="" coords="103,225,173,251"/>
@@ -60,7 +62,7 @@
 <area shape="poly" id="edge19_Node000019_Node000020" title=" " alt="" coords="1551,251,1545,286,1540,285,1545,251"/>
 <area shape="rect" id="Node000022" title=" " alt="" coords="1606,299,1681,324"/>
 <area shape="poly" id="edge21_Node000021_Node000022" title=" " alt="" coords="1636,251,1642,285,1636,286,1631,251"/>
-<area shape="poly" id="edge26_Node000026_Node000024" title=" " alt="" coords="1644,175,1772,218,1770,223,1643,180"/>
-<area shape="rect" id="Node000032" title=" " alt="" coords="2087,225,2154,251"/>
-<area shape="poly" id="edge32_Node000031_Node000032" title=" " alt="" coords="2123,178,2123,212,2118,212,2118,178"/>
+<area shape="poly" id="edge26_Node000026_Node000024" title=" " alt="" coords="1581,172,1768,221,1767,226,1580,178"/>
+<area shape="rect" id="Node000033" title=" " alt="" coords="2150,225,2217,251"/>
+<area shape="poly" id="edge33_Node000032_Node000033" title=" " alt="" coords="2186,178,2186,212,2181,212,2181,178"/>
 </map>

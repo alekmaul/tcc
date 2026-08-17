@@ -1,7 +1,9 @@
 var NAVTREEINDEX7 =
 {
-"da/d34/tcctok_8h.html":[3,0,15],
-"da/d34/tcctok_8h_source.html":[3,0,15],
+"da/d02/structParseState.html#aade075295873960bb8b698ba171effd5":[2,0,55,2],
+"da/d02/structParseState.html#ab972c7145c0131a144eb71c5ec96ec70":[2,0,55,3],
+"da/d34/tcctok_8h.html":[3,0,16],
+"da/d34/tcctok_8h_source.html":[3,0,16],
 "da/d5b/libtcc_8c.html":[3,0,5],
 "da/d5b/libtcc_8c.html#a03b4aac7d5029f47b572cc4054cc1940":[3,0,5,17],
 "da/d5b/libtcc_8c.html#a04018d8ea10ab32bc67ced7dc6e2c19f":[3,0,5,41],
@@ -43,8 +45,8 @@ var NAVTREEINDEX7 =
 "da/d5b/libtcc_8c.html#a5dd5cc948e833ca1d348844a6ebde843":[3,0,5,47],
 "da/d5b/libtcc_8c.html#a61c9a9912ac96d0848374307af8333dc":[3,0,5,11],
 "da/d5b/libtcc_8c.html#a680bbf2726b3478fa1b35aa76955a760":[3,0,5,83],
-"da/d5b/libtcc_8c.html#a682d3625082cfa169a9a806fccd71459":[3,0,5,4],
 "da/d5b/libtcc_8c.html#a682d3625082cfa169a9a806fccd71459":[3,0,5,5],
+"da/d5b/libtcc_8c.html#a682d3625082cfa169a9a806fccd71459":[3,0,5,4],
 "da/d5b/libtcc_8c.html#a6ae4a4bfba825f11d300024eeaeb919c":[3,0,5,73],
 "da/d5b/libtcc_8c.html#a6bb12c9cae32ecd32a4584a86c4c6c99":[3,0,5,8],
 "da/d5b/libtcc_8c.html#a6c930dde9dc090864719cf908de04b13":[3,0,5,9],
@@ -247,7 +249,5 @@ var NAVTREEINDEX7 =
 "de/dae/structElf64__Sym.html#af5c72e0a09802b81e8087b303ec4d29f":[2,0,40,4],
 "de/dc9/tcclib_8h.html":[3,0,0,4],
 "de/dc9/tcclib_8h.html#a084251eb18ccd5c936faa2c39c86ec63":[3,0,0,4,21],
-"de/dc9/tcclib_8h.html#a088e5d122572b7b20bd5abcdda97119e":[3,0,0,4,45],
-"de/dc9/tcclib_8h.html#a0d0a950c2b4e6fba795cb7d8f2e8b8b8":[3,0,0,4,46],
-"de/dc9/tcclib_8h.html#a19546e43db31c3095991b04023b422b2":[3,0,0,4,37]
+"de/dc9/tcclib_8h.html#a088e5d122572b7b20bd5abcdda97119e":[3,0,0,4,45]
 };
