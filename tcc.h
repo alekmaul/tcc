@@ -319,6 +319,10 @@ typedef struct AttributeDef
 #define TYPE_ABSTRACT 1 /* type without variable */
 #define TYPE_DIRECT 2   /* type with variable */
 
+/* discarded-expression context for post-inc optimization
+   struct definition is in tccgen.c, other files only pass pointers */
+typedef struct DiscardedExprContext DiscardedExprContext;
+
 #define IO_BUF_SIZE 8192
 
 typedef struct BufferedFile
@@ -691,7 +695,7 @@ struct TCCState
 #define TOK_A_SAR 0x82
 
 #ifndef offsetof
-#define offsetof(type, field) ((size_t) & ((type *) 0)->field)
+#define offsetof(type, field) ((size_t) &((type *) 0)->field)
 #endif
 
 #ifndef countof
@@ -864,3 +868,4 @@ static inline int is_space(int ch)
 {
     return ch == ' ' || ch == '\t' || ch == '\v' || ch == '\f' || ch == '\r';
 }
+static void asmraw_instr(void);
