@@ -1363,10 +1363,40 @@ void gen_opi(int op)
                 pr("; mul #255 (optimized: x*256-x)\n");
                 pr("lda.b tcc__r%d\nxba\nand #$ff00\nsec\nsbc.b tcc__r%d\n", r, r);
                 break;
-            default:
+            default: {
+                // constants with at most 3 bits set (sizes of structures in
+                // arrays: 6, 10, 12, 20, 24, 72...): shifts and additions.
+                // tcc__r9/tcc__r10 are free here (the call below uses them for
+                // its arguments); the operand is read only once, first.
+                int bits[16], nbits = 0, b, k;
+                unsigned uc = (unsigned) fc & 0xffff;
+                for (b = 0; b < 16; b++)
+                    if (uc & (1u << b))
+                        bits[nbits++] = b;
+                if (fc > 0 && fc < 65536 && nbits >= 2 && nbits <= 3) {
+                    skipcall = 1;
+                    pr("; mul #%d (optimized: %d shift-adds)\n", fc, nbits);
+                    pr("lda.b tcc__r%d\n", r);
+                    for (k = 0; k < bits[0]; k++)
+                        pr("asl a\n");
+                    pr("sta.b tcc__r10\n"); // sum = x << b0
+                    for (k = bits[0]; k < bits[1]; k++)
+                        pr("asl a\n");      // a = x << b1
+                    if (nbits == 3)
+                        pr("sta.b tcc__r9\n"); // keep x << b1
+                    pr("clc\nadc.b tcc__r10\n");
+                    if (nbits == 3) {
+                        pr("sta.b tcc__r10\nlda.b tcc__r9\n");
+                        for (k = bits[1]; k < bits[2]; k++)
+                            pr("asl a\n"); // a = x << b2
+                        pr("clc\nadc.b tcc__r10\n");
+                    }
+                    break;
+                }
                 pr("; mul #%d, tcc__r%d\n", fc, r);
                 pr("lda.w #%d\nsta.b tcc__r9\n", fc);
                 break;
+            }
             }
         } else {
             pr("; mul tcc__r%d,tcc__r%d\n", fr, r);
