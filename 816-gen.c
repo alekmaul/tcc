@@ -1407,16 +1407,37 @@ void gen_opi(int op)
         else
             div = 0;
 
-        // power-of-2 optimization for unsigned division/modulo
+        // power-of-2 optimization for division/modulo
         // check if fc is a power of 2 (fc > 0 and only one bit set)
-        if (isconst && !sign && fc > 0 && (fc & (fc - 1)) == 0) {
+        if (isconst && fc > 0 && (fc & (fc - 1)) == 0 && (!sign || fc < 32768)) {
             int shift_count = 0;
             int temp_fc = fc;
             while (temp_fc > 1) {
                 shift_count++;
                 temp_fc >>= 1;
             }
-            if (div) {
+            if (sign && div) {
+                // signed division by power of 2, truncated toward zero:
+                // add fc-1 to a negative dividend, then arithmetic right shifts
+                pr("; sdiv #%d (power of 2), tcc__r%d => %d shifts\n", fc, r, shift_count);
+                if (shift_count > 0) {
+                    pr("lda.b tcc__r%d\nbpl +\nclc\nadc.w #%d\n+\n", r, fc - 1);
+                    for (i = 0; i < shift_count; i++) {
+                        pr("cmp #$8000\nror a\n"); // carry <= sign, then shift it in
+                    }
+                    pr("sta.b tcc__r%d\n", r);
+                }
+            } else if (sign) {
+                // signed modulo by power of 2: the remainder has the sign of the
+                // dividend, so a negative dividend gives -((-x) & (fc-1))
+                pr("; smod #%d (power of 2), tcc__r%d\n", fc, r);
+                pr("lda.b tcc__r%d\nbpl +\neor.w #$ffff\ninc a\nand.w #%d\neor.w #$ffff\ninc a\nbra ++\n+\n"
+                   "and.w #%d\n++\nsta.b tcc__r%d\n",
+                   r,
+                   fc - 1,
+                   fc - 1,
+                   r);
+            } else if (div) {
                 // unsigned division by power of 2: use right shifts
                 pr("; udiv #%d (power of 2), tcc__r%d => %d shifts\n", fc, r, shift_count);
                 if (shift_count == 0) {
