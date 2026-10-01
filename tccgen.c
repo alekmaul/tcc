@@ -3429,6 +3429,14 @@ static void gfunc_param_typed(Sym *func, Sym *arg)
             type.t = VT_DOUBLE;
             gen_cast(&type);
         }
+#else
+        /* integer promotion: a char or a bool is passed as an int (2 bytes),
+           which is what va_arg(ap, int) reads (printf %d, %u, %c...) */
+        if (((vtop->type.t & VT_BTYPE) == VT_BYTE || (vtop->type.t & VT_BTYPE) == VT_BOOL)
+            && !(vtop->type.t & VT_ARRAY)) {
+            type.t = VT_INT;
+            gen_cast(&type);
+        }
 #endif
     } else if (arg == NULL) {
         error("too many arguments to function");
