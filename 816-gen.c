@@ -386,6 +386,7 @@ int restore_stack(int fc)
 int args_size = 0;
 
 int ll_workaround = 0;
+int int_return_mov = 0; /* set by the return statement of a function returning an integer */
 
 /**
  * @brief The function loads a value from memory or a register into a specified register.
@@ -678,7 +679,14 @@ void load(int r, SValue *sv)
                 pr("lda.b tcc__f%d\nsta.b tcc__f%d\nlda.b tcc__f%dh\nsta.b tcc__f%dh\n", v, r, v, r);
             } else {
                 pr("; mov tcc__r%d, tcc__r%d\n", v, r);
-                pr("lda.b tcc__r%d\nsta.b tcc__r%d\nlda.b tcc__r%dh\nsta.b tcc__r%dh\n", v, r, v, r);
+                /* return value of a function declared to return an integer:
+                   the caller does not read the bank word, copy the low word
+                   only (elsewhere, a value typed int may be a pointer that
+                   tcc retyped for address arithmetic) */
+                if (int_return_mov)
+                    pr("lda.b tcc__r%d\nsta.b tcc__r%d\n", v, r);
+                else
+                    pr("lda.b tcc__r%d\nsta.b tcc__r%d\nlda.b tcc__r%dh\nsta.b tcc__r%dh\n", v, r, v, r);
             }
             return;
         }

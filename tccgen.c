@@ -323,7 +323,17 @@ void save_reg(int r)
 #ifdef TCC_TARGET_X86_64
                     type = &char_pointer_type;
 #elif defined(TCC_TARGET_816)
-                    type = &ptr_type;
+                {
+                    /* an integer value is reloaded with its own type (2 bytes
+                       at most): spill only the low word, the bank word of a
+                       pointer is not needed */
+                    int bt = type->t & VT_BTYPE;
+                    if (!(p->r & VT_LVAL)
+                        && (bt == VT_INT || bt == VT_SHORT || bt == VT_BYTE || bt == VT_BOOL))
+                        type = &int_type;
+                    else
+                        type = &ptr_type;
+                }
 #else
                     type = &int_type;
 #endif
@@ -4503,7 +4513,17 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
             } else if (is_float(func_vt.t)) {
                 gv(rc_fret(func_vt.t));
             } else {
+#ifdef TCC_TARGET_816
+                {
+                    int bt = func_vt.t & VT_BTYPE;
+                    int_return_mov = (bt == VT_INT || bt == VT_SHORT || bt == VT_BYTE
+                                      || bt == VT_BOOL);
+                }
+#endif
                 gv(RC_IRET);
+#ifdef TCC_TARGET_816
+                int_return_mov = 0;
+#endif
             }
             vtop--; /* NOT vpop() because on x86 it would flush the fp stack */
         }
