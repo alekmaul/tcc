@@ -730,6 +730,11 @@ int gv(int rc)
                     t = VT_SHORT;
                 if (vtop->r & VT_LVAL_UNSIGNED)
                     t |= VT_UNSIGNED;
+#ifdef TCC_TARGET_816
+                /* keep volatile: a volatile byte is read differently (see
+                   VOLATILE_BYTE in 816-gen.c) */
+                t |= t1 & VT_VOLATILE;
+#endif
                 vtop->type.t = t;
                 load(r, vtop);
                 /* restore wanted type */

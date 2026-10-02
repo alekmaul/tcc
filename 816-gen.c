@@ -451,7 +451,15 @@ void load(int r, SValue *sv)
                         warning("large index %d may cross bank boundary", fc);
                     switch (length) {
                     case 1:
-                        pr("lda.w #0\nsep #$20\nlda.l %s + %d\nrep #$20\n", sy, fc);
+                        /* VOLATILE_BYTE: a volatile byte is read in 8 bits then
+                           masked (sep / lda / rep / and.w #$00FF). 816-opt turns
+                           the other form (lda.w #0 / sep / lda / rep) into a
+                           16-bit read + and, which also reads the next byte: not
+                           allowed for a hardware register, which is volatile */
+                        if (ft & VT_VOLATILE)
+                            pr("sep #$20\nlda.l %s + %d\nrep #$20\nand.w #$00FF\n", sy, fc);
+                        else
+                            pr("lda.w #0\nsep #$20\nlda.l %s + %d\nrep #$20\n", sy, fc);
                         if (!(ft & VT_UNSIGNED))
                             pr("xba\nxba\nbpl +\nora.w #$ff00\n+\n");
                         pr("sta.b tcc__r%d\n", r);
@@ -480,7 +488,10 @@ void load(int r, SValue *sv)
                 } else {
                     switch (length) {
                     case 1:
-                        pr("lda.w #0\nsep #$20\nlda.l %d\nrep #$20\n", fc);
+                        if (ft & VT_VOLATILE) // see VOLATILE_BYTE
+                            pr("sep #$20\nlda.l %d\nrep #$20\nand.w #$00FF\n", fc);
+                        else
+                            pr("lda.w #0\nsep #$20\nlda.l %d\nrep #$20\n", fc);
                         if (!(ft & VT_UNSIGNED))
                             pr("xba\nxba\nbpl +\nora.w #$ff00\n+\n");
                         pr("sta.b tcc__r%d\n", r);
@@ -569,11 +580,17 @@ void load(int r, SValue *sv)
                     pr("; ld%d [tcc__r%d,%d],tcc__r%d\n", length, base, fc, r);
                     switch (length) {
                     case 1:
-                        pr("lda.w #0\n");
-                        if (!fc)
-                            pr("sep #$20\nlda.b [tcc__r%d]\nrep #$20\n", base);
-                        else
-                            pr("ldy #%d\nsep #$20\nlda.b [tcc__r%d],y\nrep #$20\n", fc, base);
+                        if (ft & VT_VOLATILE) { // see VOLATILE_BYTE
+                            if (fc)
+                                pr("ldy #%d\n", fc);
+                            pr("sep #$20\nlda.b [tcc__r%d]%s\nrep #$20\nand.w #$00FF\n", base, fc ? ",y" : "");
+                        } else {
+                            pr("lda.w #0\n");
+                            if (!fc)
+                                pr("sep #$20\nlda.b [tcc__r%d]\nrep #$20\n", base);
+                            else
+                                pr("ldy #%d\nsep #$20\nlda.b [tcc__r%d],y\nrep #$20\n", fc, base);
+                        }
                         if (!(ft & VT_UNSIGNED))
                             pr("xba\nxba\nbpl +\nora.w #$ff00\n+\n");
                         pr("sta.b tcc__r%d\n", r);
