@@ -16,8 +16,9 @@ var searchData=
   ['info_13',['info',['../da/d64/structElf__Options.html#a4d25edb0432aa63eda00cb607ae389eb',1,'Elf_Options']]],
   ['inline_5ffns_14',['inline_fns',['../d4/dea/structTCCState.html#ac750f07f383d7effb759b892ea8d9970',1,'TCCState']]],
   ['input_5findex_15',['input_index',['../db/d75/structASMOperand.html#a0025fc81bb56f0defd3a32abe0b32286',1,'ASMOperand']]],
-  ['is_5finvalid_16',['is_invalid',['../d2/db3/structBoundEntry.html#a6428fd101327a40b4bc2e9aee75648c8',1,'BoundEntry']]],
-  ['is_5fllong_17',['is_llong',['../db/d75/structASMOperand.html#a7aac1b5c92ea12d22ab7bf72789c2a23',1,'ASMOperand']]],
-  ['is_5fmemory_18',['is_memory',['../db/d75/structASMOperand.html#a3a9cc800cf251e26aaa54678241ecc4a',1,'ASMOperand']]],
-  ['is_5frw_19',['is_rw',['../db/d75/structASMOperand.html#a80b9b2972f40a5981bdbff89a626ecff',1,'ASMOperand']]]
+  ['int_5freturn_5fmov_16',['int_return_mov',['../d9/d87/816-gen_8c.html#af8862ec7a9796ece731fcb78d72d7810',1,'816-gen.c']]],
+  ['is_5finvalid_17',['is_invalid',['../d2/db3/structBoundEntry.html#a6428fd101327a40b4bc2e9aee75648c8',1,'BoundEntry']]],
+  ['is_5fllong_18',['is_llong',['../db/d75/structASMOperand.html#a7aac1b5c92ea12d22ab7bf72789c2a23',1,'ASMOperand']]],
+  ['is_5fmemory_19',['is_memory',['../db/d75/structASMOperand.html#a3a9cc800cf251e26aaa54678241ecc4a',1,'ASMOperand']]],
+  ['is_5frw_20',['is_rw',['../db/d75/structASMOperand.html#a80b9b2972f40a5981bdbff89a626ecff',1,'ASMOperand']]]
 ];

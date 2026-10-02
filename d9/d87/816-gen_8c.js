@@ -70,6 +70,7 @@ var 816_gen_8c =
     [ "args_size", "d9/d87/816-gen_8c.html#a614a5c4477118dbb47b411df6c7452b8", null ],
     [ "current_fn", "d9/d87/816-gen_8c.html#ac5964772d4e1e24d41be7405df7f8a06", null ],
     [ "ind_before_section", "d9/d87/816-gen_8c.html#ada7d16289d753520721079ba5cc6b240", null ],
+    [ "int_return_mov", "d9/d87/816-gen_8c.html#af8862ec7a9796ece731fcb78d72d7810", null ],
     [ "jump", "d9/d87/816-gen_8c.html#a00b696cb4c887fa0457c5b4591de4370", null ],
     [ "jumps", "d9/d87/816-gen_8c.html#a2ead264a75d95920be99ba3ee8b71f0e", null ],
     [ "jumps_capacity", "d9/d87/816-gen_8c.html#af65e90cdf23a92a6575b2888fdd4d801", null ],
