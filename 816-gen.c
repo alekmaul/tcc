@@ -2138,6 +2138,23 @@ void gfunc_prolog(CType *func_type)
         section_closed = 0;
     }
 
+    /* return registers read by the callers, for 816-opt (unused by WLA):
+       0 none (void), 1 tcc__r0 (integer), 2 tcc__r0/r0h (pointer),
+       3 tcc__r0/r0h/r1/r1h (long long), 4 tcc__f0/f0h (float), 5 unknown */
+    {
+        int bt = func_vt.t & VT_BTYPE, ret = 5;
+        if (bt == VT_VOID)
+            ret = 0;
+        else if (bt == VT_INT || bt == VT_SHORT || bt == VT_BYTE || bt == VT_BOOL)
+            ret = 1;
+        else if (bt == VT_PTR || bt == VT_FUNC)
+            ret = 2;
+        else if (bt == VT_LLONG)
+            ret = 3;
+        else if (is_float(func_vt.t))
+            ret = 4;
+        pr("\n.define __%s_ret %d", current_fn, ret);
+    }
     pr("\n%s:\n", current_fn);
 
     while ((sym = sym->next)) {
