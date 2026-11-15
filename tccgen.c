@@ -1615,6 +1615,21 @@ void gen_op(int op)
         /* relationnal op: must be both pointers */
         if (op >= TOK_ULT && op <= TOK_LOR) {
             check_comparison_pointer_types(vtop - 1, vtop, op);
+#ifdef TCC_TARGET_816
+            /* p == 0 / p != 0: the truth test of p, which checks its 4 bytes
+               (gtst ors the bank word). p == q still compares 16 bits */
+            if (op == TOK_EQ || op == TOK_NE) {
+                if ((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == VT_CONST && vtop[-1].c.i == 0)
+                    vswap();
+                if ((vtop->r & (VT_VALMASK | VT_LVAL | VT_SYM)) == VT_CONST && vtop->c.i == 0
+                    && (vtop[-1].type.t & VT_BTYPE) == VT_PTR) {
+                    vpop();
+                    save_regs(1); /* gtst branches: no other value may stay in a register */
+                    vseti(op == TOK_EQ ? VT_JMP : VT_JMPI, gtst(1, 0));
+                    return;
+                }
+            }
+#endif
             /* pointers are handled are unsigned */
 #ifdef TCC_TARGET_X86_64
             t = VT_LLONG | VT_UNSIGNED;
