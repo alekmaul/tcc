@@ -1200,6 +1200,8 @@ int gtst(int inv, int t)
             pr("lda.b tcc__r%d ; DON'T OPTIMIZE\n", v);
             if ((vtop->type.t & VT_BTYPE) == VT_LLONG)
                 pr("ora.b tcc__r%d\n", vtop->r2);
+            else if ((vtop->type.t & VT_BTYPE) == VT_PTR)
+                pr("ora.b tcc__r%dh\n", v); /* bank word: $7F:0000 is not NULL */
             vtop->r = VT_CMP;
             vtop->c.i = TOK_NE;
             return gtst(inv, t);

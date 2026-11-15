@@ -2061,6 +2061,18 @@ static void gen_cast(CType *type)
                    VT_LVAL_xxx constants) */
             }
         }
+#ifdef TCC_TARGET_816
+        /* integer (not constant) to pointer: load the integer with its own
+           size and give the pointer bank 0, as for a constant address.
+           Without this the pointer is read later as 4 bytes, and its bank is
+           whatever follows the integer in memory or in the register */
+        if ((dbt & VT_BTYPE) == VT_PTR && !c && !p
+            && ((sbt & VT_BTYPE) == VT_INT || (sbt & VT_BTYPE) == VT_SHORT
+                || (sbt & VT_BTYPE) == VT_BYTE || (sbt & VT_BTYPE) == VT_BOOL)) {
+            int r = gv(RC_INT);
+            pr("stz.b tcc__r%dh\n", r);
+        }
+#endif
     } else if ((dbt & VT_BTYPE) == VT_PTR && !(vtop->r & VT_LVAL)) {
         /* if we are casting between pointer types,
            we must update the VT_LVAL_xxx size */
