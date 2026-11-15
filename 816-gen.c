@@ -386,6 +386,7 @@ int restore_stack(int fc)
 int args_size = 0;
 
 int ll_workaround = 0;
+int int_return_mov = 0; /* set by the return statement of a function returning an integer */
 
 /**
  * @brief The function loads a value from memory or a register into a specified register.
@@ -450,7 +451,15 @@ void load(int r, SValue *sv)
                         warning("large index %d may cross bank boundary", fc);
                     switch (length) {
                     case 1:
-                        pr("lda.w #0\nsep #$20\nlda.l %s + %d\nrep #$20\n", sy, fc);
+                        /* VOLATILE_BYTE: a volatile byte is read in 8 bits then
+                           masked (sep / lda / rep / and.w #$00FF). 816-opt turns
+                           the other form (lda.w #0 / sep / lda / rep) into a
+                           16-bit read + and, which also reads the next byte: not
+                           allowed for a hardware register, which is volatile */
+                        if (ft & VT_VOLATILE)
+                            pr("sep #$20\nlda.l %s + %d\nrep #$20\nand.w #$00FF\n", sy, fc);
+                        else
+                            pr("lda.w #0\nsep #$20\nlda.l %s + %d\nrep #$20\n", sy, fc);
                         if (!(ft & VT_UNSIGNED))
                             pr("xba\nxba\nbpl +\nora.w #$ff00\n+\n");
                         pr("sta.b tcc__r%d\n", r);
@@ -479,7 +488,10 @@ void load(int r, SValue *sv)
                 } else {
                     switch (length) {
                     case 1:
-                        pr("lda.w #0\nsep #$20\nlda.l %d\nrep #$20\n", fc);
+                        if (ft & VT_VOLATILE) // see VOLATILE_BYTE
+                            pr("sep #$20\nlda.l %d\nrep #$20\nand.w #$00FF\n", fc);
+                        else
+                            pr("lda.w #0\nsep #$20\nlda.l %d\nrep #$20\n", fc);
                         if (!(ft & VT_UNSIGNED))
                             pr("xba\nxba\nbpl +\nora.w #$ff00\n+\n");
                         pr("sta.b tcc__r%d\n", r);
@@ -568,11 +580,17 @@ void load(int r, SValue *sv)
                     pr("; ld%d [tcc__r%d,%d],tcc__r%d\n", length, base, fc, r);
                     switch (length) {
                     case 1:
-                        pr("lda.w #0\n");
-                        if (!fc)
-                            pr("sep #$20\nlda.b [tcc__r%d]\nrep #$20\n", base);
-                        else
-                            pr("ldy #%d\nsep #$20\nlda.b [tcc__r%d],y\nrep #$20\n", fc, base);
+                        if (ft & VT_VOLATILE) { // see VOLATILE_BYTE
+                            if (fc)
+                                pr("ldy #%d\n", fc);
+                            pr("sep #$20\nlda.b [tcc__r%d]%s\nrep #$20\nand.w #$00FF\n", base, fc ? ",y" : "");
+                        } else {
+                            pr("lda.w #0\n");
+                            if (!fc)
+                                pr("sep #$20\nlda.b [tcc__r%d]\nrep #$20\n", base);
+                            else
+                                pr("ldy #%d\nsep #$20\nlda.b [tcc__r%d],y\nrep #$20\n", fc, base);
+                        }
                         if (!(ft & VT_UNSIGNED))
                             pr("xba\nxba\nbpl +\nora.w #$ff00\n+\n");
                         pr("sta.b tcc__r%d\n", r);
@@ -678,7 +696,14 @@ void load(int r, SValue *sv)
                 pr("lda.b tcc__f%d\nsta.b tcc__f%d\nlda.b tcc__f%dh\nsta.b tcc__f%dh\n", v, r, v, r);
             } else {
                 pr("; mov tcc__r%d, tcc__r%d\n", v, r);
-                pr("lda.b tcc__r%d\nsta.b tcc__r%d\nlda.b tcc__r%dh\nsta.b tcc__r%dh\n", v, r, v, r);
+                /* return value of a function declared to return an integer:
+                   the caller does not read the bank word, copy the low word
+                   only (elsewhere, a value typed int may be a pointer that
+                   tcc retyped for address arithmetic) */
+                if (int_return_mov)
+                    pr("lda.b tcc__r%d\nsta.b tcc__r%d\n", v, r);
+                else
+                    pr("lda.b tcc__r%d\nsta.b tcc__r%d\nlda.b tcc__r%dh\nsta.b tcc__r%dh\n", v, r, v, r);
             }
             return;
         }
@@ -1175,6 +1200,8 @@ int gtst(int inv, int t)
             pr("lda.b tcc__r%d ; DON'T OPTIMIZE\n", v);
             if ((vtop->type.t & VT_BTYPE) == VT_LLONG)
                 pr("ora.b tcc__r%d\n", vtop->r2);
+            else if ((vtop->type.t & VT_BTYPE) == VT_PTR)
+                pr("ora.b tcc__r%dh\n", v); /* bank word: $7F:0000 is not NULL */
             vtop->r = VT_CMP;
             vtop->c.i = TOK_NE;
             return gtst(inv, t);
@@ -1363,10 +1390,40 @@ void gen_opi(int op)
                 pr("; mul #255 (optimized: x*256-x)\n");
                 pr("lda.b tcc__r%d\nxba\nand #$ff00\nsec\nsbc.b tcc__r%d\n", r, r);
                 break;
-            default:
+            default: {
+                // constants with at most 3 bits set (sizes of structures in
+                // arrays: 6, 10, 12, 20, 24, 72...): shifts and additions.
+                // tcc__r9/tcc__r10 are free here (the call below uses them for
+                // its arguments); the operand is read only once, first.
+                int bits[16], nbits = 0, b, k;
+                unsigned uc = (unsigned) fc & 0xffff;
+                for (b = 0; b < 16; b++)
+                    if (uc & (1u << b))
+                        bits[nbits++] = b;
+                if (fc > 0 && fc < 65536 && nbits >= 2 && nbits <= 3) {
+                    skipcall = 1;
+                    pr("; mul #%d (optimized: %d shift-adds)\n", fc, nbits);
+                    pr("lda.b tcc__r%d\n", r);
+                    for (k = 0; k < bits[0]; k++)
+                        pr("asl a\n");
+                    pr("sta.b tcc__r10\n"); // sum = x << b0
+                    for (k = bits[0]; k < bits[1]; k++)
+                        pr("asl a\n");      // a = x << b1
+                    if (nbits == 3)
+                        pr("sta.b tcc__r9\n"); // keep x << b1
+                    pr("clc\nadc.b tcc__r10\n");
+                    if (nbits == 3) {
+                        pr("sta.b tcc__r10\nlda.b tcc__r9\n");
+                        for (k = bits[1]; k < bits[2]; k++)
+                            pr("asl a\n"); // a = x << b2
+                        pr("clc\nadc.b tcc__r10\n");
+                    }
+                    break;
+                }
                 pr("; mul #%d, tcc__r%d\n", fc, r);
                 pr("lda.w #%d\nsta.b tcc__r9\n", fc);
                 break;
+            }
             }
         } else {
             pr("; mul tcc__r%d,tcc__r%d\n", fr, r);
@@ -1407,16 +1464,37 @@ void gen_opi(int op)
         else
             div = 0;
 
-        // power-of-2 optimization for unsigned division/modulo
+        // power-of-2 optimization for division/modulo
         // check if fc is a power of 2 (fc > 0 and only one bit set)
-        if (isconst && !sign && fc > 0 && (fc & (fc - 1)) == 0) {
+        if (isconst && fc > 0 && (fc & (fc - 1)) == 0 && (!sign || fc < 32768)) {
             int shift_count = 0;
             int temp_fc = fc;
             while (temp_fc > 1) {
                 shift_count++;
                 temp_fc >>= 1;
             }
-            if (div) {
+            if (sign && div) {
+                // signed division by power of 2, truncated toward zero:
+                // add fc-1 to a negative dividend, then arithmetic right shifts
+                pr("; sdiv #%d (power of 2), tcc__r%d => %d shifts\n", fc, r, shift_count);
+                if (shift_count > 0) {
+                    pr("lda.b tcc__r%d\nbpl +\nclc\nadc.w #%d\n+\n", r, fc - 1);
+                    for (i = 0; i < shift_count; i++) {
+                        pr("cmp #$8000\nror a\n"); // carry <= sign, then shift it in
+                    }
+                    pr("sta.b tcc__r%d\n", r);
+                }
+            } else if (sign) {
+                // signed modulo by power of 2: the remainder has the sign of the
+                // dividend, so a negative dividend gives -((-x) & (fc-1))
+                pr("; smod #%d (power of 2), tcc__r%d\n", fc, r);
+                pr("lda.b tcc__r%d\nbpl +\neor.w #$ffff\ninc a\nand.w #%d\neor.w #$ffff\ninc a\nbra ++\n+\n"
+                   "and.w #%d\n++\nsta.b tcc__r%d\n",
+                   r,
+                   fc - 1,
+                   fc - 1,
+                   r);
+            } else if (div) {
                 // unsigned division by power of 2: use right shifts
                 pr("; udiv #%d (power of 2), tcc__r%d => %d shifts\n", fc, r, shift_count);
                 if (shift_count == 0) {
@@ -2062,6 +2140,23 @@ void gfunc_prolog(CType *func_type)
         section_closed = 0;
     }
 
+    /* return registers read by the callers, for 816-opt (unused by WLA):
+       0 none (void), 1 tcc__r0 (integer), 2 tcc__r0/r0h (pointer),
+       3 tcc__r0/r0h/r1/r1h (long long), 4 tcc__f0/f0h (float), 5 unknown */
+    {
+        int bt = func_vt.t & VT_BTYPE, ret = 5;
+        if (bt == VT_VOID)
+            ret = 0;
+        else if (bt == VT_INT || bt == VT_SHORT || bt == VT_BYTE || bt == VT_BOOL)
+            ret = 1;
+        else if (bt == VT_PTR || bt == VT_FUNC)
+            ret = 2;
+        else if (bt == VT_LLONG)
+            ret = 3;
+        else if (is_float(func_vt.t))
+            ret = 4;
+        pr("\n.define __%s_ret %d", current_fn, ret);
+    }
     pr("\n%s:\n", current_fn);
 
     while ((sym = sym->next)) {

@@ -323,7 +323,17 @@ void save_reg(int r)
 #ifdef TCC_TARGET_X86_64
                     type = &char_pointer_type;
 #elif defined(TCC_TARGET_816)
-                    type = &ptr_type;
+                {
+                    /* an integer value is reloaded with its own type (2 bytes
+                       at most): spill only the low word, the bank word of a
+                       pointer is not needed */
+                    int bt = type->t & VT_BTYPE;
+                    if (!(p->r & VT_LVAL)
+                        && (bt == VT_INT || bt == VT_SHORT || bt == VT_BYTE || bt == VT_BOOL))
+                        type = &int_type;
+                    else
+                        type = &ptr_type;
+                }
 #else
                     type = &int_type;
 #endif
@@ -720,6 +730,11 @@ int gv(int rc)
                     t = VT_SHORT;
                 if (vtop->r & VT_LVAL_UNSIGNED)
                     t |= VT_UNSIGNED;
+#ifdef TCC_TARGET_816
+                /* keep volatile: a volatile byte is read differently (see
+                   VOLATILE_BYTE in 816-gen.c) */
+                t |= t1 & VT_VOLATILE;
+#endif
                 vtop->type.t = t;
                 load(r, vtop);
                 /* restore wanted type */
@@ -1600,6 +1615,21 @@ void gen_op(int op)
         /* relationnal op: must be both pointers */
         if (op >= TOK_ULT && op <= TOK_LOR) {
             check_comparison_pointer_types(vtop - 1, vtop, op);
+#ifdef TCC_TARGET_816
+            /* p == 0 / p != 0: the truth test of p, which checks its 4 bytes
+               (gtst ors the bank word). p == q still compares 16 bits */
+            if (op == TOK_EQ || op == TOK_NE) {
+                if ((vtop[-1].r & (VT_VALMASK | VT_LVAL | VT_SYM)) == VT_CONST && vtop[-1].c.i == 0)
+                    vswap();
+                if ((vtop->r & (VT_VALMASK | VT_LVAL | VT_SYM)) == VT_CONST && vtop->c.i == 0
+                    && (vtop[-1].type.t & VT_BTYPE) == VT_PTR) {
+                    vpop();
+                    save_regs(1); /* gtst branches: no other value may stay in a register */
+                    vseti(op == TOK_EQ ? VT_JMP : VT_JMPI, gtst(1, 0));
+                    return;
+                }
+            }
+#endif
             /* pointers are handled are unsigned */
 #ifdef TCC_TARGET_X86_64
             t = VT_LLONG | VT_UNSIGNED;
@@ -2046,6 +2076,18 @@ static void gen_cast(CType *type)
                    VT_LVAL_xxx constants) */
             }
         }
+#ifdef TCC_TARGET_816
+        /* integer (not constant) to pointer: load the integer with its own
+           size and give the pointer bank 0, as for a constant address.
+           Without this the pointer is read later as 4 bytes, and its bank is
+           whatever follows the integer in memory or in the register */
+        if ((dbt & VT_BTYPE) == VT_PTR && !c && !p
+            && ((sbt & VT_BTYPE) == VT_INT || (sbt & VT_BTYPE) == VT_SHORT
+                || (sbt & VT_BTYPE) == VT_BYTE || (sbt & VT_BTYPE) == VT_BOOL)) {
+            int r = gv(RC_INT);
+            pr("stz.b tcc__r%dh\n", r);
+        }
+#endif
     } else if ((dbt & VT_BTYPE) == VT_PTR && !(vtop->r & VT_LVAL)) {
         /* if we are casting between pointer types,
            we must update the VT_LVAL_xxx size */
@@ -3419,6 +3461,14 @@ static void gfunc_param_typed(Sym *func, Sym *arg)
             type.t = VT_DOUBLE;
             gen_cast(&type);
         }
+#else
+        /* integer promotion: a char or a bool is passed as an int (2 bytes),
+           which is what va_arg(ap, int) reads (printf %d, %u, %c...) */
+        if (((vtop->type.t & VT_BTYPE) == VT_BYTE || (vtop->type.t & VT_BTYPE) == VT_BOOL)
+            && !(vtop->type.t & VT_ARRAY)) {
+            type.t = VT_INT;
+            gen_cast(&type);
+        }
 #endif
     } else if (arg == NULL) {
         error("too many arguments to function");
@@ -4503,7 +4553,17 @@ static void block(int *bsym, int *csym, int *case_sym, int *def_sym, int case_re
             } else if (is_float(func_vt.t)) {
                 gv(rc_fret(func_vt.t));
             } else {
+#ifdef TCC_TARGET_816
+                {
+                    int bt = func_vt.t & VT_BTYPE;
+                    int_return_mov = (bt == VT_INT || bt == VT_SHORT || bt == VT_BYTE
+                                      || bt == VT_BOOL);
+                }
+#endif
                 gv(RC_IRET);
+#ifdef TCC_TARGET_816
+                int_return_mov = 0;
+#endif
             }
             vtop--; /* NOT vpop() because on x86 it would flush the fp stack */
         }
