@@ -1168,8 +1168,18 @@ int gtst(int inv, int t)
     } else if (v == VT_JMP || v == VT_JMPI) {
         pr("; VT_jmp r %d t %d ji %d inv %d vtop->c.i %d\n", r, t, v & 1, inv, vtop->c.i);
         if ((v & 1) == inv) {
-            gsym(t);
-            t = vtop->c.i;
+            /* the jumps of vtop->c.i go where the jumps of t go: merge the
+               two lists (as gjmp does), do not resolve t here. An empty
+               vtop->c.i list (e.g. "a && (1 && 1)") leaves t unchanged. */
+            if (vtop->c.i) {
+                if (t) {
+                    int i;
+                    for (i = 0; i < jumps; i++)
+                        if (jump[i][0] == t)
+                            jump[i][0] = vtop->c.i;
+                }
+                t = vtop->c.i;
+            }
         } else {
             t = gjmp(t);
             gsym(vtop->c.i);
