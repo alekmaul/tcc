@@ -1,7 +1,7 @@
 <map id="tcc.h" name="tcc.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="13,5,66,31"/>
-<area shape="rect" id="Node000002" href="$da/d5b/libtcc_8c.html" title=" " alt="" coords="5,79,73,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="42,44,42,79,37,79,37,44"/>
-<area shape="rect" id="Node000003" href="$d7/de5/tcc_8c.html" title=" " alt="" coords="13,152,65,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="42,118,42,152,37,152,37,118"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="13,5,65,33"/>
+<area shape="rect" id="Node000002" href="$da/d5b/libtcc_8c.html" title=" " alt="" coords="5,81,73,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="40,46,42,81,36,80,38,51"/>
+<area shape="rect" id="Node000003" href="$d7/de5/tcc_8c.html" title=" " alt="" coords="13,157,65,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="41,123,42,157,36,156,37,126"/>
 </map>

@@ -63,8 +63,8 @@ var NAVTREEINDEX =
 [
 "annotated.html",
 "d1/d9e/elf_8h.html#a2ae7ae1a6df04e0ed6be07b94590686e",
-"d1/d9e/elf_8h.html#a718f00942fe99fac40732d8028027a62",
-"d1/d9e/elf_8h.html#ab77da073a07d6a452ce9e9a05d4fe17b",
+"d1/d9e/elf_8h.html#a7190dd499fc2129f489330ae128fd2ee",
+"d1/d9e/elf_8h.html#ab7a3c693de1d7231d092733cb540a26e",
 "d1/d9e/elf_8h.html#afa8cfd579492b34304c9a44d2f2ac59c",
 "d3/d29/tcc_8h.html#ae7feb412a3f1cdce998d0408b7e8241c",
 "d7/dab/float_8h.html#af78670ee54c1203d613f8fb0e022d214",
@@ -72,5 +72,6 @@ var NAVTREEINDEX =
 "de/dc9/tcclib_8h.html#a088e5d122572b7b20bd5abcdda97119e"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronisation';
-var SYNCOFFMSG = 'click to enable panel synchronisation';
+var SYNCONMSG = 'click to disable panel synchronization';
+var SYNCOFFMSG = 'click to enable panel synchronization';
+var LISTOFALLMEMBERS = 'List of all members';

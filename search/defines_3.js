@@ -12,5 +12,5 @@ var searchData=
   ['config_5ftcc_5fmalloc_5fhooks_9',['CONFIG_TCC_MALLOC_HOOKS',['../dc/d8f/bcheck_8c.html#aa95efeaadd451781b8d04222f586be96',1,'bcheck.c']]],
   ['config_5ftccdir_10',['CONFIG_TCCDIR',['../db/d16/config_8h.html#a72fb44bfbd34cd261dee16934a3983cb',1,'config.h']]],
   ['countof_11',['countof',['../d3/d29/tcc_8h.html#ae0895333e7c0b480c4ccab727560af3a',1,'tcc.h']]],
-  ['cstr_5freset_12',['cstr_reset',['../da/d5b/libtcc_8c.html#a682d3625082cfa169a9a806fccd71459',1,'cstr_reset:&#160;libtcc.c'],['../da/d5b/libtcc_8c.html#a682d3625082cfa169a9a806fccd71459',1,'cstr_reset:&#160;libtcc.c']]]
+  ['cstr_5freset_12',['cstr_reset',['../da/d5b/libtcc_8c.html#a682d3625082cfa169a9a806fccd71459',1,'cstr_reset:&#160;libtcc.c'],['../da/d5b/libtcc_8c.html#a83df0cd558309dfeb12540d2f85e33dc',1,'cstr_reset:&#160;libtcc.c']]]
 ];

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['l_0',['l',['../d5/d03/uniondouble__long.html#a9cd75cc60d3f66443abedcb8053e34a0',1,'double_long::l'],['../d7/d1e/unionfloat__long.html#a18b0b43d6712446958b7a069ee6a69c2',1,'float_long::l'],['../d1/d55/unionldouble__long.html#a5c96e6e7ceba2ff6ab321a7d69960a6c',1,'ldouble_long::l']]],
+  ['l_0',['l',['../d1/d55/unionldouble__long.html#a7f8d607c1abe8b44554a18b4f7451cf2',1,'ldouble_long::l'],['../d5/d03/uniondouble__long.html#a1e9fd2a4f65f662e471b8898a77d5b39',1,'double_long::l'],['../d7/d1e/unionfloat__long.html#a18b0b43d6712446958b7a069ee6a69c2',1,'float_long::l']]],
   ['l_5fchecksum_1',['l_checksum',['../d1/d1a/structElf32__Lib.html#a290248b0a3cecff9d43f796dd5c50b12',1,'Elf32_Lib::l_checksum'],['../d5/d7f/structElf64__Lib.html#a11f09b77bcae792d5e5c120b4a0fbcca',1,'Elf64_Lib::l_checksum']]],
   ['l_5fflags_2',['l_flags',['../d1/d1a/structElf32__Lib.html#a4a0feb8162591596d3653f561ee8759e',1,'Elf32_Lib::l_flags'],['../d5/d7f/structElf64__Lib.html#ac78fa7eafc377b04fcaf575c61dc2b60',1,'Elf64_Lib::l_flags']]],
   ['l_5fname_3',['l_name',['../d1/d1a/structElf32__Lib.html#af40827a2882aaf96d42ae60dac6551ee',1,'Elf32_Lib::l_name'],['../d5/d7f/structElf64__Lib.html#ac7f21d23c86f56c6583aa563eb960af0',1,'Elf64_Lib::l_name']]],
@@ -20,7 +20,7 @@ var searchData=
   ['line_5fnum_17',['line_num',['../d7/df7/structBufferedFile.html#a13dedac06b5a8887f99a6b86b1adb354',1,'BufferedFile::line_num'],['../da/d02/structParseState.html#a863b6581094267142dae021aca900544',1,'ParseState::line_num']]],
   ['link_18',['link',['../d7/dce/structSection.html#ab6b1ed04854635d61cf8d85be4550847',1,'Section']]],
   ['link_5fonce_19',['link_once',['../d6/de7/structSectionMergeInfo.html#a71cf1d2026a70d87e317b7a1ba8edb08',1,'SectionMergeInfo']]],
-  ['ll_20',['ll',['../d5/d03/uniondouble__long.html#a92b2e2fdc2958f7b9184894716b800dc',1,'double_long::ll'],['../d6/d09/unionDWunion.html#ad78943ef6edcb35d1443dda20e7be492',1,'DWunion::ll'],['../df/d14/unionCValue.html#a8797244b54b8d84a5464c16e599dea74',1,'CValue::ll']]],
+  ['ll_20',['ll',['../df/d14/unionCValue.html#a8797244b54b8d84a5464c16e599dea74',1,'CValue::ll'],['../d6/d09/unionDWunion.html#ad78943ef6edcb35d1443dda20e7be492',1,'DWunion::ll'],['../d5/d03/uniondouble__long.html#a92b2e2fdc2958f7b9184894716b800dc',1,'double_long::ll']]],
   ['ll_5fworkaround_21',['ll_workaround',['../d9/d87/816-gen_8c.html#a29b06c6ef74ee960e06daee004cd5423',1,'816-gen.c']]],
   ['loaded_5fdlls_22',['loaded_dlls',['../d4/dea/structTCCState.html#ac14bb7c909042871e7bbe3c2bc7ff661',1,'TCCState']]],
   ['localno_23',['localno',['../d9/d87/816-gen_8c.html#ae8c4c16cd870a688c2c8a9d739f2745b',1,'816-gen.c']]],

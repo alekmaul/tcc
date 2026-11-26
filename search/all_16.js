@@ -9,7 +9,7 @@ var searchData=
   ['unique_5ftoken_6',['unique_token',['../d9/d87/816-gen_8c.html#a05b73e89c01a7c8470930fda2f960de2',1,'816-gen.c']]],
   ['unroll_5fshift_5fmax_7',['UNROLL_SHIFT_MAX',['../d9/d87/816-gen_8c.html#afb7a5d6e6d466a5c48b9c27fee4176c2',1,'816-gen.c']]],
   ['uplong_8',['uplong',['../d3/d29/tcc_8h.html#ae7feb412a3f1cdce998d0408b7e8241c',1,'tcc.h']]],
-  ['upper_9',['upper',['../d5/d03/uniondouble__long.html#aba99ce7d18049dd479a5de7904c86948',1,'double_long::upper'],['../d1/d55/unionldouble__long.html#aa9df55fe77b22f355b6cccbad6f8c328',1,'ldouble_long::upper']]],
+  ['upper_9',['upper',['../d1/d55/unionldouble__long.html#aa9df55fe77b22f355b6cccbad6f8c328',1,'ldouble_long::upper'],['../d5/d03/uniondouble__long.html#aba99ce7d18049dd479a5de7904c86948',1,'double_long::upper']]],
   ['use_20a_20consistent_20coding_20style_10',['Use a Consistent Coding Style',['../d2/dc1/md_CONTRIBUTING.html#autotoc_md6',1,'']]],
   ['use_20github_20flow_11',['We Use Github Flow',['../d2/dc1/md_CONTRIBUTING.html#autotoc_md2',1,'']]],
   ['use_20it_12',['Use it',['../index.html#autotoc_md15',1,'']]],

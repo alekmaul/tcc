@@ -32,7 +32,7 @@ var searchData=
   ['shn_5fmips_5fscommon_29',['SHN_MIPS_SCOMMON',['../d1/d9e/elf_8h.html#ae1cf40421b62a28015a19302d86ec08a',1,'elf.h']]],
   ['shn_5fmips_5fsundefined_30',['SHN_MIPS_SUNDEFINED',['../d1/d9e/elf_8h.html#aaa426cb8bbd5f40a8566f1e4394a3896',1,'elf.h']]],
   ['shn_5fmips_5ftext_31',['SHN_MIPS_TEXT',['../d1/d9e/elf_8h.html#a6e328bf94ff4febd95e28f4b2bb2e67d',1,'elf.h']]],
-  ['shn_5fundef_32',['shn_undef',['../d1/d9e/elf_8h.html#ab2f25695673c5f1c4ec723e595288411',1,'SHN_UNDEF:&#160;elf.h'],['../d1/d9e/elf_8h.html#ab2f25695673c5f1c4ec723e595288411',1,'SHN_UNDEF:&#160;elf.h']]],
+  ['shn_5fundef_32',['SHN_UNDEF',['../d1/d9e/elf_8h.html#ab2f25695673c5f1c4ec723e595288411',1,'SHN_UNDEF:&#160;elf.h'],['../d1/d9e/elf_8h.html#ae92da0b211eca89625c7821f3ce1ef46',1,'SHN_UNDEF:&#160;elf.h']]],
   ['sht_5falpha_5fdebug_33',['SHT_ALPHA_DEBUG',['../d1/d9e/elf_8h.html#af5d1f9833c3c071cdf7433a3a89eeee9',1,'elf.h']]],
   ['sht_5falpha_5freginfo_34',['SHT_ALPHA_REGINFO',['../d1/d9e/elf_8h.html#aa73009720b12f9c8d176bd1035351006',1,'elf.h']]],
   ['sht_5farm_5fattributes_35',['SHT_ARM_ATTRIBUTES',['../d1/d9e/elf_8h.html#a238a48695a7847e333ed6d3056a6860a',1,'elf.h']]],

@@ -4,7 +4,7 @@ var searchData=
   ['a_5ffcn_1',['a_fcn',['../d2/d6b/structElf32__auxv__t.html#a6a3e0415fce457d894e8eca3feb07a36',1,'Elf32_auxv_t::a_fcn'],['../d9/de7/structElf64__auxv__t.html#aadef173453c71e35ce0c0f64deb05bd1',1,'Elf64_auxv_t::a_fcn']]],
   ['a_5fptr_2',['a_ptr',['../d2/d6b/structElf32__auxv__t.html#a2d62238e52a6c1cca373e2a2acb04b8b',1,'Elf32_auxv_t::a_ptr'],['../d9/de7/structElf64__auxv__t.html#ac4aacf05fb73568986fdb9304b0fedcf',1,'Elf64_auxv_t::a_ptr']]],
   ['a_5ftype_3',['a_type',['../d2/d6b/structElf32__auxv__t.html#a971e435f2493cae75cad9aec9a8fc49b',1,'Elf32_auxv_t::a_type'],['../d9/de7/structElf64__auxv__t.html#a6d53e31edc4f832d7e100d99de8499d0',1,'Elf64_auxv_t::a_type']]],
-  ['a_5fun_4',['a_un',['../d2/d6b/structElf32__auxv__t.html#ac7a4de518866059ae3d7028c2eb93302',1,'Elf32_auxv_t::a_un'],['../d9/de7/structElf64__auxv__t.html#aa96c9955e93b459d0d3f7217af418d2d',1,'Elf64_auxv_t::a_un']]],
+  ['a_5fun_4',['a_un',['../d2/d6b/structElf32__auxv__t.html#a264b5131ddf89cb114f8042a9e50a520',1,'Elf32_auxv_t::a_un'],['../d9/de7/structElf64__auxv__t.html#ada6994016cdd05b051b0719d639bd365',1,'Elf64_auxv_t::a_un']]],
   ['a_5fval_5',['a_val',['../d2/d6b/structElf32__auxv__t.html#ac08bbaebe1c87534ffd4d344ca46a4e9',1,'Elf32_auxv_t::a_val'],['../d9/de7/structElf64__auxv__t.html#a889967bed5ea632eb683d472a8ac3036',1,'Elf64_auxv_t::a_val']]],
   ['about_6',['About',['../index.html#autotoc_md10',1,'']]],
   ['acknowledgements_7',['Acknowledgements',['../index.html#autotoc_md18',1,'']]],
@@ -25,13 +25,13 @@ var searchData=
   ['ar_5fname_22',['ar_name',['../d6/ded/structArchiveHeader.html#a309f32076b9594e3705d3d900741d6b9',1,'ArchiveHeader']]],
   ['ar_5fsize_23',['ar_size',['../d6/ded/structArchiveHeader.html#a05a438ae87008532b56164cdb1e45e9f',1,'ArchiveHeader']]],
   ['ar_5fuid_24',['ar_uid',['../d6/ded/structArchiveHeader.html#ae7c3fe0e2f14b90941da0f4fea097874',1,'ArchiveHeader']]],
-  ['archiveheader_25',['archiveheader',['../d6/da0/tccelf_8c.html#a161f076721b0ceee75d823f848929b3e',1,'ArchiveHeader:&#160;tccelf.c'],['../d6/ded/structArchiveHeader.html',1,'ArchiveHeader']]],
+  ['archiveheader_25',['ArchiveHeader',['../d6/ded/structArchiveHeader.html',1,'ArchiveHeader'],['../d6/da0/tccelf_8c.html#a161f076721b0ceee75d823f848929b3e',1,'ArchiveHeader:&#160;tccelf.c']]],
   ['args_5fsize_26',['args_size',['../d9/d87/816-gen_8c.html#a614a5c4477118dbb47b411df6c7452b8',1,'816-gen.c']]],
   ['armag_27',['ARMAG',['../d6/da0/tccelf_8c.html#a8ff74a872546f6c463e90bd83fabb0b4',1,'tccelf.c']]],
   ['array_5fresize_28',['ARRAY_RESIZE',['../d3/d29/tcc_8h.html#ad6b33b692bf1bd372a5c61fd5ce705bb',1,'tcc.h']]],
   ['asm_5flabels_29',['asm_labels',['../d4/dea/structTCCState.html#ab2c9a9900dec8fa1636d3d31206f3462',1,'TCCState']]],
   ['asm_5fstr_30',['asm_str',['../db/d75/structASMOperand.html#afb5a1bab0d1319f463c390d0105dbe6b',1,'ASMOperand']]],
-  ['asmoperand_31',['asmoperand',['../d3/d29/tcc_8h.html#ae10661c00356e1b6212adfaf1e37a6e8',1,'ASMOperand:&#160;tcc.h'],['../db/d75/structASMOperand.html',1,'ASMOperand']]],
+  ['asmoperand_31',['ASMOperand',['../db/d75/structASMOperand.html',1,'ASMOperand'],['../d3/d29/tcc_8h.html#ae10661c00356e1b6212adfaf1e37a6e8',1,'ASMOperand:&#160;tcc.h']]],
   ['asprintf_32',['asprintf',['../de/dc9/tcclib_8h.html#a73ffef6a1d91bd088828123455ec7332',1,'tcclib.h']]],
   ['at_5fbase_33',['AT_BASE',['../d1/d9e/elf_8h.html#a9b8e51a44a47d7ea827c570ffdca14e5',1,'elf.h']]],
   ['at_5fegid_34',['AT_EGID',['../d1/d9e/elf_8h.html#a687680c9f0b9bbabf6619f0aa5116580',1,'elf.h']]],
@@ -53,5 +53,5 @@ var searchData=
   ['at_5fuid_50',['AT_UID',['../d1/d9e/elf_8h.html#a7bc508a179d0a308a8e4b47b97bcf2a3',1,'elf.h']]],
   ['atoi_51',['atoi',['../de/dc9/tcclib_8h.html#ad228deceea1bac4d9f171f647c265059',1,'tcclib.h']]],
   ['attr_5fmode_52',['ATTR_MODE',['../d3/d29/tcc_8h.html#ae470539fa9ddb726cc52b76d3088afd6',1,'tcc.h']]],
-  ['attributedef_53',['attributedef',['../d3/d29/tcc_8h.html#a36f6f73abbc5fe7c09fc6d3279548682',1,'AttributeDef:&#160;tcc.h'],['../d0/d94/structAttributeDef.html',1,'AttributeDef']]]
+  ['attributedef_53',['AttributeDef',['../d0/d94/structAttributeDef.html',1,'AttributeDef'],['../d3/d29/tcc_8h.html#a36f6f73abbc5fe7c09fc6d3279548682',1,'AttributeDef:&#160;tcc.h']]]
 ];

@@ -1,9 +1,9 @@
 <map id="libtcc.h" name="libtcc.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,75,31"/>
-<area shape="rect" id="Node000002" href="$d3/d29/tcc_8h.html" title=" " alt="" coords="13,79,67,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="43,44,43,79,37,79,37,44"/>
-<area shape="rect" id="Node000003" href="$da/d5b/libtcc_8c.html" title=" " alt="" coords="6,152,74,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="43,118,43,152,37,152,37,118"/>
-<area shape="rect" id="Node000004" href="$d7/de5/tcc_8c.html" title=" " alt="" coords="14,225,66,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="43,191,43,225,37,225,37,191"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,74,33"/>
+<area shape="rect" id="Node000002" href="$d3/d29/tcc_8h.html" title=" " alt="" coords="13,81,66,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="40,46,42,81,37,80,39,51"/>
+<area shape="rect" id="Node000003" href="$da/d5b/libtcc_8c.html" title=" " alt="" coords="6,157,73,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="40,122,42,156,37,156,39,127"/>
+<area shape="rect" id="Node000004" href="$d7/de5/tcc_8c.html" title=" " alt="" coords="14,232,65,260"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="41,198,42,232,37,231,38,202"/>
 </map>

@@ -154,7 +154,7 @@ var menudata={children:[
 {text:"x",url:"globals_type.html#index_x"}]},
 {text:"Enumerations",url:"globals_enum.html"},
 {text:"Enumerator",url:"globals_eval.html",children:[
-{text:"l",url:"globals_eval.html#index_l"},
+{text:"_",url:"globals_eval.html#index__5F"},
 {text:"t",url:"globals_eval.html#index_t"}]},
 {text:"Macros",url:"globals_defs.html",children:[
 {text:"_",url:"globals_defs.html#index__5F"},

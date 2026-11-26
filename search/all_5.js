@@ -1,10 +1,10 @@
 var searchData=
 [
-  ['c_0',['c',['../d0/dc6/structSym.html#a93977d30b1a252ad765bd44d4118b793',1,'Sym::c'],['../d8/da6/structSValue.html#a0403aab2e3003adc79ecd184b68bf7b9',1,'SValue::c']]],
+  ['c_0',['c',['../d8/da6/structSValue.html#a0403aab2e3003adc79ecd184b68bf7b9',1,'SValue::c'],['../d0/dc6/structSym.html#a93977d30b1a252ad765bd44d4118b793',1,'Sym::c']]],
   ['cached_5fincludes_1',['cached_includes',['../d4/dea/structTCCState.html#a10094450255d2945f56ada101a87310a',1,'TCCState']]],
   ['cached_5fincludes_5fhash_2',['cached_includes_hash',['../d4/dea/structTCCState.html#a3ff3bdba23dc69e86c22a22d3a9dacd0',1,'TCCState']]],
   ['cached_5fincludes_5fhash_5fsize_3',['CACHED_INCLUDES_HASH_SIZE',['../d3/d29/tcc_8h.html#aa90fd23b0961c1b7b3aeb95e6018fd61',1,'tcc.h']]],
-  ['cachedinclude_4',['cachedinclude',['../d9/d4d/structCachedInclude.html',1,'CachedInclude'],['../d3/d29/tcc_8h.html#a7be5ff27826fb66438b210b27a73be45',1,'CachedInclude:&#160;tcc.h']]],
+  ['cachedinclude_4',['CachedInclude',['../d9/d4d/structCachedInclude.html',1,'CachedInclude'],['../d3/d29/tcc_8h.html#a7be5ff27826fb66438b210b27a73be45',1,'CachedInclude:&#160;tcc.h']]],
   ['calloc_5',['calloc',['../de/dc9/tcclib_8h.html#a2807e26a012717736641384f91ab2563',1,'tcclib.h']]],
   ['ch_5feob_6',['CH_EOB',['../d3/d29/tcc_8h.html#ac460c7ab43a4b77af12162cb2ed66b22',1,'tcc.h']]],
   ['ch_5feof_7',['CH_EOF',['../d3/d29/tcc_8h.html#a1801a4e55bb24535c0e7605f8da5f037',1,'tcc.h']]],
@@ -31,9 +31,9 @@ var searchData=
   ['convert_5ftype_5fhelper_28',['convert_type_helper',['../d9/d87/816-gen_8c.html#a45eba475ee8e90cc31f54a1a2d58b23b',1,'816-gen.c']]],
   ['countof_29',['countof',['../d3/d29/tcc_8h.html#ae0895333e7c0b480c4ccab727560af3a',1,'tcc.h']]],
   ['cstr_30',['cstr',['../df/d14/unionCValue.html#a8c8a6aba77a35792aa15d18b0a452fc7',1,'CValue']]],
-  ['cstr_5freset_31',['cstr_reset',['../da/d5b/libtcc_8c.html#a682d3625082cfa169a9a806fccd71459',1,'cstr_reset:&#160;libtcc.c'],['../da/d5b/libtcc_8c.html#a682d3625082cfa169a9a806fccd71459',1,'cstr_reset:&#160;libtcc.c']]],
-  ['cstring_32',['cstring',['../d3/d29/tcc_8h.html#ad40765205a3790f823090b225a357272',1,'CString:&#160;tcc.h'],['../d9/d7b/structCString.html',1,'CString']]],
-  ['ctype_33',['ctype',['../d3/d29/tcc_8h.html#a95712a2e2b84b4b79dd53974d8b28dc5',1,'CType:&#160;tcc.h'],['../df/d80/structCType.html',1,'CType']]],
+  ['cstr_5freset_31',['cstr_reset',['../da/d5b/libtcc_8c.html#a682d3625082cfa169a9a806fccd71459',1,'cstr_reset:&#160;libtcc.c'],['../da/d5b/libtcc_8c.html#a83df0cd558309dfeb12540d2f85e33dc',1,'cstr_reset:&#160;libtcc.c']]],
+  ['cstring_32',['CString',['../d9/d7b/structCString.html',1,'CString'],['../d3/d29/tcc_8h.html#ad40765205a3790f823090b225a357272',1,'CString:&#160;tcc.h']]],
+  ['ctype_33',['CType',['../df/d80/structCType.html',1,'CType'],['../d3/d29/tcc_8h.html#a95712a2e2b84b4b79dd53974d8b28dc5',1,'CType:&#160;tcc.h']]],
   ['current_5ffn_34',['current_fn',['../d9/d87/816-gen_8c.html#ac5964772d4e1e24d41be7405df7f8a06',1,'816-gen.c']]],
-  ['cvalue_35',['cvalue',['../d3/d29/tcc_8h.html#aec4a5c7cdbff0b07bc307cce6310edbb',1,'CValue:&#160;tcc.h'],['../df/d14/unionCValue.html',1,'CValue']]]
+  ['cvalue_35',['CValue',['../df/d14/unionCValue.html',1,'CValue'],['../d3/d29/tcc_8h.html#aec4a5c7cdbff0b07bc307cce6310edbb',1,'CValue:&#160;tcc.h']]]
 ];

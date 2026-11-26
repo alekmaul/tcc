@@ -4,7 +4,7 @@ var libtcc_8c =
     [ "AFF_PREPROCESS", "da/d5b/libtcc_8c.html#ad69f95de54333beb7d3cab8c9b2e8826", null ],
     [ "AFF_PRINT_ERROR", "da/d5b/libtcc_8c.html#ad741e9eab1aede0be11a4457906b1255", null ],
     [ "AFF_REFERENCED_DLL", "da/d5b/libtcc_8c.html#a43b482d7e6264bbb55ae65effcf8252c", null ],
-    [ "cstr_reset", "da/d5b/libtcc_8c.html#a682d3625082cfa169a9a806fccd71459", null ],
+    [ "cstr_reset", "da/d5b/libtcc_8c.html#a83df0cd558309dfeb12540d2f85e33dc", null ],
     [ "cstr_reset", "da/d5b/libtcc_8c.html#a682d3625082cfa169a9a806fccd71459", null ],
     [ "FD_INVERT", "da/d5b/libtcc_8c.html#aa5916bacc3f65bf10266fb3ffa3f8cc4", null ],
     [ "free", "da/d5b/libtcc_8c.html#a9d4b5df3530d1bc733070a4669ba6ebc", null ],

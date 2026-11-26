@@ -9,7 +9,7 @@ var searchData=
   ['dbl_5fmin_6',['DBL_MIN',['../d7/dab/float_8h.html#ab5f2d2630bc132bca0a4c9733164e91a',1,'float.h']]],
   ['dbl_5fmin_5f10_5fexp_7',['DBL_MIN_10_EXP',['../d7/dab/float_8h.html#a5b731624df926496f4fc19001447d3e7',1,'float.h']]],
   ['dbl_5fmin_5fexp_8',['DBL_MIN_EXP',['../d7/dab/float_8h.html#a0a7be8bc5288d5fe9f56aae3a8684167',1,'float.h']]],
-  ['def_9',['def',['../d3/d29/tcc_8h.html#a3260c8cdf916048be8ce14d1e0d7733b',1,'DEF:&#160;tcc.h'],['../df/d5f/tccpp_8c.html#a3260c8cdf916048be8ce14d1e0d7733b',1,'DEF:&#160;tccpp.c']]],
+  ['def_9',['DEF',['../d3/d29/tcc_8h.html#a3260c8cdf916048be8ce14d1e0d7733b',1,'DEF:&#160;tcc.h'],['../df/d5f/tccpp_8c.html#a3260c8cdf916048be8ce14d1e0d7733b',1,'DEF:&#160;tccpp.c']]],
   ['def_5fasm_10',['DEF_ASM',['../d3/d29/tcc_8h.html#ab20bc377af7c92b314478d46e7f02ea2',1,'tcc.h']]],
   ['def_5fasmtest_11',['DEF_ASMTEST',['../d3/d29/tcc_8h.html#aeb67a2affff7bc59f436da3579264383',1,'tcc.h']]],
   ['def_5fbwl_12',['DEF_BWL',['../d3/d29/tcc_8h.html#acae43d9640528b3f7612d5caeaa8d80c',1,'tcc.h']]],

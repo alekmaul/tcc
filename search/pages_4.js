@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['the_20project_0',['Contributing to the project',['../d2/dc1/md_CONTRIBUTING.html',1,'']]],
-  ['the_20wdc_2065816_1',['TinyCC Compiler for the WDC 65816',['../index.html',1,'']]],
-  ['tinycc_20compiler_20for_20the_20wdc_2065816_2',['TinyCC Compiler for the WDC 65816',['../index.html',1,'']]],
-  ['to_20the_20project_3',['Contributing to the project',['../d2/dc1/md_CONTRIBUTING.html',1,'']]]
+  ['detail_20background_20and_20sample_20code_0',['Write bug reports with detail, background, and sample code',['../d2/dc1/md_CONTRIBUTING.html#autotoc_md5',1,'']]],
+  ['develop_20with_20github_1',['We Develop with Github',['../d2/dc1/md_CONTRIBUTING.html#autotoc_md1',1,'']]],
+  ['documentation_2',['Generate the documentation',['../index.html#autotoc_md14',1,'']]]
 ];
